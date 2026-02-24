@@ -1,0 +1,141 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Harvia Sauna",
+        "description": "Enter your MyHarvia app credentials.",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        }
+      },
+      "heater": {
+        "title": "Heater Setup",
+        "description": "Select your sauna heater model and power rating. This helps display correct device information and can be changed later.",
+        "data": {
+          "heater_model": "Heater model",
+          "heater_power": "Heater power (kW)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Harvia Sauna",
+        "description": "Please enter your updated MyHarvia credentials.",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials. Please check your MyHarvia app login.",
+      "cannot_connect": "Cannot connect to MyHarvia cloud. Please try again later.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Re-authentication successful."
+    }
+  },
+  "entity": {
+    "climate": {
+      "thermostat": {
+        "name": "Thermostat"
+      }
+    },
+    "switch": {
+      "power": {
+        "name": "Power"
+      },
+      "light": {
+        "name": "Light"
+      },
+      "fan": {
+        "name": "Fan"
+      },
+      "steamer": {
+        "name": "Steamer"
+      },
+      "aroma": {
+        "name": "Aroma"
+      },
+      "auto_light": {
+        "name": "Auto light"
+      },
+      "auto_fan": {
+        "name": "Auto fan"
+      },
+      "dehumidifier": {
+        "name": "Dehumidifier"
+      }
+    },
+    "sensor": {
+      "current_temperature": {
+        "name": "Temperature"
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "target_temperature": {
+        "name": "Target temperature"
+      },
+      "remaining_time": {
+        "name": "Remaining time"
+      },
+      "heat_up_time": {
+        "name": "Heat-up time"
+      },
+      "wifi_rssi": {
+        "name": "WiFi signal"
+      },
+      "status_codes": {
+        "name": "Status codes"
+      },
+      "aroma_level": {
+        "name": "Aroma level"
+      },
+      "ph1_relay_counter": {
+        "name": "Phase 1 relay counter"
+      },
+      "ph2_relay_counter": {
+        "name": "Phase 2 relay counter"
+      },
+      "ph3_relay_counter": {
+        "name": "Phase 3 relay counter"
+      },
+      "heat_on_counter": {
+        "name": "Heater cycles"
+      },
+      "steam_on_counter": {
+        "name": "Steamer cycles"
+      },
+      "power": {
+        "name": "Power"
+      },
+      "energy": {
+        "name": "Energy"
+      }
+    },
+    "binary_sensor": {
+      "door": {
+        "name": "Door"
+      },
+      "heat_on": {
+        "name": "Heater active"
+      },
+      "steam_on": {
+        "name": "Steamer active"
+      }
+    },
+    "number": {
+      "target_humidity": {
+        "name": "Target humidity"
+      },
+      "aroma_level_set": {
+        "name": "Aroma level"
+      },
+      "on_time": {
+        "name": "Session duration"
+      }
+    }
+  }
+}

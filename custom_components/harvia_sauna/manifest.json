@@ -1,0 +1,16 @@
+{
+  "domain": "harvia_sauna",
+  "name": "Harvia Sauna",
+  "codeowners": ["@WiesiDeluxe"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/WiesiDeluxe/ha-harvia-sauna",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/WiesiDeluxe/ha-harvia-sauna/issues",
+  "requirements": [
+    "boto3>=1.34.69",
+    "pycognito>=2024.2.0",
+    "websockets>=12.0"
+  ],
+  "version": "2.0.0"
+}
