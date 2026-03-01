@@ -91,6 +91,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:wifi",
+        entity_registry_enabled_default=False,
         value_fn=lambda d: d.wifi_rssi,
     ),
     HarviaSensorDescription(
