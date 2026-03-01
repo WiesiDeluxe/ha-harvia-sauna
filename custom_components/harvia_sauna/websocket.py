@@ -6,7 +6,9 @@ import asyncio
 import json
 import logging
 import random
+import ssl
 import uuid
+from functools import partial
 from typing import Any, Callable
 
 import websockets
@@ -158,6 +160,12 @@ class HarviaWebSocket:
                 pass
             self._websocket = None
 
+    @staticmethod
+    def _create_ssl_context() -> ssl.SSLContext:
+        """Create SSL context (blocking, must run in executor)."""
+        ctx = ssl.create_default_context()
+        return ctx
+
     async def _async_connect_and_listen(self) -> None:
         """Connect to WebSocket and listen for messages."""
         ws_info = await self._api.async_get_websocket_info(self._endpoint)
@@ -165,8 +173,12 @@ class HarviaWebSocket:
 
         self._subscription_id = str(uuid.uuid4())
 
+        # Create SSL context in executor to avoid blocking the event loop
+        loop = asyncio.get_running_loop()
+        ssl_context = await loop.run_in_executor(None, self._create_ssl_context)
+
         async with websockets.connect(
-            url, subprotocols=["graphql-ws"]
+            url, subprotocols=["graphql-ws"], ssl=ssl_context
         ) as websocket:
             self._websocket = websocket
             self._reconnect_attempts = 0
