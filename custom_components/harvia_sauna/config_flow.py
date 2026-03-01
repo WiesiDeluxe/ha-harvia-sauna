@@ -45,6 +45,8 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._user_input: dict[str, Any] = {}
         self._user_data: dict[str, Any] | None = None
+        self._detected_model: str = "other"
+        self._detected_power: str = "10.8"
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -61,6 +63,9 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
                 )
                 await api.async_authenticate()
                 self._user_data = await api.async_get_user_data()
+
+                # Try to auto-detect heater model from device data
+                await self._async_detect_heater(api)
 
                 # Save credentials for next step
                 self._user_input = user_input
@@ -81,6 +86,26 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=STEP_USER_DATA_SCHEMA,
             errors=errors,
         )
+
+    async def _async_detect_heater(self, api: HarviaApiClient) -> None:
+        """Try to detect heater model from device display name."""
+        try:
+            device_tree = await api.async_get_device_tree()
+            if not device_tree:
+                return
+
+            device_id = device_tree[0]["i"]["name"]
+            state = await api.async_get_device_state(device_id)
+            display_name = state.get("displayName", "").lower()
+
+            # Match known model names
+            for key in HEATER_MODELS:
+                if key != "other" and key.replace("_", " ") in display_name:
+                    self._detected_model = key
+                    _LOGGER.debug("Auto-detected heater model: %s", key)
+                    break
+        except Exception:
+            _LOGGER.debug("Could not auto-detect heater model")
 
     async def async_step_heater(
         self, user_input: dict[str, Any] | None = None
@@ -106,9 +131,21 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
                 data=full_data,
             )
 
+        # Pre-fill with auto-detected values
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_HEATER_MODEL, default=self._detected_model
+                ): vol.In(HEATER_MODELS),
+                vol.Required(
+                    CONF_HEATER_POWER, default=self._detected_power
+                ): vol.In(HEATER_POWER_OPTIONS),
+            }
+        )
+
         return self.async_show_form(
             step_id="heater",
-            data_schema=STEP_HEATER_DATA_SCHEMA,
+            data_schema=schema,
         )
 
     async def async_step_reauth(

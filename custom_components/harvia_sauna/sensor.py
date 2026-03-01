@@ -112,7 +112,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         entity_registry_enabled_default=False,
         value_fn=lambda d: d.aroma_level,
     ),
-    # Diagnostic relay counters
+    # Diagnostic counters (Lifetime values)
     HarviaSensorDescription(
         key="ph1_relay_counter",
         translation_key="ph1_relay_counter",
@@ -120,7 +120,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph1_relay_counter,
+        value_fn=lambda d: d.ph1_relay_counter_lt,
     ),
     HarviaSensorDescription(
         key="ph2_relay_counter",
@@ -129,7 +129,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph2_relay_counter,
+        value_fn=lambda d: d.ph2_relay_counter_lt,
     ),
     HarviaSensorDescription(
         key="ph3_relay_counter",
@@ -138,7 +138,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph3_relay_counter,
+        value_fn=lambda d: d.ph3_relay_counter_lt,
     ),
     HarviaSensorDescription(
         key="heat_on_counter",
@@ -146,8 +146,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
-        entity_registry_enabled_default=False,
-        value_fn=lambda d: d.heat_on_counter,
+        value_fn=lambda d: d.heat_on_counter_lt,
     ),
     HarviaSensorDescription(
         key="steam_on_counter",
@@ -156,7 +155,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.steam_on_counter,
+        value_fn=lambda d: d.steam_on_counter_lt,
     ),
     HarviaSensorDescription(
         key="power",

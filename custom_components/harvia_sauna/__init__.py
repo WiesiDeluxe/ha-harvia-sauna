@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from .api import HarviaApiClient, HarviaAuthError, HarviaConnectionError
-from .const import DOMAIN
+from .const import CONF_HEATER_POWER, DEFAULT_HEATER_POWER_W, DOMAIN
 from .coordinator import HarviaSaunaCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,6 +45,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
+
+    # Apply configured heater power to devices
+    power_kw_str = entry.data.get(CONF_HEATER_POWER, "")
+    try:
+        heater_power_w = int(float(power_kw_str) * 1000)
+    except (ValueError, TypeError):
+        heater_power_w = DEFAULT_HEATER_POWER_W
+
+    if coordinator.data:
+        for device in coordinator.data.devices.values():
+            device.heater_power = heater_power_w
 
     # Start WebSocket connections for real-time updates
     await coordinator.async_setup()

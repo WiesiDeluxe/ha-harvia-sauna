@@ -18,6 +18,9 @@ from .websocket import HarviaWebSocketManager
 
 _LOGGER = logging.getLogger(__name__)
 
+# Device is considered stale if no update received for this many seconds
+DEVICE_STALE_TIMEOUT = 600  # 10 minutes
+
 
 @dataclass
 class HarviaDeviceData:
@@ -77,6 +80,7 @@ class HarviaDeviceData:
     heater_power: int = 10800  # Nennleistung in Watt (wird aus Config überschrieben)
     energy_kwh: float = 0.0  # Kumulierter Energieverbrauch in kWh
     _last_heat_on_timestamp: float | None = None  # Für Energy-Berechnung
+    _last_update: float = 0.0  # monotonic timestamp of last data received
 
 
 @dataclass
@@ -190,6 +194,15 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         """Send a state change command to a device."""
         await self.api.async_request_state_change(device_id, payload)
 
+    def is_device_stale(self, device_id: str) -> bool:
+        """Check if a device has not received updates recently."""
+        if not self.data or device_id not in self.data.devices:
+            return True
+        device = self.data.devices[device_id]
+        if device._last_update == 0.0:
+            return False  # No update yet, trust initial data
+        return (time.monotonic() - device._last_update) > DEVICE_STALE_TIMEOUT
+
 
 def _apply_state_data(device: HarviaDeviceData, data: dict) -> None:
     """Apply device state (reported) data to the device object."""
@@ -234,6 +247,8 @@ def _apply_state_data(device: HarviaDeviceData, data: dict) -> None:
             device.door_open = int(str(data["statusCodes"])[1]) == 9
         except (IndexError, ValueError):
             pass
+
+    device._last_update = time.monotonic()
 
 
 def _apply_telemetry_data(device: HarviaDeviceData, data: dict) -> None:
@@ -283,3 +298,5 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict) -> None:
     ]:
         if key in data:
             setattr(device, attr, data[key])
+
+    device._last_update = time.monotonic()

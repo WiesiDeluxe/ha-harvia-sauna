@@ -72,9 +72,17 @@ class HarviaApiClient:
         client = await self._async_get_cognito_client()
         await self.async_authenticate()
 
-        await self._hass.async_add_executor_job(
-            lambda: client.check_token(renew=True)
-        )
+        try:
+            await self._hass.async_add_executor_job(
+                lambda: client.check_token(renew=True)
+            )
+        except Exception as err:
+            _LOGGER.debug("Token refresh failed, re-authenticating: %s", err)
+            # Force full re-authentication
+            self._token_data = None
+            self._cognito = None
+            await self.async_authenticate()
+            client = self._cognito
 
         self._token_data = {
             "access_token": client.access_token,

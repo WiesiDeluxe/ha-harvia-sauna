@@ -128,9 +128,19 @@ class HarviaWebSocket:
             except Exception as err:
                 if not self._running:
                     break
-                _LOGGER.debug(
-                    "WebSocket %s error: %s, reconnecting...", self._label, err
-                )
+                err_str = str(err)
+                if "401" in err_str or "403" in err_str or "Unauthorized" in err_str:
+                    _LOGGER.debug(
+                        "WebSocket %s auth error, forcing token refresh: %s",
+                        self._label, err,
+                    )
+                    # Reset backoff for auth errors - retry quickly after refresh
+                    self._reconnect_attempts = 0
+                else:
+                    _LOGGER.debug(
+                        "WebSocket %s error: %s, reconnecting...",
+                        self._label, err,
+                    )
 
             if not self._running:
                 break

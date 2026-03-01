@@ -59,4 +59,3 @@ HEATER_POWER_OPTIONS: dict[str, str] = {
 
 # Heater
 DEFAULT_HEATER_POWER_W = 10800  # Default Nennleistung in Watt (10.8 kW)
-CONF_HEATER_POWER = "heater_power"
