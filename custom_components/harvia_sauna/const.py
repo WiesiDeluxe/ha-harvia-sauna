@@ -21,8 +21,17 @@ WS_MAX_RECONNECT_DELAY = 60  # Max Backoff bei Reconnect
 SCAN_INTERVAL_FALLBACK = 300  # 5 Minuten Fallback-Polling falls WebSocket ausfällt
 
 # Config keys
+CONF_API_PROVIDER = "api_provider"
 CONF_HEATER_MODEL = "heater_model"
 CONF_HEATER_POWER = "heater_power"
+
+API_PROVIDER_MYHARVIA = "myharvia_graphql"
+API_PROVIDER_HARVIAIO = "harviaio_rest_graphql"
+
+API_PROVIDERS: dict[str, str] = {
+    API_PROVIDER_MYHARVIA: "myHarvia (Xenio controller)",
+    API_PROVIDER_HARVIAIO: "myHarvia 2 - harvia.io (Fenix controller)",
+}
 
 # HA Events
 EVENT_SESSION_START = f"{DOMAIN}_session_start"

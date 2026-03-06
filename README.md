@@ -9,6 +9,7 @@ Custom Home Assistant integration for **Harvia sauna heaters** with Xenio WiFi c
 ## Features
 
 - 🌡️ **Climate control** — thermostat with current/target temperature
+- 🔌 **Dual API provider support** — MyHarvia GraphQL (legacy) and Harvia REST/GraphQL API
 - ⚡ **Real-time updates** via WebSocket push — no polling delay
 - 📊 **Session tracking** — duration, max temperature, daily count
 - 🔋 **Energy monitoring** — power (W) and cumulative energy (kWh), persistent across restarts
@@ -43,8 +44,9 @@ Custom Home Assistant integration for **Harvia sauna heaters** with Xenio WiFi c
 ## Setup
 
 1. **Settings** → **Devices & Services** → **Add Integration** → search "Harvia Sauna"
-2. Enter your MyHarvia credentials (email + password)
-3. Select heater model and power rating (auto-detection attempted)
+2. Choose API provider (`MyHarvia Cloud` or `Harvia API`)
+3. Enter your Harvia credentials (email + password)
+4. Select heater model and power rating (auto-detection attempted)
 
 To change model/power later: **⋮** → **Reconfigure**
 

@@ -14,21 +14,17 @@ from pycognito import Cognito
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .api_base import HarviaApiClientBase
 from .const import ENDPOINTS, MYHARVIA_BASE_URL, MYHARVIA_REGION
+from .errors import HarviaAuthError, HarviaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class HarviaAuthError(Exception):
-    """Authentication failed."""
-
-
-class HarviaConnectionError(Exception):
-    """Connection to API failed."""
-
-
-class HarviaApiClient:
+class HarviaApiClient(HarviaApiClientBase):
     """Client for the MyHarvia Cloud API (Cognito + AppSync GraphQL)."""
+
+    supports_push_updates = True
 
     def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:
         """Initialize the API client."""
@@ -39,6 +35,7 @@ class HarviaApiClient:
         self._cognito: Cognito | None = None
         self._token_data: dict | None = None
         self._user_data: dict | None = None
+        self._ws_manager = None
 
     async def async_authenticate(self) -> bool:
         """Authenticate with MyHarvia via AWS Cognito."""
@@ -211,6 +208,41 @@ class HarviaApiClient:
 
         return tree_data[0].get("c", [])
 
+    async def async_get_devices(self) -> list[dict[str, str]]:
+        """Return normalized list of devices."""
+        tree_devices = await self.async_get_device_tree()
+        devices: list[dict[str, str]] = []
+        for entry in tree_devices:
+            device_id = entry.get("i", {}).get("name")
+            if not device_id:
+                device_id = entry.get("deviceId")
+            if device_id:
+                devices.append({"device_id": device_id})
+        if devices:
+            return devices
+
+        # Defensive fallback for unexpected tree shapes.
+        def _walk(value):
+            if isinstance(value, dict):
+                nested_id = value.get("deviceId")
+                if isinstance(nested_id, str):
+                    devices.append({"device_id": nested_id})
+                nested_name = value.get("name")
+                if (
+                    isinstance(nested_name, str)
+                    and "-" in nested_name
+                    and nested_name not in {d["device_id"] for d in devices}
+                ):
+                    devices.append({"device_id": nested_name})
+                for nested in value.values():
+                    _walk(nested)
+            elif isinstance(value, list):
+                for nested in value:
+                    _walk(nested)
+
+        _walk(tree_devices)
+        return devices
+
     async def async_get_device_state(self, device_id: str) -> dict:
         """Get current device state (reported)."""
         query = {
@@ -304,6 +336,46 @@ class HarviaApiClient:
             f"?header={quote(encoded_header)}"
             f"&payload=e30="
         )
+
+    async def async_start_push_updates(self, on_device_update) -> None:
+        """Start realtime push updates via AppSync WebSocket."""
+        if self._ws_manager is not None:
+            return
+        from .websocket import HarviaWebSocketManager
+
+        self._ws_manager = HarviaWebSocketManager(
+            api=self,
+            on_device_update=on_device_update,
+        )
+        await self._ws_manager.async_start()
+
+    async def async_stop_push_updates(self) -> None:
+        """Stop realtime push updates."""
+        if self._ws_manager is None:
+            return
+        await self._ws_manager.async_stop()
+        self._ws_manager = None
+
+    @property
+    def push_connected(self) -> bool:
+        """Return True if any WebSocket connection is active."""
+        if not self._ws_manager:
+            return False
+        return any(ws._websocket is not None for ws in self._ws_manager._connections)
+
+    @property
+    def push_connections_info(self) -> list[dict]:
+        """Return diagnostics for websocket connections."""
+        if not self._ws_manager:
+            return []
+        return [
+            {
+                "label": ws._label,
+                "connected": ws._websocket is not None,
+                "reconnect_attempts": ws._reconnect_attempts,
+            }
+            for ws in self._ws_manager._connections
+        ]
 
     # -- Private helpers --
 
