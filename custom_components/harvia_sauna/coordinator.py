@@ -15,14 +15,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import HarviaApiClient, HarviaAuthError, HarviaConnectionError
+from .api_base import HarviaApiClientBase
 from .const import (
     DOMAIN,
     EVENT_SESSION_END,
     EVENT_SESSION_START,
     SCAN_INTERVAL_FALLBACK,
 )
-from .websocket import HarviaWebSocketManager
+from .errors import HarviaAuthError, HarviaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     def __init__(
         self,
         hass: HomeAssistant,
-        api: HarviaApiClient,
+        api: HarviaApiClientBase,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the coordinator."""
@@ -143,54 +143,33 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             update_interval=timedelta(seconds=SCAN_INTERVAL_FALLBACK),
         )
         self.api = api
-        self._ws_manager: HarviaWebSocketManager | None = None
 
     async def async_setup(self) -> None:
-        """Set up WebSocket connections for real-time updates."""
-        self._ws_manager = HarviaWebSocketManager(
-            api=self.api,
-            on_device_update=self._async_handle_ws_update,
-        )
-        await self._ws_manager.async_start()
+        """Set up real-time push updates if supported by the provider."""
+        await self.api.async_start_push_updates(self._async_handle_ws_update)
 
     async def async_shutdown(self) -> None:
-        """Shut down WebSocket connections."""
-        if self._ws_manager:
-            await self._ws_manager.async_stop()
-            self._ws_manager = None
+        """Shut down push update connections."""
+        await self.api.async_stop_push_updates()
 
     @property
     def websocket_connected(self) -> bool:
-        """Return True if any WebSocket connection is active."""
-        if not self._ws_manager:
-            return False
-        return any(
-            ws._websocket is not None
-            for ws in self._ws_manager._connections
-        )
+        """Return True if any push connection is active."""
+        return self.api.push_connected
 
     @property
     def websocket_connections_info(self) -> list[dict[str, Any]]:
-        """Return info about all WebSocket connections."""
-        if not self._ws_manager:
-            return []
-        info = []
-        for ws in self._ws_manager._connections:
-            info.append({
-                "label": ws._label,
-                "connected": ws._websocket is not None,
-                "reconnect_attempts": ws._reconnect_attempts,
-            })
-        return info
+        """Return info about all push connections."""
+        return self.api.push_connections_info
 
     async def _async_update_data(self) -> HarviaSaunaData:
         """Fetch data via REST API (fallback polling)."""
         try:
-            device_tree = await self.api.async_get_device_tree()
+            device_list = await self.api.async_get_devices()
             data = HarviaSaunaData()
 
-            for device_entry in device_tree:
-                device_id = device_entry["i"]["name"]
+            for device_entry in device_list:
+                device_id = device_entry["device_id"]
 
                 # Fetch both state and latest telemetry
                 state = await self.api.async_get_device_state(device_id)

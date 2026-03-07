@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Harvia サウナ",
-        "description": "MyHarviaアプリの認証情報を入力してください。",
+        "description": "コントローラーの種類を選択し、認証情報を入力してください。",
         "data": {
           "username": "メールアドレス",
-          "password": "パスワード"
+          "password": "パスワード",
+          "api_provider": "APIプロバイダー"
         }
       },
       "heater": {

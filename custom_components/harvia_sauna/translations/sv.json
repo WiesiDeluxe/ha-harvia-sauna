@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Harvia Bastu",
-        "description": "Ange dina inloggningsuppgifter för MyHarvia-appen.",
+        "description": "Välj din styrenhetstyp och ange dina inloggningsuppgifter.",
         "data": {
           "username": "E-post",
-          "password": "Lösenord"
+          "password": "Lösenord",
+          "api_provider": "API-leverantör"
         }
       },
       "heater": {

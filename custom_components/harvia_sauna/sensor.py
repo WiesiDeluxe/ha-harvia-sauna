@@ -120,7 +120,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph1_relay_counter_lt,
+        value_fn=lambda d: (
+            d.ph1_relay_counter_lt if d.ph1_relay_counter_lt > 0
+            else (d.ph1_relay_counter if d.ph1_relay_counter > 0 else None)
+        ),
     ),
     HarviaSensorDescription(
         key="ph2_relay_counter",
@@ -129,7 +132,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph2_relay_counter_lt,
+        value_fn=lambda d: (
+            d.ph2_relay_counter_lt if d.ph2_relay_counter_lt > 0
+            else (d.ph2_relay_counter if d.ph2_relay_counter > 0 else None)
+        ),
     ),
     HarviaSensorDescription(
         key="ph3_relay_counter",
@@ -138,7 +144,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.ph3_relay_counter_lt,
+        value_fn=lambda d: (
+            d.ph3_relay_counter_lt if d.ph3_relay_counter_lt > 0
+            else (d.ph3_relay_counter if d.ph3_relay_counter > 0 else None)
+        ),
     ),
     HarviaSensorDescription(
         key="heat_on_counter",
@@ -146,7 +155,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
-        value_fn=lambda d: d.heat_on_counter_lt,
+        value_fn=lambda d: (
+            d.heat_on_counter_lt if d.heat_on_counter_lt > 0
+            else (d.heat_on_counter if d.heat_on_counter > 0 else None)
+        ),
     ),
     HarviaSensorDescription(
         key="steam_on_counter",
@@ -155,7 +167,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
         icon="mdi:counter",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: d.steam_on_counter_lt,
+        value_fn=lambda d: (
+            d.steam_on_counter_lt if d.steam_on_counter_lt > 0
+            else (d.steam_on_counter if d.steam_on_counter > 0 else None)
+        ),
     ),
     HarviaSensorDescription(
         key="power",

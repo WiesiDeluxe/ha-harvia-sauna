@@ -10,19 +10,27 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
-from .api import HarviaApiClient, HarviaAuthError, HarviaConnectionError
+from .api_base import HarviaApiClientBase
+from .api_factory import create_api_client, get_provider_from_entry_data
 from .const import (
+    API_PROVIDER_MYHARVIA,
+    API_PROVIDERS,
+    CONF_API_PROVIDER,
     CONF_HEATER_MODEL,
     CONF_HEATER_POWER,
     DOMAIN,
     HEATER_MODELS,
     HEATER_POWER_OPTIONS,
 )
+from .errors import HarviaAuthError, HarviaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
+        vol.Required(CONF_API_PROVIDER, default=API_PROVIDER_MYHARVIA): vol.In(
+            API_PROVIDERS
+        ),
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
     }
@@ -56,10 +64,11 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                api = HarviaApiClient(
+                api = create_api_client(
                     self.hass,
                     user_input[CONF_USERNAME],
                     user_input[CONF_PASSWORD],
+                    user_input[CONF_API_PROVIDER],
                 )
                 await api.async_authenticate()
                 self._user_data = await api.async_get_user_data()
@@ -87,14 +96,14 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def _async_detect_heater(self, api: HarviaApiClient) -> None:
+    async def _async_detect_heater(self, api: HarviaApiClientBase) -> None:
         """Try to detect heater model from device display name."""
         try:
-            device_tree = await api.async_get_device_tree()
-            if not device_tree:
+            devices = await api.async_get_devices()
+            if not devices:
                 return
 
-            device_id = device_tree[0]["i"]["name"]
+            device_id = devices[0]["device_id"]
             state = await api.async_get_device_state(device_id)
             display_name = state.get("displayName", "").lower()
 
@@ -116,7 +125,12 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
             full_data = {**self._user_input, **user_input}
 
             # Use email as unique ID to prevent duplicate entries
-            await self.async_set_unique_id(self._user_data["email"])
+            unique_value = self._user_data["email"]
+            provider = self._user_input.get(CONF_API_PROVIDER, API_PROVIDER_MYHARVIA)
+            # Scope non-legacy providers to allow coexistence
+            if provider != API_PROVIDER_MYHARVIA:
+                unique_value = f"{provider}:{unique_value}"
+            await self.async_set_unique_id(unique_value)
             self._abort_if_unique_id_configured()
 
             # Build a nice title
@@ -200,19 +214,25 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                api = HarviaApiClient(
-                    self.hass,
-                    user_input[CONF_USERNAME],
-                    user_input[CONF_PASSWORD],
-                )
-                await api.async_authenticate()
-
                 entry = self.hass.config_entries.async_get_entry(
                     self.context["entry_id"]
                 )
+                provider = get_provider_from_entry_data(entry.data) if entry else None
+                api = create_api_client(
+                    self.hass,
+                    user_input[CONF_USERNAME],
+                    user_input[CONF_PASSWORD],
+                    provider,
+                )
+                await api.async_authenticate()
+
                 if entry:
-                    # Keep heater model/power from existing config
-                    updated_data = {**entry.data, **user_input}
+                    # Keep provider, heater model/power from existing config
+                    updated_data = {
+                        **entry.data,
+                        CONF_USERNAME: user_input[CONF_USERNAME],
+                        CONF_PASSWORD: user_input[CONF_PASSWORD],
+                    }
                     self.hass.config_entries.async_update_entry(
                         entry, data=updated_data
                     )

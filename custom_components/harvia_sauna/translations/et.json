@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Harvia Saun",
-        "description": "Sisesta oma MyHarvia rakenduse sisselogimisandmed.",
+        "description": "Valige kontrolleri tüüp ja sisestage oma mandaadid.",
         "data": {
           "username": "E-post",
-          "password": "Parool"
+          "password": "Parool",
+          "api_provider": "API pakkuja"
         }
       },
       "heater": {

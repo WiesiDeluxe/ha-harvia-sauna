@@ -24,12 +24,23 @@ SCAN_INTERVAL_FALLBACK = 300  # 5 Minuten Fallback-Polling falls WebSocket ausf√
 CONF_HEATER_MODEL = "heater_model"
 CONF_HEATER_POWER = "heater_power"
 
+CONF_API_PROVIDER = "api_provider"
+
 # HA Events
 EVENT_SESSION_START = f"{DOMAIN}_session_start"
 EVENT_SESSION_END = f"{DOMAIN}_session_end"
 
 # Services
 SERVICE_SET_SESSION = "set_session"
+
+# API Providers
+API_PROVIDER_MYHARVIA = "myharvia_graphql"
+API_PROVIDER_HARVIAIO = "harviaio_rest_graphql"
+
+API_PROVIDERS: dict[str, str] = {
+    API_PROVIDER_MYHARVIA: "myHarvia (Xenio controller)",
+    API_PROVIDER_HARVIAIO: "myHarvia 2 - harvia.io (Fenix controller)",
+}
 
 # Heater models compatible with MyHarvia / Xenio WiFi
 HEATER_MODELS: dict[str, str] = {

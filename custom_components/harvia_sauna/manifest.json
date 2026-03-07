@@ -12,5 +12,5 @@
     "pycognito>=2024.2.0",
     "websockets>=12.0"
   ],
-  "version": "2.2.0"
+  "version": "2.3.0"
 }

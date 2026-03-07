@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 
-from .api import HarviaApiClient, HarviaAuthError, HarviaConnectionError
+from .api_factory import create_api_client, get_provider_from_entry_data
 from .const import (
     CONF_HEATER_POWER,
     DEFAULT_HEATER_POWER_W,
@@ -21,6 +21,7 @@ from .const import (
     SERVICE_SET_SESSION,
 )
 from .coordinator import HarviaSaunaCoordinator
+from .errors import HarviaAuthError, HarviaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,8 +52,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     username = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
 
-    # Create API client
-    api = HarviaApiClient(hass, username, password)
+    # Create API client via provider factory
+    provider = get_provider_from_entry_data(entry.data)
+    api = create_api_client(hass, username, password, provider)
 
     # Authenticate
     try:

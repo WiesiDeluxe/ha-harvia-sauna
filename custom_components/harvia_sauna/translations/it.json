@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Inserisci le credenziali dell'app MyHarvia.",
+        "description": "Seleziona il tipo di controller e inserisci le credenziali.",
         "data": {
           "username": "E-mail",
-          "password": "Password"
+          "password": "Password",
+          "api_provider": "Provider API"
         }
       },
       "heater": {

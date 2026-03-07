@@ -3,10 +3,11 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Syötä MyHarvia-sovelluksen kirjautumistiedot.",
+        "description": "Valitse ohjaintyyppi ja syötä kirjautumistietosi.",
         "data": {
           "username": "Sähköposti",
-          "password": "Salasana"
+          "password": "Salasana",
+          "api_provider": "API-palveluntarjoaja"
         }
       },
       "heater": {
