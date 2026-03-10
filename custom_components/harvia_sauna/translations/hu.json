@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Hőmérséklet trend"
+      },
+      "heater_power_actual": {
+        "name": "Aktuális fűtési teljesítmény"
+      },
+      "main_sensor_temp": {
+        "name": "Fő szenzor hőmérséklete"
+      },
+      "ext_sensor_temp": {
+        "name": "Külső szenzor hőmérsékete"
+      },
+      "panel_temp": {
+        "name": "Panel hőmérséklete"
+      },
+      "total_sessions": {
+        "name": "Összes ülés"
+      },
+      "total_bathing_hours": {
+        "name": "Összes fürdési óra"
+      },
+      "total_hours": {
+        "name": "Összes működési óra"
+      },
+      "active_profile": {
+        "name": "Aktív profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Gőz aktív"
+      },
+      "safety_relay": {
+        "name": "Biztonsági relé"
+      },
+      "screen_lock": {
+        "name": "Képernyőzár"
+      },
+      "remote_allowed": {
+        "name": "Távirányítás engedélyezett"
       }
     },
     "number": {

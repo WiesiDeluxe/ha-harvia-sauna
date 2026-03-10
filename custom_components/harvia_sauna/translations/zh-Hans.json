@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "温度趋势"
+      },
+      "heater_power_actual": {
+        "name": "当前加热器功率"
+      },
+      "main_sensor_temp": {
+        "name": "主传感器温度"
+      },
+      "ext_sensor_temp": {
+        "name": "外部传感器温度"
+      },
+      "panel_temp": {
+        "name": "面板温度"
+      },
+      "total_sessions": {
+        "name": "总会话数"
+      },
+      "total_bathing_hours": {
+        "name": "总桑拿时间"
+      },
+      "total_hours": {
+        "name": "总运行时间"
+      },
+      "active_profile": {
+        "name": "活跃配置文件"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "蒸汽运行中"
+      },
+      "safety_relay": {
+        "name": "安全继电器"
+      },
+      "screen_lock": {
+        "name": "屏幕锁"
+      },
+      "remote_allowed": {
+        "name": "允许远程控制"
       }
     },
     "number": {

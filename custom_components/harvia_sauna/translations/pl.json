@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Trend temperatury"
+      },
+      "heater_power_actual": {
+        "name": "Aktualna moc grzewcza"
+      },
+      "main_sensor_temp": {
+        "name": "Temperatura głównego czujnika"
+      },
+      "ext_sensor_temp": {
+        "name": "Temperatura zewnętrznego czujnika"
+      },
+      "panel_temp": {
+        "name": "Temperatura panelu"
+      },
+      "total_sessions": {
+        "name": "Łączna liczba sesji"
+      },
+      "total_bathing_hours": {
+        "name": "Łączne godziny saunowania"
+      },
+      "total_hours": {
+        "name": "Łączny czas pracy"
+      },
+      "active_profile": {
+        "name": "Aktywny profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Para aktywna"
+      },
+      "safety_relay": {
+        "name": "Przekaźnik bezpieczeństwa"
+      },
+      "screen_lock": {
+        "name": "Blokada ekranu"
+      },
+      "remote_allowed": {
+        "name": "Zdalne sterowanie dozwolone"
       }
     },
     "number": {

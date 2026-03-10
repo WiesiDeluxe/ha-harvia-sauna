@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "온도 추세"
+      },
+      "heater_power_actual": {
+        "name": "히터 현재 전력"
+      },
+      "main_sensor_temp": {
+        "name": "메인 센서 온도"
+      },
+      "ext_sensor_temp": {
+        "name": "외부 센서 온도"
+      },
+      "panel_temp": {
+        "name": "패널 온도"
+      },
+      "total_sessions": {
+        "name": "총 세션 수"
+      },
+      "total_bathing_hours": {
+        "name": "총 사우나 시간"
+      },
+      "total_hours": {
+        "name": "총 가동 시간"
+      },
+      "active_profile": {
+        "name": "활성 프로필"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "스팀 작동 중"
+      },
+      "safety_relay": {
+        "name": "안전 릴레이"
+      },
+      "screen_lock": {
+        "name": "화면 잠금"
+      },
+      "remote_allowed": {
+        "name": "원격 제어 허용"
       }
     },
     "number": {

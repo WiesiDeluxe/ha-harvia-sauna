@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Тренд температуры"
+      },
+      "heater_power_actual": {
+        "name": "Текущая мощность обогревателя"
+      },
+      "main_sensor_temp": {
+        "name": "Температура основного датчика"
+      },
+      "ext_sensor_temp": {
+        "name": "Температура внешнего датчика"
+      },
+      "panel_temp": {
+        "name": "Температура панели"
+      },
+      "total_sessions": {
+        "name": "Общее количество сеансов"
+      },
+      "total_bathing_hours": {
+        "name": "Общее время в сауне"
+      },
+      "total_hours": {
+        "name": "Общее время работы"
+      },
+      "active_profile": {
+        "name": "Активный профиль"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Пар активен"
+      },
+      "safety_relay": {
+        "name": "Реле безопасности"
+      },
+      "screen_lock": {
+        "name": "Блокировка экрана"
+      },
+      "remote_allowed": {
+        "name": "Удалённое управление разрешено"
       }
     },
     "number": {

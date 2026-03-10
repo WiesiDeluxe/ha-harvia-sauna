@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Tendance température"
+      },
+      "heater_power_actual": {
+        "name": "Puissance actuelle du chauffage"
+      },
+      "main_sensor_temp": {
+        "name": "Température du capteur principal"
+      },
+      "ext_sensor_temp": {
+        "name": "Température du capteur externe"
+      },
+      "panel_temp": {
+        "name": "Température du panneau"
+      },
+      "total_sessions": {
+        "name": "Total des sessions"
+      },
+      "total_bathing_hours": {
+        "name": "Total des heures de bain"
+      },
+      "total_hours": {
+        "name": "Total des heures"
+      },
+      "active_profile": {
+        "name": "Profil actif"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Vapeur active"
+      },
+      "safety_relay": {
+        "name": "Relais de sécurité"
+      },
+      "screen_lock": {
+        "name": "Verrouillage de l'écran"
+      },
+      "remote_allowed": {
+        "name": "Contrôle à distance autorisé"
       }
     },
     "number": {

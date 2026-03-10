@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Temperatuurtrend"
+      },
+      "heater_power_actual": {
+        "name": "Actuele vermogen"
+      },
+      "main_sensor_temp": {
+        "name": "Temperatuur hoofdsensor"
+      },
+      "ext_sensor_temp": {
+        "name": "Temperatuur externe sensor"
+      },
+      "panel_temp": {
+        "name": "Paneeltemperatuur"
+      },
+      "total_sessions": {
+        "name": "Totaal aantal sessies"
+      },
+      "total_bathing_hours": {
+        "name": "Totaal baduren"
+      },
+      "total_hours": {
+        "name": "Totale bedrijfsuren"
+      },
+      "active_profile": {
+        "name": "Actief profiel"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Stoom actief"
+      },
+      "safety_relay": {
+        "name": "Veiligheidsrelé"
+      },
+      "screen_lock": {
+        "name": "Schermvergrendeling"
+      },
+      "remote_allowed": {
+        "name": "Extern bedienen toegestaan"
       }
     },
     "number": {

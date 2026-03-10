@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
+from .api_factory import get_provider_from_entry_data
 from .const import DOMAIN
 from .coordinator import HarviaSaunaCoordinator
 
@@ -66,6 +67,7 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),
+        "provider": get_provider_from_entry_data(entry.data),
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
             "update_interval": str(coordinator.update_interval),

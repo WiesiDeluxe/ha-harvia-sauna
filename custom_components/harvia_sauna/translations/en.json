@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Heater configuration",
-        "description": "Select your sauna heater model and power rating. This helps display correct device information and can be changed later.",
+        "description": "Select your sauna heater model and power rating. The model is used for naming in the Home Assistant UI. The power value is used to calculate approximate absolute power in watts (W). You can change both later.",
         "data": {
           "heater_model": "Heater model",
           "heater_power": "Heater power (kW)"
@@ -28,16 +28,19 @@
       },
       "reconfigure": {
         "title": "Reconfigure Harvia Sauna",
-        "description": "Update your heater model and power rating.",
+        "description": "Update credentials, heater model and power rating. The model is used for naming in the Home Assistant UI. The power value is used to calculate approximate absolute power in watts (W). Password is only changed when you provide a new one.",
         "data": {
+          "username": "Email",
+          "password": "New password (optional)",
           "heater_model": "Heater model",
           "heater_power": "Heater power (kW)"
         }
       }
     },
     "error": {
-      "invalid_auth": "Invalid credentials. Please verify your MyHarvia app login.",
-      "cannot_connect": "Cannot connect to the MyHarvia cloud. Please try again later.",
+      "invalid_auth": "Invalid credentials. Please verify your Harvia account login.",
+      "cannot_connect": "Cannot connect to the Harvia cloud API. Please try again later.",
+      "password_required": "Enter a new password when changing the email.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
@@ -135,6 +138,30 @@
       },
       "temp_trend": {
         "name": "Temperature trend"
+      },
+      "heater_power_actual": {
+        "name": "Heater power actual"
+      },
+      "main_sensor_temp": {
+        "name": "Main sensor temperature"
+      },
+      "ext_sensor_temp": {
+        "name": "External sensor temperature"
+      },
+      "panel_temp": {
+        "name": "Panel temperature"
+      },
+      "total_sessions": {
+        "name": "Total sessions"
+      },
+      "total_bathing_hours": {
+        "name": "Total bathing hours"
+      },
+      "total_hours": {
+        "name": "Total hours"
+      },
+      "active_profile": {
+        "name": "Active profile"
       }
     },
     "binary_sensor": {
@@ -146,6 +173,15 @@
       },
       "steam_on": {
         "name": "Steam active"
+      },
+      "safety_relay": {
+        "name": "Safety relay"
+      },
+      "screen_lock": {
+        "name": "Screen lock"
+      },
+      "remote_allowed": {
+        "name": "Remote control allowed"
       }
     },
     "number": {
