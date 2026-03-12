@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Teplotní trend"
+      },
+      "heater_power_actual": {
+        "name": "Aktuální výkon kamen"
+      },
+      "main_sensor_temp": {
+        "name": "Teplota hlavního senzoru"
+      },
+      "ext_sensor_temp": {
+        "name": "Teplota externího senzoru"
+      },
+      "panel_temp": {
+        "name": "Teplota panelu"
+      },
+      "total_sessions": {
+        "name": "Celkový počet sezení"
+      },
+      "total_bathing_hours": {
+        "name": "Celkové saunovací hodiny"
+      },
+      "total_hours": {
+        "name": "Celkové provozní hodiny"
+      },
+      "active_profile": {
+        "name": "Aktivní profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Pára aktivní"
+      },
+      "safety_relay": {
+        "name": "Bezpečnostní relé"
+      },
+      "screen_lock": {
+        "name": "Zámek obrazovky"
+      },
+      "remote_allowed": {
+        "name": "Vzdálené ovládání povoleno"
       }
     },
     "number": {

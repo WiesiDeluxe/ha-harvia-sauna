@@ -12,6 +12,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -51,6 +52,31 @@ BINARY_SENSOR_DESCRIPTIONS: list[HarviaBinarySensorDescription] = [
         icon="mdi:weather-fog",
         entity_registry_enabled_default=False,
         value_fn=lambda d: d.steam_on,
+    ),
+    # New Fenix-specific binary sensors
+    HarviaBinarySensorDescription(
+        key="safety_relay",
+        translation_key="safety_relay",
+        device_class=BinarySensorDeviceClass.SAFETY,
+        icon="mdi:electric-switch",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: d.safety_relay,
+    ),
+    HarviaBinarySensorDescription(
+        key="screen_lock",
+        translation_key="screen_lock",
+        device_class=BinarySensorDeviceClass.LOCK,
+        icon="mdi:lock",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.screen_lock,
+    ),
+    HarviaBinarySensorDescription(
+        key="remote_allowed",
+        translation_key="remote_allowed",
+        icon="mdi:remote",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda d: d.remote_allowed,
     ),
 ]
 

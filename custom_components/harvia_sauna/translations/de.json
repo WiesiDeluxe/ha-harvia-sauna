@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Ofen-Konfiguration",
-        "description": "Wähle dein Saunaofen-Modell und die Leistung. Dies hilft bei der korrekten Geräteanzeige und kann später geändert werden.",
+        "description": "Wähle dein Saunaofen-Modell und die Leistung. Das Modell wird für die Benennung in der Home-Assistant-Oberfläche verwendet. Der Leistungswert wird zur Berechnung der ungefähren absoluten Leistung in Watt (W) genutzt. Beides kann später geändert werden.",
         "data": {
           "heater_model": "Ofenmodell",
           "heater_power": "Ofenleistung (kW)"
@@ -28,16 +28,19 @@
       },
       "reconfigure": {
         "title": "Harvia Sauna neu konfigurieren",
-        "description": "Kiuasmodell und Leistung ändern.",
+        "description": "Zugangsdaten, Ofenmodell und Leistung ändern. Das Modell wird für die Benennung in der Home-Assistant-Oberfläche verwendet. Der Leistungswert wird zur Berechnung der ungefähren absoluten Leistung in Watt (W) genutzt. Das Passwort wird nur geändert, wenn du ein neues eingibst.",
         "data": {
-          "heater_model": "Kiuasmodell",
-          "heater_power": "Kiuasleistung (kW)"
+          "username": "E-Mail",
+          "password": "Neues Passwort (optional)",
+          "heater_model": "Ofenmodell",
+          "heater_power": "Ofenleistung (kW)"
         }
       }
     },
     "error": {
       "invalid_auth": "Ungültige Zugangsdaten. Bitte überprüfe deinen MyHarvia-App Login.",
       "cannot_connect": "Verbindung zur MyHarvia-Cloud nicht möglich. Bitte versuche es später erneut.",
+      "password_required": "Beim Ändern der E-Mail muss ein neues Passwort eingegeben werden.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
@@ -135,6 +138,30 @@
       },
       "temp_trend": {
         "name": "Temperaturtrend"
+      },
+      "heater_power_actual": {
+        "name": "Aktuelle Ofenleistung"
+      },
+      "main_sensor_temp": {
+        "name": "Hauptsensor Temperatur"
+      },
+      "ext_sensor_temp": {
+        "name": "Externer Sensor Temperatur"
+      },
+      "panel_temp": {
+        "name": "Panel-Temperatur"
+      },
+      "total_sessions": {
+        "name": "Gesamtsitzungen"
+      },
+      "total_bathing_hours": {
+        "name": "Gesamte Badestunden"
+      },
+      "total_hours": {
+        "name": "Gesamtbetriebsstunden"
+      },
+      "active_profile": {
+        "name": "Aktives Profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +173,15 @@
       },
       "steam_on": {
         "name": "Dampf aktiv"
+      },
+      "safety_relay": {
+        "name": "Sicherheitsrelais"
+      },
+      "screen_lock": {
+        "name": "Bildschirmsperre"
+      },
+      "remote_allowed": {
+        "name": "Fernsteuerung erlaubt"
       }
     },
     "number": {

@@ -43,6 +43,15 @@ STEP_HEATER_DATA_SCHEMA = vol.Schema(
     }
 )
 
+STEP_REAUTH_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+    }
+)
+
+RECONFIGURE_PASSWORD_PLACEHOLDER = "********"
+
 
 class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Harvia Sauna."""
@@ -59,7 +68,7 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Step 1: MyHarvia credentials."""
+        """Step 1: API provider and credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -171,27 +180,82 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle reconfiguration of heater model and power."""
+        """Handle reconfiguration of credentials, heater model and power."""
         entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
         )
         if not entry:
             return self.async_abort(reason="unknown")
 
+        errors: dict[str, str] = {}
+
         if user_input is not None:
-            updated_data = {**entry.data, **user_input}
-            self.hass.config_entries.async_update_entry(
-                entry, data=updated_data
+            current_username = entry.data.get(CONF_USERNAME, "")
+            current_password = entry.data.get(CONF_PASSWORD, "")
+            provider = get_provider_from_entry_data(entry.data)
+
+            new_username = user_input.get(CONF_USERNAME, current_username).strip()
+            submitted_password = user_input.get(CONF_PASSWORD, "")
+            password_changed = (
+                bool(submitted_password)
+                and submitted_password != RECONFIGURE_PASSWORD_PLACEHOLDER
             )
-            # Reload is handled by _async_update_listener
-            return self.async_abort(reason="reconfigure_successful")
+            username_changed = new_username != current_username
+
+            if username_changed and not password_changed:
+                errors["base"] = "password_required"
+            else:
+                candidate_password = (
+                    submitted_password if password_changed else current_password
+                )
+
+                # Validate credentials if user updated username or password.
+                if username_changed or password_changed:
+                    try:
+                        api = create_api_client(
+                            self.hass,
+                            new_username,
+                            candidate_password,
+                            provider,
+                        )
+                        await api.async_authenticate()
+                    except HarviaAuthError:
+                        errors["base"] = "invalid_auth"
+                    except HarviaConnectionError:
+                        errors["base"] = "cannot_connect"
+                    except Exception:
+                        _LOGGER.exception("Unexpected exception during reconfigure auth")
+                        errors["base"] = "unknown"
+
+                if not errors:
+                    updated_data = {
+                        **entry.data,
+                        CONF_HEATER_MODEL: user_input[CONF_HEATER_MODEL],
+                        CONF_HEATER_POWER: user_input[CONF_HEATER_POWER],
+                        CONF_USERNAME: new_username,
+                    }
+                    # Keep existing password unless user explicitly set a new one.
+                    if password_changed:
+                        updated_data[CONF_PASSWORD] = submitted_password
+
+                    self.hass.config_entries.async_update_entry(
+                        entry, data=updated_data
+                    )
+                    # Reload is handled by _async_update_listener
+                    return self.async_abort(reason="reconfigure_successful")
 
         # Pre-fill with current values
         current_model = entry.data.get(CONF_HEATER_MODEL, "other")
         current_power = entry.data.get(CONF_HEATER_POWER, "10.8")
+        current_username = entry.data.get(CONF_USERNAME, "")
 
         schema = vol.Schema(
             {
+                vol.Required(
+                    CONF_USERNAME, default=current_username
+                ): str,
+                # Never prefill the real password in UI. User enters this only when changing it.
+                vol.Optional(CONF_PASSWORD): str,
                 vol.Required(
                     CONF_HEATER_MODEL, default=current_model
                 ): vol.In(HEATER_MODELS),
@@ -204,6 +268,7 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=schema,
+            errors=errors,
         )
 
     async def async_step_reauth_confirm(
@@ -249,6 +314,6 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
         )

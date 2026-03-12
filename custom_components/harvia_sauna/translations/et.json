@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Temperatuuritrend"
+      },
+      "heater_power_actual": {
+        "name": "Aktiivne küttevõimsus"
+      },
+      "main_sensor_temp": {
+        "name": "Peamise anduri temperatuur"
+      },
+      "ext_sensor_temp": {
+        "name": "Välise anduri temperatuur"
+      },
+      "panel_temp": {
+        "name": "Paneeli temperatuur"
+      },
+      "total_sessions": {
+        "name": "Kokku seanseid"
+      },
+      "total_bathing_hours": {
+        "name": "Kokku saunamise tunde"
+      },
+      "total_hours": {
+        "name": "Kokku töötunde"
+      },
+      "active_profile": {
+        "name": "Aktiivne profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Aur aktiivne"
+      },
+      "safety_relay": {
+        "name": "Ohutusrele"
+      },
+      "screen_lock": {
+        "name": "Ekraanilukk"
+      },
+      "remote_allowed": {
+        "name": "Kaugjuhtimine lubatud"
       }
     },
     "number": {

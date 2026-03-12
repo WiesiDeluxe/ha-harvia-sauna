@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Temperaturtrend"
+      },
+      "heater_power_actual": {
+        "name": "Nuværende varmeoutput"
+      },
+      "main_sensor_temp": {
+        "name": "Temperatur på hovedsensor"
+      },
+      "ext_sensor_temp": {
+        "name": "Temperatur på ekstern sensor"
+      },
+      "panel_temp": {
+        "name": "Paneltemperatur"
+      },
+      "total_sessions": {
+        "name": "Antal sessioner i alt"
+      },
+      "total_bathing_hours": {
+        "name": "Samlet badetid i timer"
+      },
+      "total_hours": {
+        "name": "Samlet drifttid i timer"
+      },
+      "active_profile": {
+        "name": "Aktiv profil"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Damp aktiv"
+      },
+      "safety_relay": {
+        "name": "Sikkerhedsrelæ"
+      },
+      "screen_lock": {
+        "name": "Skærmlås"
+      },
+      "remote_allowed": {
+        "name": "Fjernstyring tilladt"
       }
     },
     "number": {

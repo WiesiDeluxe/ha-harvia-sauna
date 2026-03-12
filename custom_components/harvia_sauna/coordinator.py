@@ -59,6 +59,10 @@ class HarviaDeviceData:
     target_rh: int = 0
     humidity: int = 0
     temp_unit: int = 0  # 0 = Celsius
+    # Additional temperature sensors (Fenix-specific)
+    main_sensor_temp: int | None = None  # From telemetry["mainSensorTemp"]
+    ext_sensor_temp: int | None = None   # From telemetry["extSensorTemp"]
+    panel_temp: int | None = None        # From telemetry["panelTemp"]
 
     # Timers
     heat_up_time: int = 0
@@ -90,6 +94,7 @@ class HarviaDeviceData:
 
     # Power / Energy (calculated)
     heater_power: int = 10800  # Nennleistung in Watt (wird aus Config überschrieben)
+    heater_power_actual: int = 0  # Dynamic power from telemetry["heaterPower"]
     energy_kwh: float = 0.0  # Kumulierter Energieverbrauch in kWh
     _last_heat_on_timestamp: float | None = None  # Für Energy-Berechnung
     _last_update: float = 0.0  # monotonic timestamp of last data received
@@ -102,6 +107,24 @@ class HarviaDeviceData:
     last_session_max_temp: float = 0.0  # °C
     sessions_today: int = 0
     _sessions_today_date: str = ""  # ISO date string for reset
+
+    # Usage statistics (lifetime totals) - Fenix-specific
+    total_sessions: int = 0  # From telemetry["totalSessions"]
+    total_bathing_hours: int = 0  # From telemetry["totalBathingHours"]
+    total_hours: int = 0  # From telemetry["totalHours"]
+
+    # Diagnostic timers - Fenix-specific
+    after_heat_time: int = 0  # From telemetry["afterHeatTime"]
+    ontime_lt: int = 0  # From telemetry["ontimeLT"]
+
+    # Safety and control status - Fenix-specific
+    safety_relay: bool = False  # From telemetry["safetyRelay"]
+    # door_safety_state: bool = False  # From telemetry["doorSafetyState"] - may duplicate door_open
+    active_profile: int = 0  # From state["activeProfile"] (0-3)
+    sauna_status: int = 0  # From state["saunaStatus"]
+    remote_allowed: bool = False  # From state["remoteAllowed"]
+    demo_mode: bool = False  # From state["demoMode"]
+    screen_lock: bool = False  # From state["screenLock"]["on"]
 
     # Temperature trend (°C/min)
     _temp_history: deque = field(
@@ -164,6 +187,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
 
     async def _async_update_data(self) -> HarviaSaunaData:
         """Fetch data via REST API (fallback polling)."""
+        _LOGGER.debug("Polling: fetching data from REST APIs")
         try:
             device_list = await self.api.async_get_devices()
             data = HarviaSaunaData()
@@ -192,6 +216,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 data.devices[device_id] = device_data
 
             data.available = True
+            _LOGGER.debug("Polling: successfully updated %d devices", len(data.devices))
             return data
 
         except HarviaAuthError as err:
@@ -207,36 +232,40 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     async def _async_handle_ws_update(self, payload_data: dict) -> None:
         """Handle incoming WebSocket push data."""
         if not self.data:
-            # No initial data yet, skip
+            _LOGGER.debug("WebSocket update ignored: coordinator data not initialized yet")
             return
 
-        updated = False
+        try:
+            updated = False
 
-        if "onStateUpdated" in payload_data:
-            reported = payload_data["onStateUpdated"].get("reported")
-            if reported:
-                state = json.loads(reported)
-                device_id = state.get("deviceId")
+            if "onStateUpdated" in payload_data:
+                reported = payload_data["onStateUpdated"].get("reported")
+                if reported:
+                    state = json.loads(reported)
+                    device_id = state.get("deviceId")
+                    if device_id and device_id in self.data.devices:
+                        device = self.data.devices[device_id]
+                        _apply_state_data(device, state)
+                        _update_session_tracking(self.hass, device)
+                        updated = True
+
+            elif "onDataUpdates" in payload_data:
+                item = payload_data["onDataUpdates"].get("item", {})
+                device_id = item.get("deviceId")
                 if device_id and device_id in self.data.devices:
+                    telemetry = json.loads(item.get("data", "{}"))
+                    telemetry["timestamp"] = item.get("timestamp")
                     device = self.data.devices[device_id]
-                    _apply_state_data(device, state)
+                    _apply_telemetry_data(device, telemetry)
                     _update_session_tracking(self.hass, device)
+                    _update_temp_trend(device)
                     updated = True
 
-        elif "onDataUpdates" in payload_data:
-            item = payload_data["onDataUpdates"].get("item", {})
-            device_id = item.get("deviceId")
-            if device_id and device_id in self.data.devices:
-                telemetry = json.loads(item.get("data", "{}"))
-                telemetry["timestamp"] = item.get("timestamp")
-                device = self.data.devices[device_id]
-                _apply_telemetry_data(device, telemetry)
-                _update_session_tracking(self.hass, device)
-                _update_temp_trend(device)
-                updated = True
+            if updated:
+                self.async_set_updated_data(self.data)
 
-        if updated:
-            self.async_set_updated_data(self.data)
+        except Exception as err:
+            _LOGGER.exception("Unexpected error handling WebSocket update: %s", err)
 
     async def async_request_state_change(
         self, device_id: str, payload: dict[str, Any]
@@ -259,6 +288,28 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         return (time.monotonic() - device._last_update) > DEVICE_STALE_TIMEOUT
 
 
+def _to_bool(value: Any) -> bool:
+    """Convert various value types to boolean.
+    
+    Handles:
+    - Boolean values (True/False)
+    - Numeric values (1/0, non-zero)
+    - String values ("true", "false", "on", "off", "1", "0")
+    - None (defaults to False)
+    """
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        lower = value.lower().strip()
+        return lower in ("true", "on", "1", "yes", "enabled")
+    # For any other type, use Python's bool() but this shouldn't happen
+    return bool(value)
+
+
 def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     """Apply device state (reported) data to the device object."""
     if "displayName" in data:
@@ -266,13 +317,19 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     if "deviceId" in data:
         device.device_id = data["deviceId"]
     if "active" in data:
-        device.active = bool(data["active"])
+        device.active = _to_bool(data["active"])
     if "light" in data:
-        device.lights_on = bool(data["light"])
+        val = data["light"]
+        if isinstance(val, dict):
+            val = val.get("on", False)
+        device.lights_on = _to_bool(val)
     if "fan" in data:
-        device.fan_on = bool(data["fan"])
+        val = data["fan"]
+        if isinstance(val, dict):
+            val = val.get("on", False)
+        device.fan_on = _to_bool(val)
     if "steamEn" in data:
-        device.steam_enabled = bool(data["steamEn"])
+        device.steam_enabled = _to_bool(data["steamEn"])
     if "targetTemp" in data:
         device.target_temp = data["targetTemp"]
     if "targetRh" in data:
@@ -282,15 +339,15 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     if "onTime" in data:
         device.on_time = data["onTime"]
     if "dehumEn" in data:
-        device.dehumidifier_enabled = bool(data["dehumEn"])
+        device.dehumidifier_enabled = _to_bool(data["dehumEn"])
     if "autoLight" in data:
-        device.auto_light = bool(data["autoLight"])
+        device.auto_light = _to_bool(data["autoLight"])
     if "autoFan" in data:
-        device.auto_fan = bool(data["autoFan"])
+        device.auto_fan = _to_bool(data["autoFan"])
     if "tempUnit" in data:
         device.temp_unit = data["tempUnit"]
     if "aromaEn" in data:
-        device.aroma_enabled = bool(data["aromaEn"])
+        device.aroma_enabled = _to_bool(data["aromaEn"])
     if "aromaLevel" in data:
         device.aroma_level = data["aromaLevel"]
     if "statusCodes" in data:
@@ -304,6 +361,22 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
         device.firmware_version = str(data["fwVersion"])
     elif "swVersion" in data:
         device.firmware_version = str(data["swVersion"])
+
+    # New Fenix-specific state fields
+    if "activeProfile" in data:
+        device.active_profile = data["activeProfile"]
+    if "saunaStatus" in data:
+        device.sauna_status = data["saunaStatus"]
+    if "remoteAllowed" in data:
+        device.remote_allowed = bool(data["remoteAllowed"])
+    if "demoMode" in data:
+        device.demo_mode = bool(data["demoMode"])
+    if "screenLock" in data:
+        # Handle nested structure if present
+        if isinstance(data["screenLock"], dict):
+            device.screen_lock = bool(data["screenLock"].get("on", False))
+        else:
+            device.screen_lock = bool(data["screenLock"])
 
     device._last_update = time.monotonic()
 
@@ -355,6 +428,33 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
     ]:
         if key in data:
             setattr(device, attr, data[key])
+
+    # New Fenix-specific telemetry fields
+    if "heaterPower" in data:
+        device.heater_power_actual = data["heaterPower"]
+    if "mainSensorTemp" in data:
+        device.main_sensor_temp = data["mainSensorTemp"]
+    if "extSensorTemp" in data:
+        device.ext_sensor_temp = data["extSensorTemp"]
+    if "panelTemp" in data:
+        device.panel_temp = data["panelTemp"]
+    if "totalSessions" in data:
+        device.total_sessions = data["totalSessions"]
+    if "totalBathingHours" in data:
+        device.total_bathing_hours = data["totalBathingHours"]
+    if "totalHours" in data:
+        device.total_hours = data["totalHours"]
+    if "afterHeatTime" in data:
+        device.after_heat_time = data["afterHeatTime"]
+    if "ontimeLT" in data:
+        device.ontime_lt = data["ontimeLT"]
+    if "safetyRelay" in data:
+        device.safety_relay = bool(data["safetyRelay"])
+    # Real-time light and fan status from telemetry (overrides state if present)
+    if "lightOn" in data:
+        device.lights_on = bool(data["lightOn"])
+    if "fanOn" in data:
+        device.fan_on = bool(data["fanOn"])
 
     device._last_update = time.monotonic()
 

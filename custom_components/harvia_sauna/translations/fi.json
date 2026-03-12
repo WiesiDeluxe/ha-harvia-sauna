@@ -135,6 +135,30 @@
       },
       "temp_trend": {
         "name": "Lämpötilatrendi"
+      },
+      "heater_power_actual": {
+        "name": "Kiukaan todellinen teho"
+      },
+      "main_sensor_temp": {
+        "name": "Pääasensorin lämpötila"
+      },
+      "ext_sensor_temp": {
+        "name": "Ulkoisen anturin lämpötila"
+      },
+      "panel_temp": {
+        "name": "Paneelin lämpötila"
+      },
+      "total_sessions": {
+        "name": "Yhteensä istunnot"
+      },
+      "total_bathing_hours": {
+        "name": "Yhteensä saunomatuntit"
+      },
+      "total_hours": {
+        "name": "Yhteensä käyttötunnit"
+      },
+      "active_profile": {
+        "name": "Aktiivinen profiili"
       }
     },
     "binary_sensor": {
@@ -146,6 +170,15 @@
       },
       "steam_on": {
         "name": "Höyry päällä"
+      },
+      "safety_relay": {
+        "name": "Turvarele"
+      },
+      "screen_lock": {
+        "name": "Näytön lukitus"
+      },
+      "remote_allowed": {
+        "name": "Etähallinta sallittu"
       }
     },
     "number": {
