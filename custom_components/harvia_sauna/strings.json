@@ -122,10 +122,10 @@
         "name": "Steam cycles"
       },
       "power": {
-        "name": "Power"
+        "name": "Power (estimated)"
       },
       "energy": {
-        "name": "Energy consumption"
+        "name": "Energy (estimated)"
       },
       "last_session_duration": {
         "name": "Last session duration"

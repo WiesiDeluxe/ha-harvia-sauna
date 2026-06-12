@@ -3,27 +3,27 @@
     "step": {
       "user": {
         "title": "Harvia Bastu",
-        "description": "Välj din styrenhetstyp och ange dina inloggningsuppgifter.",
+        "description": "VÃ¤lj din styrenhetstyp och ange dina inloggningsuppgifter.",
         "data": {
           "username": "E-post",
-          "password": "Lösenord",
-          "api_provider": "API-leverantör"
+          "password": "LÃ¶senord",
+          "api_provider": "API-leverantÃ¶r"
         }
       },
       "heater": {
-        "title": "Aggregatinställning",
-        "description": "Välj modell och effekt för din bastuugn. Detta hjälper till att visa rätt enhetsinformation och kan ändras senare.",
+        "title": "AggregatinstÃ¤llning",
+        "description": "VÃ¤lj modell och effekt fÃ¶r din bastuugn. Detta hjÃ¤lper till att visa rÃ¤tt enhetsinformation och kan Ã¤ndras senare.",
         "data": {
           "heater_model": "Aggregatmodell",
           "heater_power": "Aggregateffekt (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Återautentisering av Harvia Bastu",
+        "title": "Ãterautentisering av Harvia Bastu",
         "description": "Ange dina uppdaterade MyHarvia-uppgifter.",
         "data": {
           "username": "E-post",
-          "password": "Lösenord"
+          "password": "LÃ¶senord"
         }
       },
       "reconfigure": {
@@ -32,20 +32,20 @@
         "data": {
           "heater_model": "Aggregatsmodell",
           "heater_power": "Aggregatseffekt (kW)",
-          "password": "Nytt lösenord (lämna tomt om oförändrat)",
+          "password": "Nytt lÃ¶senord (lÃ¤mna tomt om ofÃ¶rÃ¤ndrat)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Ogiltiga inloggningsuppgifter. Kontrollera din MyHarvia-appinloggning.",
-      "cannot_connect": "Kan inte ansluta till MyHarvia-molnet. Försök igen senare.",
-      "unknown": "Ett oväntat fel inträffade.",
-      "password_required": "Lösenord krävs vid byte av användarnamn."
+      "cannot_connect": "Kan inte ansluta till MyHarvia-molnet. FÃ¶rsÃ¶k igen senare.",
+      "unknown": "Ett ovÃ¤ntat fel intrÃ¤ffade.",
+      "password_required": "LÃ¶senord krÃ¤vs vid byte av anvÃ¤ndarnamn."
     },
     "abort": {
-      "already_configured": "Detta konto är redan konfigurerat.",
-      "reauth_successful": "Återautentisering lyckades.",
+      "already_configured": "Detta konto Ã¤r redan konfigurerat.",
+      "reauth_successful": "Ãterautentisering lyckades.",
       "reconfigure_successful": "Omkonfigurering lyckades."
     }
   },
@@ -57,16 +57,16 @@
     },
     "switch": {
       "power": {
-        "name": "Ström"
+        "name": "StrÃ¶m"
       },
       "light": {
         "name": "Belysning"
       },
       "fan": {
-        "name": "Fläkt"
+        "name": "FlÃ¤kt"
       },
       "steamer": {
-        "name": "Ånggenerator"
+        "name": "Ãnggenerator"
       },
       "aroma": {
         "name": "Arom"
@@ -75,7 +75,7 @@
         "name": "Automatisk belysning"
       },
       "auto_fan": {
-        "name": "Automatisk fläkt"
+        "name": "Automatisk flÃ¤kt"
       },
       "dehumidifier": {
         "name": "Avfuktare"
@@ -89,13 +89,13 @@
         "name": "Luftfuktighet"
       },
       "target_temperature": {
-        "name": "Måltemperatur"
+        "name": "MÃ¥ltemperatur"
       },
       "remaining_time": {
-        "name": "Återstående tid"
+        "name": "ÃterstÃ¥ende tid"
       },
       "heat_up_time": {
-        "name": "Uppvärmningstid"
+        "name": "UppvÃ¤rmningstid"
       },
       "wifi_rssi": {
         "name": "WiFi-signal"
@@ -104,37 +104,37 @@
         "name": "Statuskoder"
       },
       "aroma_level": {
-        "name": "Aromnivå"
+        "name": "AromnivÃ¥"
       },
       "ph1_relay_counter": {
-        "name": "Fas 1 relächcykler"
+        "name": "Fas 1 relÃ¤chcykler"
       },
       "ph2_relay_counter": {
-        "name": "Fas 2 relächcykler"
+        "name": "Fas 2 relÃ¤chcykler"
       },
       "ph3_relay_counter": {
-        "name": "Fas 3 relächcykler"
+        "name": "Fas 3 relÃ¤chcykler"
       },
       "heat_on_counter": {
-        "name": "Uppvärmningscykler"
+        "name": "UppvÃ¤rmningscykler"
       },
       "steam_on_counter": {
-        "name": "Ångcykler"
+        "name": "Ãngcykler"
       },
       "power": {
-        "name": "Effekt"
+        "name": "Effekt (uppskattad)"
       },
       "energy": {
-        "name": "Energiförbrukning"
+        "name": "Energiförbrukning (uppskattad)"
       },
       "last_session_duration": {
-        "name": "Senaste bastuns längd"
+        "name": "Senaste bastuns lÃ¤ngd"
       },
       "last_session_max_temp": {
         "name": "Senaste bastuns maxtemperatur"
       },
       "sessions_today": {
-        "name": "Bastubesök idag"
+        "name": "BastubesÃ¶k idag"
       },
       "temp_trend": {
         "name": "Temperaturtrend"
@@ -166,33 +166,33 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "Dörr"
+        "name": "DÃ¶rr"
       },
       "heat_on": {
-        "name": "Uppvärmning aktiv"
+        "name": "UppvÃ¤rmning aktiv"
       },
       "steam_on": {
-        "name": "Ånga aktiv"
+        "name": "Ãnga aktiv"
       },
       "safety_relay": {
-        "name": "Säkerhetsrelä"
+        "name": "SÃ¤kerhetsrelÃ¤"
       },
       "screen_lock": {
-        "name": "Skärmlås"
+        "name": "SkÃ¤rmlÃ¥s"
       },
       "remote_allowed": {
-        "name": "Fjärrstyring tillåten"
+        "name": "FjÃ¤rrstyring tillÃ¥ten"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "Mål-luftfuktighet"
+        "name": "MÃ¥l-luftfuktighet"
       },
       "aroma_level_set": {
-        "name": "Aromnivå"
+        "name": "AromnivÃ¥"
       },
       "on_time": {
-        "name": "Sessionslängd"
+        "name": "SessionslÃ¤ngd"
       }
     }
   }

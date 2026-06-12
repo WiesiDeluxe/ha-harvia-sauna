@@ -7,19 +7,19 @@
         "data": {
           "username": "E-post",
           "password": "Passord",
-          "api_provider": "API-leverandør"
+          "api_provider": "API-leverandÃ¸r"
         }
       },
       "heater": {
         "title": "Ovnskonfigurasjon",
-        "description": "Velg badstueovnmodell og effekt. Dette hjelper med å vise riktig enhetsinformasjon og kan endres senere.",
+        "description": "Velg badstueovnmodell og effekt. Dette hjelper med Ã¥ vise riktig enhetsinformasjon og kan endres senere.",
         "data": {
           "heater_model": "Ovnsmodell",
           "heater_power": "Ovnseffekt (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Autentiser Harvia Badstue på nytt",
+        "title": "Autentiser Harvia Badstue pÃ¥ nytt",
         "description": "Oppgi oppdatert MyHarvia-innlogging.",
         "data": {
           "username": "E-post",
@@ -32,16 +32,16 @@
         "data": {
           "heater_model": "Ovnsmodell",
           "heater_power": "Ovnseffekt (kW)",
-          "password": "Nytt passord (la stå tomt hvis uendret)",
+          "password": "Nytt passord (la stÃ¥ tomt hvis uendret)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Ugyldig innlogging. Sjekk MyHarvia-appinnloggingen.",
-      "cannot_connect": "Kan ikke koble til MyHarvia-skyen. Prøv igjen senere.",
+      "cannot_connect": "Kan ikke koble til MyHarvia-skyen. PrÃ¸v igjen senere.",
       "unknown": "En uventet feil oppstod.",
-      "password_required": "Passord er påkrevd ved endring av brukernavn."
+      "password_required": "Passord er pÃ¥krevd ved endring av brukernavn."
     },
     "abort": {
       "already_configured": "Denne kontoen er allerede konfigurert.",
@@ -57,7 +57,7 @@
     },
     "switch": {
       "power": {
-        "name": "Strøm"
+        "name": "StrÃ¸m"
       },
       "light": {
         "name": "Lys"
@@ -89,10 +89,10 @@
         "name": "Fuktighet"
       },
       "target_temperature": {
-        "name": "Måltemperatur"
+        "name": "MÃ¥ltemperatur"
       },
       "remaining_time": {
-        "name": "Gjenstående tid"
+        "name": "GjenstÃ¥ende tid"
       },
       "heat_up_time": {
         "name": "Oppvarmingstid"
@@ -104,7 +104,7 @@
         "name": "Statuskoder"
       },
       "aroma_level": {
-        "name": "Aromanivå"
+        "name": "AromanivÃ¥"
       },
       "ph1_relay_counter": {
         "name": "Fase 1 relesykluser"
@@ -122,19 +122,19 @@
         "name": "Dampsykluser"
       },
       "power": {
-        "name": "Effekt"
+        "name": "Effekt (estimert)"
       },
       "energy": {
-        "name": "Energiforbruk"
+        "name": "Energiforbruk (estimert)"
       },
       "last_session_duration": {
-        "name": "Siste øktvarighet"
+        "name": "Siste Ã¸ktvarighet"
       },
       "last_session_max_temp": {
-        "name": "Siste økt maks. temperatur"
+        "name": "Siste Ã¸kt maks. temperatur"
       },
       "sessions_today": {
-        "name": "Økter i dag"
+        "name": "Ãkter i dag"
       },
       "temp_trend": {
         "name": "Temperaturtrend"
@@ -166,7 +166,7 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "Dør"
+        "name": "DÃ¸r"
       },
       "heat_on": {
         "name": "Oppvarming"
@@ -175,10 +175,10 @@
         "name": "Damp aktiv"
       },
       "safety_relay": {
-        "name": "Sikkerhetsrelé"
+        "name": "SikkerhetsrelÃ©"
       },
       "screen_lock": {
-        "name": "Skjermlås"
+        "name": "SkjermlÃ¥s"
       },
       "remote_allowed": {
         "name": "Fjernstyring tillatt"
@@ -186,13 +186,13 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Målfuktighet"
+        "name": "MÃ¥lfuktighet"
       },
       "aroma_level_set": {
-        "name": "Aromanivå"
+        "name": "AromanivÃ¥"
       },
       "on_time": {
-        "name": "Økttid"
+        "name": "Ãkttid"
       }
     }
   }

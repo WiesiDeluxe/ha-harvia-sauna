@@ -19,7 +19,7 @@
         }
       },
       "reauth_confirm": {
-        "title": "Harvia Sauna opnieuw verifiëren",
+        "title": "Harvia Sauna opnieuw verifiÃ«ren",
         "description": "Voer je bijgewerkte MyHarvia-inloggegevens in.",
         "data": {
           "username": "E-mail",
@@ -45,7 +45,7 @@
     },
     "abort": {
       "already_configured": "Dit account is al geconfigureerd.",
-      "reauth_successful": "Opnieuw verifiëren is gelukt.",
+      "reauth_successful": "Opnieuw verifiÃ«ren is gelukt.",
       "reconfigure_successful": "Herconfiguratie is gelukt."
     }
   },
@@ -122,10 +122,10 @@
         "name": "Stoomcycli"
       },
       "power": {
-        "name": "Vermogen"
+        "name": "Vermogen (geschat)"
       },
       "energy": {
-        "name": "Energieverbruik"
+        "name": "Energieverbruik (geschat)"
       },
       "last_session_duration": {
         "name": "Laatste sessieduur"
@@ -175,7 +175,7 @@
         "name": "Stoom actief"
       },
       "safety_relay": {
-        "name": "Veiligheidsrelé"
+        "name": "VeiligheidsrelÃ©"
       },
       "screen_lock": {
         "name": "Schermvergrendeling"

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Saun",
-        "description": "Valige kontrolleri tüüp ja sisestage oma mandaadid.",
+        "description": "Valige kontrolleri tÃ¼Ã¼p ja sisestage oma mandaadid.",
         "data": {
           "username": "E-post",
           "password": "Parool",
@@ -12,10 +12,10 @@
       },
       "heater": {
         "title": "Kerise seadistamine",
-        "description": "Vali oma saunakerise mudel ja võimsus. See aitab kuvada õiget seadmeteavet ja seda saab hiljem muuta.",
+        "description": "Vali oma saunakerise mudel ja vÃµimsus. See aitab kuvada Ãµiget seadmeteavet ja seda saab hiljem muuta.",
         "data": {
           "heater_model": "Kerise mudel",
-          "heater_power": "Kerise võimsus (kW)"
+          "heater_power": "Kerise vÃµimsus (kW)"
         }
       },
       "reauth_confirm": {
@@ -27,26 +27,26 @@
         }
       },
       "reconfigure": {
-        "title": "Harvia sauna ümberkonfigureerimine",
-        "description": "Uuenda kerise mudelit ja võimsust.",
+        "title": "Harvia sauna Ã¼mberkonfigureerimine",
+        "description": "Uuenda kerise mudelit ja vÃµimsust.",
         "data": {
           "heater_model": "Kerise mudel",
-          "heater_power": "Kerise võimsus (kW)",
-          "password": "Uus parool (jäta tühjaks kui ei muutu)",
+          "heater_power": "Kerise vÃµimsus (kW)",
+          "password": "Uus parool (jÃ¤ta tÃ¼hjaks kui ei muutu)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Vigased sisselogimisandmed. Kontrolli oma MyHarvia rakenduse sisselogimist.",
-      "cannot_connect": "MyHarvia pilvega ei saa ühendust. Proovi hiljem uuesti.",
+      "cannot_connect": "MyHarvia pilvega ei saa Ã¼hendust. Proovi hiljem uuesti.",
       "unknown": "Ilmnes ootamatu viga.",
-      "password_required": "Parool on nõutav kasutajanime muutmisel."
+      "password_required": "Parool on nÃµutav kasutajanime muutmisel."
     },
     "abort": {
       "already_configured": "See konto on juba seadistatud.",
-      "reauth_successful": "Uuesti autentimine õnnestus.",
-      "reconfigure_successful": "Ümberkonfigureerimine õnnestus."
+      "reauth_successful": "Uuesti autentimine Ãµnnestus.",
+      "reconfigure_successful": "Ãmberkonfigureerimine Ãµnnestus."
     }
   },
   "entity": {
@@ -78,7 +78,7 @@
         "name": "Automaatne ventilaator"
       },
       "dehumidifier": {
-        "name": "Õhukuivati"
+        "name": "Ãhukuivati"
       }
     },
     "sensor": {
@@ -86,13 +86,13 @@
         "name": "Temperatuur"
       },
       "humidity": {
-        "name": "Õhuniiskus"
+        "name": "Ãhuniiskus"
       },
       "target_temperature": {
         "name": "Sihttemperatuur"
       },
       "remaining_time": {
-        "name": "Järelejäänud aeg"
+        "name": "JÃ¤relejÃ¤Ã¤nud aeg"
       },
       "heat_up_time": {
         "name": "Kuumenemisaeg"
@@ -107,25 +107,25 @@
         "name": "Aroomi tase"
       },
       "ph1_relay_counter": {
-        "name": "Faas 1 relee tsüklid"
+        "name": "Faas 1 relee tsÃ¼klid"
       },
       "ph2_relay_counter": {
-        "name": "Faas 2 relee tsüklid"
+        "name": "Faas 2 relee tsÃ¼klid"
       },
       "ph3_relay_counter": {
-        "name": "Faas 3 relee tsüklid"
+        "name": "Faas 3 relee tsÃ¼klid"
       },
       "heat_on_counter": {
-        "name": "Kütmistsüklid"
+        "name": "KÃ¼tmistsÃ¼klid"
       },
       "steam_on_counter": {
-        "name": "Aurutsüklid"
+        "name": "AurutsÃ¼klid"
       },
       "power": {
-        "name": "Võimsus"
+        "name": "Võimsus (hinnanguline)"
       },
       "energy": {
-        "name": "Energiakulu"
+        "name": "Energiatarbimine (hinnanguline)"
       },
       "last_session_duration": {
         "name": "Viimase seansi kestus"
@@ -134,19 +134,19 @@
         "name": "Viimase seansi maksimaalne temperatuur"
       },
       "sessions_today": {
-        "name": "Tänased seansid"
+        "name": "TÃ¤nased seansid"
       },
       "temp_trend": {
         "name": "Temperatuuritrend"
       },
       "heater_power_actual": {
-        "name": "Aktiivne küttevõimsus"
+        "name": "Aktiivne kÃ¼ttevÃµimsus"
       },
       "main_sensor_temp": {
         "name": "Peamise anduri temperatuur"
       },
       "ext_sensor_temp": {
-        "name": "Välise anduri temperatuur"
+        "name": "VÃ¤lise anduri temperatuur"
       },
       "panel_temp": {
         "name": "Paneeli temperatuur"
@@ -158,7 +158,7 @@
         "name": "Kokku saunamise tunde"
       },
       "total_hours": {
-        "name": "Kokku töötunde"
+        "name": "Kokku tÃ¶Ã¶tunde"
       },
       "active_profile": {
         "name": "Aktiivne profil"
@@ -169,7 +169,7 @@
         "name": "Uks"
       },
       "heat_on": {
-        "name": "Kütmine aktiivne"
+        "name": "KÃ¼tmine aktiivne"
       },
       "steam_on": {
         "name": "Aur aktiivne"
@@ -186,7 +186,7 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Siht-õhuniiskus"
+        "name": "Siht-Ãµhuniiskus"
       },
       "aroma_level_set": {
         "name": "Aroomi tase"

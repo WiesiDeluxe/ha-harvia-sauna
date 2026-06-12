@@ -2,197 +2,197 @@
   "config": {
     "step": {
       "user": {
-        "title": "Harvia 桑拿",
-        "description": "选择控制器类型并输入您的登录凭据。",
+        "title": "Harvia æ¡æ¿",
+        "description": "éæ©æ§å¶å¨ç±»åå¹¶è¾å¥æ¨çç»å½å­æ®ã",
         "data": {
-          "username": "电子邮件",
-          "password": "密码",
-          "api_provider": "API 提供商"
+          "username": "çµå­é®ä»¶",
+          "password": "å¯ç ",
+          "api_provider": "API æä¾å"
         }
       },
       "heater": {
-        "title": "加热器配置",
-        "description": "选择桑拿加热器型号和功率。这有助于显示正确的设备信息，之后可以更改。",
+        "title": "å ç­å¨éç½®",
+        "description": "éæ©æ¡æ¿å ç­å¨åå·ååçãè¿æå©äºæ¾ç¤ºæ­£ç¡®çè®¾å¤ä¿¡æ¯ï¼ä¹åå¯ä»¥æ´æ¹ã",
         "data": {
-          "heater_model": "加热器型号",
-          "heater_power": "加热器功率 (kW)"
+          "heater_model": "å ç­å¨åå·",
+          "heater_power": "å ç­å¨åç (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "重新验证 Harvia 桑拿",
-        "description": "输入更新的 MyHarvia 登录凭据。",
+        "title": "éæ°éªè¯ Harvia æ¡æ¿",
+        "description": "è¾å¥æ´æ°ç MyHarvia ç»å½å­æ®ã",
         "data": {
-          "username": "电子邮件",
-          "password": "密码"
+          "username": "çµå­é®ä»¶",
+          "password": "å¯ç "
         }
       },
       "reconfigure": {
-        "title": "重新配置 Harvia 桑拿",
-        "description": "更新加热器型号和功率。",
+        "title": "éæ°éç½® Harvia æ¡æ¿",
+        "description": "æ´æ°å ç­å¨åå·ååçã",
         "data": {
-          "heater_model": "加热器型号",
-          "heater_power": "加热器功率 (kW)",
-          "password": "新密码（未更改请留空）",
-          "username": "电子邮件"
+          "heater_model": "å ç­å¨åå·",
+          "heater_power": "å ç­å¨åç (kW)",
+          "password": "æ°å¯ç ï¼æªæ´æ¹è¯·çç©ºï¼",
+          "username": "çµå­é®ä»¶"
         }
       }
     },
     "error": {
-      "invalid_auth": "凭据无效。请检查您的 MyHarvia 应用登录信息。",
-      "cannot_connect": "无法连接到 MyHarvia 云。请稍后重试。",
-      "unknown": "发生意外错误。",
-      "password_required": "更改用户名时需要密码。"
+      "invalid_auth": "å­æ®æ æãè¯·æ£æ¥æ¨ç MyHarvia åºç¨ç»å½ä¿¡æ¯ã",
+      "cannot_connect": "æ æ³è¿æ¥å° MyHarvia äºãè¯·ç¨åéè¯ã",
+      "unknown": "åçæå¤éè¯¯ã",
+      "password_required": "æ´æ¹ç¨æ·åæ¶éè¦å¯ç ã"
     },
     "abort": {
-      "already_configured": "此帐户已配置。",
-      "reauth_successful": "重新验证成功。",
-      "reconfigure_successful": "重新配置成功。"
+      "already_configured": "æ­¤å¸æ·å·²éç½®ã",
+      "reauth_successful": "éæ°éªè¯æåã",
+      "reconfigure_successful": "éæ°éç½®æåã"
     }
   },
   "entity": {
     "climate": {
       "thermostat": {
-        "name": "温控器"
+        "name": "æ¸©æ§å¨"
       }
     },
     "switch": {
       "power": {
-        "name": "电源"
+        "name": "çµæº"
       },
       "light": {
-        "name": "灯光"
+        "name": "ç¯å"
       },
       "fan": {
-        "name": "风扇"
+        "name": "é£æ"
       },
       "steamer": {
-        "name": "蒸汽发生器"
+        "name": "è¸æ±½åçå¨"
       },
       "aroma": {
-        "name": "香氛"
+        "name": "é¦æ°"
       },
       "auto_light": {
-        "name": "自动灯光"
+        "name": "èªå¨ç¯å"
       },
       "auto_fan": {
-        "name": "自动风扇"
+        "name": "èªå¨é£æ"
       },
       "dehumidifier": {
-        "name": "除湿器"
+        "name": "é¤æ¹¿å¨"
       }
     },
     "sensor": {
       "current_temperature": {
-        "name": "温度"
+        "name": "æ¸©åº¦"
       },
       "humidity": {
-        "name": "湿度"
+        "name": "æ¹¿åº¦"
       },
       "target_temperature": {
-        "name": "目标温度"
+        "name": "ç®æ æ¸©åº¦"
       },
       "remaining_time": {
-        "name": "剩余时间"
+        "name": "å©ä½æ¶é´"
       },
       "heat_up_time": {
-        "name": "加热时间"
+        "name": "å ç­æ¶é´"
       },
       "wifi_rssi": {
-        "name": "WiFi 信号"
+        "name": "WiFi ä¿¡å·"
       },
       "status_codes": {
-        "name": "状态码"
+        "name": "ç¶æç "
       },
       "aroma_level": {
-        "name": "香氛等级"
+        "name": "é¦æ°ç­çº§"
       },
       "ph1_relay_counter": {
-        "name": "第1相继电器周期"
+        "name": "ç¬¬1ç¸ç»§çµå¨å¨æ"
       },
       "ph2_relay_counter": {
-        "name": "第2相继电器周期"
+        "name": "ç¬¬2ç¸ç»§çµå¨å¨æ"
       },
       "ph3_relay_counter": {
-        "name": "第3相继电器周期"
+        "name": "ç¬¬3ç¸ç»§çµå¨å¨æ"
       },
       "heat_on_counter": {
-        "name": "加热周期"
+        "name": "å ç­å¨æ"
       },
       "steam_on_counter": {
-        "name": "蒸汽周期"
+        "name": "è¸æ±½å¨æ"
       },
       "power": {
-        "name": "功率"
+        "name": "功率（估算）"
       },
       "energy": {
-        "name": "能耗"
+        "name": "能耗（估算）"
       },
       "last_session_duration": {
-        "name": "上次使用时长"
+        "name": "ä¸æ¬¡ä½¿ç¨æ¶é¿"
       },
       "last_session_max_temp": {
-        "name": "上次使用最高温度"
+        "name": "ä¸æ¬¡ä½¿ç¨æé«æ¸©åº¦"
       },
       "sessions_today": {
-        "name": "今日使用次数"
+        "name": "ä»æ¥ä½¿ç¨æ¬¡æ°"
       },
       "temp_trend": {
-        "name": "温度趋势"
+        "name": "æ¸©åº¦è¶å¿"
       },
       "heater_power_actual": {
-        "name": "当前加热器功率"
+        "name": "å½åå ç­å¨åç"
       },
       "main_sensor_temp": {
-        "name": "主传感器温度"
+        "name": "ä¸»ä¼ æå¨æ¸©åº¦"
       },
       "ext_sensor_temp": {
-        "name": "外部传感器温度"
+        "name": "å¤é¨ä¼ æå¨æ¸©åº¦"
       },
       "panel_temp": {
-        "name": "面板温度"
+        "name": "é¢æ¿æ¸©åº¦"
       },
       "total_sessions": {
-        "name": "总会话数"
+        "name": "æ»ä¼è¯æ°"
       },
       "total_bathing_hours": {
-        "name": "总桑拿时间"
+        "name": "æ»æ¡æ¿æ¶é´"
       },
       "total_hours": {
-        "name": "总运行时间"
+        "name": "æ»è¿è¡æ¶é´"
       },
       "active_profile": {
-        "name": "活跃配置文件"
+        "name": "æ´»è·éç½®æä»¶"
       }
     },
     "binary_sensor": {
       "door": {
-        "name": "门"
+        "name": "é¨"
       },
       "heat_on": {
-        "name": "加热中"
+        "name": "å ç­ä¸­"
       },
       "steam_on": {
-        "name": "蒸汽运行中"
+        "name": "è¸æ±½è¿è¡ä¸­"
       },
       "safety_relay": {
-        "name": "安全继电器"
+        "name": "å®å¨ç»§çµå¨"
       },
       "screen_lock": {
-        "name": "屏幕锁"
+        "name": "å±å¹é"
       },
       "remote_allowed": {
-        "name": "允许远程控制"
+        "name": "åè®¸è¿ç¨æ§å¶"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "目标湿度"
+        "name": "ç®æ æ¹¿åº¦"
       },
       "aroma_level_set": {
-        "name": "香氛等级"
+        "name": "é¦æ°ç­çº§"
       },
       "on_time": {
-        "name": "使用时间"
+        "name": "ä½¿ç¨æ¶é´"
       }
     }
   }

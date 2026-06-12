@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Vælg din controllertype og indtast dine loginoplysninger.",
+        "description": "VÃ¦lg din controllertype og indtast dine loginoplysninger.",
         "data": {
           "username": "E-mail",
           "password": "Adgangskode",
@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Ovnkonfiguration",
-        "description": "Vælg din saunaovnmodel og effekt. Dette hjælper med at vise korrekte enhedsoplysninger og kan ændres senere.",
+        "description": "VÃ¦lg din saunaovnmodel og effekt. Dette hjÃ¦lper med at vise korrekte enhedsoplysninger og kan Ã¦ndres senere.",
         "data": {
           "heater_model": "Ovnmodel",
           "heater_power": "Ovneffekt (kW)"
@@ -32,16 +32,16 @@
         "data": {
           "heater_model": "Ovnmodel",
           "heater_power": "Ovneffekt (kW)",
-          "password": "Ny adgangskode (lad stå tomt hvis uændret)",
+          "password": "Ny adgangskode (lad stÃ¥ tomt hvis uÃ¦ndret)",
           "username": "E-mail"
         }
       }
     },
     "error": {
       "invalid_auth": "Ugyldige loginoplysninger. Kontroller dit MyHarvia-applogin.",
-      "cannot_connect": "Kan ikke oprette forbindelse til MyHarvia-skyen. Prøv igen senere.",
+      "cannot_connect": "Kan ikke oprette forbindelse til MyHarvia-skyen. PrÃ¸v igen senere.",
       "unknown": "En uventet fejl opstod.",
-      "password_required": "Adgangskode er påkrævet ved ændring af brugernavn."
+      "password_required": "Adgangskode er pÃ¥krÃ¦vet ved Ã¦ndring af brugernavn."
     },
     "abort": {
       "already_configured": "Denne konto er allerede konfigureret.",
@@ -57,7 +57,7 @@
     },
     "switch": {
       "power": {
-        "name": "Tænd/sluk"
+        "name": "TÃ¦nd/sluk"
       },
       "light": {
         "name": "Lys"
@@ -89,7 +89,7 @@
         "name": "Luftfugtighed"
       },
       "target_temperature": {
-        "name": "Måltemperatur"
+        "name": "MÃ¥ltemperatur"
       },
       "remaining_time": {
         "name": "Resterende tid"
@@ -107,13 +107,13 @@
         "name": "Aromaniveau"
       },
       "ph1_relay_counter": {
-        "name": "Fase 1 relæcykler"
+        "name": "Fase 1 relÃ¦cykler"
       },
       "ph2_relay_counter": {
-        "name": "Fase 2 relæcykler"
+        "name": "Fase 2 relÃ¦cykler"
       },
       "ph3_relay_counter": {
-        "name": "Fase 3 relæcykler"
+        "name": "Fase 3 relÃ¦cykler"
       },
       "heat_on_counter": {
         "name": "Varmecykler"
@@ -122,10 +122,10 @@
         "name": "Dampcykler"
       },
       "power": {
-        "name": "Effekt"
+        "name": "Effekt (estimeret)"
       },
       "energy": {
-        "name": "Energiforbrug"
+        "name": "Energiforbrug (estimeret)"
       },
       "last_session_duration": {
         "name": "Sidste sessions varighed"
@@ -140,13 +140,13 @@
         "name": "Temperaturtrend"
       },
       "heater_power_actual": {
-        "name": "Nuværende varmeoutput"
+        "name": "NuvÃ¦rende varmeoutput"
       },
       "main_sensor_temp": {
-        "name": "Temperatur på hovedsensor"
+        "name": "Temperatur pÃ¥ hovedsensor"
       },
       "ext_sensor_temp": {
-        "name": "Temperatur på ekstern sensor"
+        "name": "Temperatur pÃ¥ ekstern sensor"
       },
       "panel_temp": {
         "name": "Paneltemperatur"
@@ -166,7 +166,7 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "Dør"
+        "name": "DÃ¸r"
       },
       "heat_on": {
         "name": "Opvarmning"
@@ -175,10 +175,10 @@
         "name": "Damp aktiv"
       },
       "safety_relay": {
-        "name": "Sikkerhedsrelæ"
+        "name": "SikkerhedsrelÃ¦"
       },
       "screen_lock": {
-        "name": "Skærmlås"
+        "name": "SkÃ¦rmlÃ¥s"
       },
       "remote_allowed": {
         "name": "Fjernstyring tilladt"
@@ -186,7 +186,7 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Målfugtighed"
+        "name": "MÃ¥lfugtighed"
       },
       "aroma_level_set": {
         "name": "Aromaniveau"

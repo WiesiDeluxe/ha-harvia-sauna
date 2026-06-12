@@ -11,11 +11,11 @@
         }
       },
       "heater": {
-        "title": "Configuração do aquecedor",
-        "description": "Selecione o modelo e a potência do aquecedor da sauna. Isso ajuda a exibir informações corretas do dispositivo e pode ser alterado posteriormente.",
+        "title": "ConfiguraÃ§Ã£o do aquecedor",
+        "description": "Selecione o modelo e a potÃªncia do aquecedor da sauna. Isso ajuda a exibir informaÃ§Ãµes corretas do dispositivo e pode ser alterado posteriormente.",
         "data": {
           "heater_model": "Modelo do aquecedor",
-          "heater_power": "Potência do aquecedor (kW)"
+          "heater_power": "PotÃªncia do aquecedor (kW)"
         }
       },
       "reauth_confirm": {
@@ -28,25 +28,25 @@
       },
       "reconfigure": {
         "title": "Reconfigurar Harvia Sauna",
-        "description": "Atualize o modelo e a potência do aquecedor.",
+        "description": "Atualize o modelo e a potÃªncia do aquecedor.",
         "data": {
           "heater_model": "Modelo do aquecedor",
-          "heater_power": "Potência do aquecedor (kW)",
+          "heater_power": "PotÃªncia do aquecedor (kW)",
           "password": "Nova senha (deixe em branco se inalterada)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Credenciais inválidas. Verifique seu login no app MyHarvia.",
-      "cannot_connect": "Não foi possível conectar à nuvem MyHarvia. Tente novamente mais tarde.",
+      "invalid_auth": "Credenciais invÃ¡lidas. Verifique seu login no app MyHarvia.",
+      "cannot_connect": "NÃ£o foi possÃ­vel conectar Ã  nuvem MyHarvia. Tente novamente mais tarde.",
       "unknown": "Ocorreu um erro inesperado.",
-      "password_required": "Senha é obrigatória ao alterar o nome de usuário."
+      "password_required": "Senha Ã© obrigatÃ³ria ao alterar o nome de usuÃ¡rio."
     },
     "abort": {
-      "already_configured": "Esta conta já está configurada.",
-      "reauth_successful": "Reautenticação bem-sucedida.",
-      "reconfigure_successful": "Reconfiguração bem-sucedida."
+      "already_configured": "Esta conta jÃ¡ estÃ¡ configurada.",
+      "reauth_successful": "ReautenticaÃ§Ã£o bem-sucedida.",
+      "reconfigure_successful": "ReconfiguraÃ§Ã£o bem-sucedida."
     }
   },
   "entity": {
@@ -72,10 +72,10 @@
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "Luz automática"
+        "name": "Luz automÃ¡tica"
       },
       "auto_fan": {
-        "name": "Ventilador automático"
+        "name": "Ventilador automÃ¡tico"
       },
       "dehumidifier": {
         "name": "Desumidificador"
@@ -101,19 +101,19 @@
         "name": "Sinal WiFi"
       },
       "status_codes": {
-        "name": "Códigos de status"
+        "name": "CÃ³digos de status"
       },
       "aroma_level": {
-        "name": "Nível de aroma"
+        "name": "NÃ­vel de aroma"
       },
       "ph1_relay_counter": {
-        "name": "Ciclos relé fase 1"
+        "name": "Ciclos relÃ© fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Ciclos relé fase 2"
+        "name": "Ciclos relÃ© fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Ciclos relé fase 3"
+        "name": "Ciclos relÃ© fase 3"
       },
       "heat_on_counter": {
         "name": "Ciclos de aquecimento"
@@ -122,25 +122,25 @@
         "name": "Ciclos de vapor"
       },
       "power": {
-        "name": "Potência"
+        "name": "Potência (estimada)"
       },
       "energy": {
-        "name": "Consumo de energia"
+        "name": "Consumo de energia (estimado)"
       },
       "last_session_duration": {
-        "name": "Duração da última sessão"
+        "name": "DuraÃ§Ã£o da Ãºltima sessÃ£o"
       },
       "last_session_max_temp": {
-        "name": "Temperatura máxima da última sessão"
+        "name": "Temperatura mÃ¡xima da Ãºltima sessÃ£o"
       },
       "sessions_today": {
-        "name": "Sessões hoje"
+        "name": "SessÃµes hoje"
       },
       "temp_trend": {
-        "name": "Tendência de temperatura"
+        "name": "TendÃªncia de temperatura"
       },
       "heater_power_actual": {
-        "name": "Potência atual do aquecedor"
+        "name": "PotÃªncia atual do aquecedor"
       },
       "main_sensor_temp": {
         "name": "Temperatura do sensor principal"
@@ -152,7 +152,7 @@
         "name": "Temperatura do painel"
       },
       "total_sessions": {
-        "name": "Total de sessões"
+        "name": "Total de sessÃµes"
       },
       "total_bathing_hours": {
         "name": "Total de horas na sauna"
@@ -175,7 +175,7 @@
         "name": "Vapor ativo"
       },
       "safety_relay": {
-        "name": "Relé de segurança"
+        "name": "RelÃ© de seguranÃ§a"
       },
       "screen_lock": {
         "name": "Bloqueio de tela"
@@ -189,10 +189,10 @@
         "name": "Umidade alvo"
       },
       "aroma_level_set": {
-        "name": "Nível de aroma"
+        "name": "NÃ­vel de aroma"
       },
       "on_time": {
-        "name": "Tempo de sessão"
+        "name": "Tempo de sessÃ£o"
       }
     }
   }

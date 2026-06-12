@@ -3,16 +3,16 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Wybierz typ kontrolera i wprowadź dane logowania.",
+        "description": "Wybierz typ kontrolera i wprowadÅº dane logowania.",
         "data": {
           "username": "E-mail",
-          "password": "Hasło",
+          "password": "HasÅo",
           "api_provider": "Dostawca API"
         }
       },
       "heater": {
         "title": "Konfiguracja pieca",
-        "description": "Wybierz model i moc pieca do sauny. Pomaga to wyświetlać prawidłowe informacje o urządzeniu i można to zmienić później.",
+        "description": "Wybierz model i moc pieca do sauny. Pomaga to wyÅwietlaÄ prawidÅowe informacje o urzÄdzeniu i moÅ¼na to zmieniÄ pÃ³Åºniej.",
         "data": {
           "heater_model": "Model pieca",
           "heater_power": "Moc pieca (kW)"
@@ -20,10 +20,10 @@
       },
       "reauth_confirm": {
         "title": "Ponowna autoryzacja Harvia Sauna",
-        "description": "Wprowadź zaktualizowane dane logowania MyHarvia.",
+        "description": "WprowadÅº zaktualizowane dane logowania MyHarvia.",
         "data": {
           "username": "E-mail",
-          "password": "Hasło"
+          "password": "HasÅo"
         }
       },
       "reconfigure": {
@@ -32,21 +32,21 @@
         "data": {
           "heater_model": "Model pieca",
           "heater_power": "Moc pieca (kW)",
-          "password": "Nowe hasło (pozostaw puste jeśli bez zmian)",
+          "password": "Nowe hasÅo (pozostaw puste jeÅli bez zmian)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Nieprawidłowe dane logowania. Sprawdź login w aplikacji MyHarvia.",
-      "cannot_connect": "Nie można połączyć się z chmurą MyHarvia. Spróbuj ponownie później.",
-      "unknown": "Wystąpił nieoczekiwany błąd.",
-      "password_required": "Hasło jest wymagane przy zmianie nazwy użytkownika."
+      "invalid_auth": "NieprawidÅowe dane logowania. SprawdÅº login w aplikacji MyHarvia.",
+      "cannot_connect": "Nie moÅ¼na poÅÄczyÄ siÄ z chmurÄ MyHarvia. SprÃ³buj ponownie pÃ³Åºniej.",
+      "unknown": "WystÄpiÅ nieoczekiwany bÅÄd.",
+      "password_required": "HasÅo jest wymagane przy zmianie nazwy uÅ¼ytkownika."
     },
     "abort": {
-      "already_configured": "To konto jest już skonfigurowane.",
-      "reauth_successful": "Ponowna autoryzacja powiodła się.",
-      "reconfigure_successful": "Rekonfiguracja powiodła się."
+      "already_configured": "To konto jest juÅ¼ skonfigurowane.",
+      "reauth_successful": "Ponowna autoryzacja powiodÅa siÄ.",
+      "reconfigure_successful": "Rekonfiguracja powiodÅa siÄ."
     }
   },
   "entity": {
@@ -60,7 +60,7 @@
         "name": "Zasilanie"
       },
       "light": {
-        "name": "Oświetlenie"
+        "name": "OÅwietlenie"
       },
       "fan": {
         "name": "Wentylator"
@@ -72,7 +72,7 @@
         "name": "Aromat"
       },
       "auto_light": {
-        "name": "Automatyczne światło"
+        "name": "Automatyczne ÅwiatÅo"
       },
       "auto_fan": {
         "name": "Automatyczny wentylator"
@@ -86,19 +86,19 @@
         "name": "Temperatura"
       },
       "humidity": {
-        "name": "Wilgotność"
+        "name": "WilgotnoÅÄ"
       },
       "target_temperature": {
         "name": "Temperatura docelowa"
       },
       "remaining_time": {
-        "name": "Pozostały czas"
+        "name": "PozostaÅy czas"
       },
       "heat_up_time": {
         "name": "Czas nagrzewania"
       },
       "wifi_rssi": {
-        "name": "Sygnał WiFi"
+        "name": "SygnaÅ WiFi"
       },
       "status_codes": {
         "name": "Kody statusu"
@@ -107,13 +107,13 @@
         "name": "Poziom aromatu"
       },
       "ph1_relay_counter": {
-        "name": "Cykle przekaźnika fazy 1"
+        "name": "Cykle przekaÅºnika fazy 1"
       },
       "ph2_relay_counter": {
-        "name": "Cykle przekaźnika fazy 2"
+        "name": "Cykle przekaÅºnika fazy 2"
       },
       "ph3_relay_counter": {
-        "name": "Cykle przekaźnika fazy 3"
+        "name": "Cykle przekaÅºnika fazy 3"
       },
       "heat_on_counter": {
         "name": "Cykle grzania"
@@ -122,10 +122,10 @@
         "name": "Cykle pary"
       },
       "power": {
-        "name": "Moc"
+        "name": "Moc (szacowana)"
       },
       "energy": {
-        "name": "Zużycie energii"
+        "name": "Zużycie energii (szacowane)"
       },
       "last_session_duration": {
         "name": "Czas ostatniej sesji"
@@ -143,22 +143,22 @@
         "name": "Aktualna moc grzewcza"
       },
       "main_sensor_temp": {
-        "name": "Temperatura głównego czujnika"
+        "name": "Temperatura gÅÃ³wnego czujnika"
       },
       "ext_sensor_temp": {
-        "name": "Temperatura zewnętrznego czujnika"
+        "name": "Temperatura zewnÄtrznego czujnika"
       },
       "panel_temp": {
         "name": "Temperatura panelu"
       },
       "total_sessions": {
-        "name": "Łączna liczba sesji"
+        "name": "ÅÄczna liczba sesji"
       },
       "total_bathing_hours": {
-        "name": "Łączne godziny saunowania"
+        "name": "ÅÄczne godziny saunowania"
       },
       "total_hours": {
-        "name": "Łączny czas pracy"
+        "name": "ÅÄczny czas pracy"
       },
       "active_profile": {
         "name": "Aktywny profil"
@@ -175,7 +175,7 @@
         "name": "Para aktywna"
       },
       "safety_relay": {
-        "name": "Przekaźnik bezpieczeństwa"
+        "name": "PrzekaÅºnik bezpieczeÅstwa"
       },
       "screen_lock": {
         "name": "Blokada ekranu"
@@ -186,7 +186,7 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Docelowa wilgotność"
+        "name": "Docelowa wilgotnoÅÄ"
       },
       "aroma_level_set": {
         "name": "Poziom aromatu"

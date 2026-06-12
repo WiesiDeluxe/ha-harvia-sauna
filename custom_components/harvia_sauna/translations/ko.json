@@ -2,197 +2,197 @@
   "config": {
     "step": {
       "user": {
-        "title": "Harvia 사우나",
-        "description": "컨트롤러 유형을 선택하고 자격 증명을 입력하세요.",
+        "title": "Harvia ì¬ì°ë",
+        "description": "ì»¨í¸ë¡¤ë¬ ì íì ì ííê³  ìê²© ì¦ëªì ìë ¥íì¸ì.",
         "data": {
-          "username": "이메일",
-          "password": "비밀번호",
-          "api_provider": "API 공급자"
+          "username": "ì´ë©ì¼",
+          "password": "ë¹ë°ë²í¸",
+          "api_provider": "API ê³µê¸ì"
         }
       },
       "heater": {
-        "title": "히터 설정",
-        "description": "사우나 히터 모델과 출력을 선택하세요. 올바른 기기 정보를 표시하는 데 도움이 되며 나중에 변경할 수 있습니다.",
+        "title": "íí° ì¤ì ",
+        "description": "ì¬ì°ë íí° ëª¨ë¸ê³¼ ì¶ë ¥ì ì ííì¸ì. ì¬ë°ë¥¸ ê¸°ê¸° ì ë³´ë¥¼ íìíë ë° ëìì´ ëë©° ëì¤ì ë³ê²½í  ì ììµëë¤.",
         "data": {
-          "heater_model": "히터 모델",
-          "heater_power": "히터 출력 (kW)"
+          "heater_model": "íí° ëª¨ë¸",
+          "heater_power": "íí° ì¶ë ¥ (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Harvia 사우나 재인증",
-        "description": "업데이트된 MyHarvia 자격 증명을 입력하세요.",
+        "title": "Harvia ì¬ì°ë ì¬ì¸ì¦",
+        "description": "ìë°ì´í¸ë MyHarvia ìê²© ì¦ëªì ìë ¥íì¸ì.",
         "data": {
-          "username": "이메일",
-          "password": "비밀번호"
+          "username": "ì´ë©ì¼",
+          "password": "ë¹ë°ë²í¸"
         }
       },
       "reconfigure": {
-        "title": "Harvia 사우나 재설정",
-        "description": "히터 모델과 출력을 업데이트하세요.",
+        "title": "Harvia ì¬ì°ë ì¬ì¤ì ",
+        "description": "íí° ëª¨ë¸ê³¼ ì¶ë ¥ì ìë°ì´í¸íì¸ì.",
         "data": {
-          "heater_model": "히터 모델",
-          "heater_power": "히터 출력 (kW)",
-          "password": "새 비밀번호 (변경하지 않으면 비워두세요)",
-          "username": "이메일"
+          "heater_model": "íí° ëª¨ë¸",
+          "heater_power": "íí° ì¶ë ¥ (kW)",
+          "password": "ì ë¹ë°ë²í¸ (ë³ê²½íì§ ìì¼ë©´ ë¹ìëì¸ì)",
+          "username": "ì´ë©ì¼"
         }
       }
     },
     "error": {
-      "invalid_auth": "잘못된 자격 증명입니다. MyHarvia 앱 로그인을 확인하세요.",
-      "cannot_connect": "MyHarvia 클라우드에 연결할 수 없습니다. 나중에 다시 시도하세요.",
-      "unknown": "예상치 못한 오류가 발생했습니다.",
-      "password_required": "사용자 이름 변경 시 비밀번호가 필요합니다."
+      "invalid_auth": "ìëª»ë ìê²© ì¦ëªìëë¤. MyHarvia ì± ë¡ê·¸ì¸ì íì¸íì¸ì.",
+      "cannot_connect": "MyHarvia í´ë¼ì°ëì ì°ê²°í  ì ììµëë¤. ëì¤ì ë¤ì ìëíì¸ì.",
+      "unknown": "ììì¹ ëª»í ì¤ë¥ê° ë°ìíìµëë¤.",
+      "password_required": "ì¬ì©ì ì´ë¦ ë³ê²½ ì ë¹ë°ë²í¸ê° íìí©ëë¤."
     },
     "abort": {
-      "already_configured": "이 계정은 이미 설정되어 있습니다.",
-      "reauth_successful": "재인증에 성공했습니다.",
-      "reconfigure_successful": "재설정에 성공했습니다."
+      "already_configured": "ì´ ê³ì ì ì´ë¯¸ ì¤ì ëì´ ììµëë¤.",
+      "reauth_successful": "ì¬ì¸ì¦ì ì±ê³µíìµëë¤.",
+      "reconfigure_successful": "ì¬ì¤ì ì ì±ê³µíìµëë¤."
     }
   },
   "entity": {
     "climate": {
       "thermostat": {
-        "name": "온도 조절기"
+        "name": "ì¨ë ì¡°ì ê¸°"
       }
     },
     "switch": {
       "power": {
-        "name": "전원"
+        "name": "ì ì"
       },
       "light": {
-        "name": "조명"
+        "name": "ì¡°ëª"
       },
       "fan": {
-        "name": "팬"
+        "name": "í¬"
       },
       "steamer": {
-        "name": "스팀 발생기"
+        "name": "ì¤í ë°ìê¸°"
       },
       "aroma": {
-        "name": "아로마"
+        "name": "ìë¡ë§"
       },
       "auto_light": {
-        "name": "자동 조명"
+        "name": "ìë ì¡°ëª"
       },
       "auto_fan": {
-        "name": "자동 팬"
+        "name": "ìë í¬"
       },
       "dehumidifier": {
-        "name": "제습기"
+        "name": "ì ìµê¸°"
       }
     },
     "sensor": {
       "current_temperature": {
-        "name": "온도"
+        "name": "ì¨ë"
       },
       "humidity": {
-        "name": "습도"
+        "name": "ìµë"
       },
       "target_temperature": {
-        "name": "목표 온도"
+        "name": "ëª©í ì¨ë"
       },
       "remaining_time": {
-        "name": "남은 시간"
+        "name": "ë¨ì ìê°"
       },
       "heat_up_time": {
-        "name": "예열 시간"
+        "name": "ìì´ ìê°"
       },
       "wifi_rssi": {
-        "name": "WiFi 신호"
+        "name": "WiFi ì í¸"
       },
       "status_codes": {
-        "name": "상태 코드"
+        "name": "ìí ì½ë"
       },
       "aroma_level": {
-        "name": "아로마 레벨"
+        "name": "ìë¡ë§ ë ë²¨"
       },
       "ph1_relay_counter": {
-        "name": "1상 릴레이 주기"
+        "name": "1ì ë¦´ë ì´ ì£¼ê¸°"
       },
       "ph2_relay_counter": {
-        "name": "2상 릴레이 주기"
+        "name": "2ì ë¦´ë ì´ ì£¼ê¸°"
       },
       "ph3_relay_counter": {
-        "name": "3상 릴레이 주기"
+        "name": "3ì ë¦´ë ì´ ì£¼ê¸°"
       },
       "heat_on_counter": {
-        "name": "가열 주기"
+        "name": "ê°ì´ ì£¼ê¸°"
       },
       "steam_on_counter": {
-        "name": "스팀 주기"
+        "name": "ì¤í ì£¼ê¸°"
       },
       "power": {
-        "name": "전력"
+        "name": "전력 (추정)"
       },
       "energy": {
-        "name": "에너지 소비"
+        "name": "에너지 소비 (추정)"
       },
       "last_session_duration": {
-        "name": "마지막 세션 시간"
+        "name": "ë§ì§ë§ ì¸ì ìê°"
       },
       "last_session_max_temp": {
-        "name": "마지막 세션 최고 온도"
+        "name": "ë§ì§ë§ ì¸ì ìµê³  ì¨ë"
       },
       "sessions_today": {
-        "name": "오늘 세션 수"
+        "name": "ì¤ë ì¸ì ì"
       },
       "temp_trend": {
-        "name": "온도 추세"
+        "name": "ì¨ë ì¶ì¸"
       },
       "heater_power_actual": {
-        "name": "히터 현재 전력"
+        "name": "íí° íì¬ ì ë ¥"
       },
       "main_sensor_temp": {
-        "name": "메인 센서 온도"
+        "name": "ë©ì¸ ì¼ì ì¨ë"
       },
       "ext_sensor_temp": {
-        "name": "외부 센서 온도"
+        "name": "ì¸ë¶ ì¼ì ì¨ë"
       },
       "panel_temp": {
-        "name": "패널 온도"
+        "name": "í¨ë ì¨ë"
       },
       "total_sessions": {
-        "name": "총 세션 수"
+        "name": "ì´ ì¸ì ì"
       },
       "total_bathing_hours": {
-        "name": "총 사우나 시간"
+        "name": "ì´ ì¬ì°ë ìê°"
       },
       "total_hours": {
-        "name": "총 가동 시간"
+        "name": "ì´ ê°ë ìê°"
       },
       "active_profile": {
-        "name": "활성 프로필"
+        "name": "íì± íë¡í"
       }
     },
     "binary_sensor": {
       "door": {
-        "name": "도어"
+        "name": "ëì´"
       },
       "heat_on": {
-        "name": "가열 중"
+        "name": "ê°ì´ ì¤"
       },
       "steam_on": {
-        "name": "스팀 작동 중"
+        "name": "ì¤í ìë ì¤"
       },
       "safety_relay": {
-        "name": "안전 릴레이"
+        "name": "ìì  ë¦´ë ì´"
       },
       "screen_lock": {
-        "name": "화면 잠금"
+        "name": "íë©´ ì ê¸"
       },
       "remote_allowed": {
-        "name": "원격 제어 허용"
+        "name": "ìê²© ì ì´ íì©"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "목표 습도"
+        "name": "ëª©í ìµë"
       },
       "aroma_level_set": {
-        "name": "아로마 레벨"
+        "name": "ìë¡ë§ ë ë²¨"
       },
       "on_time": {
-        "name": "세션 시간"
+        "name": "ì¸ì ìê°"
       }
     }
   }

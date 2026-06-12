@@ -3,196 +3,196 @@
     "step": {
       "user": {
         "title": "Harvia Szauna",
-        "description": "Válassza ki a vezérlő típusát és adja meg bejelentkezési adatait.",
+        "description": "VÃ¡lassza ki a vezÃ©rlÅ tÃ­pusÃ¡t Ã©s adja meg bejelentkezÃ©si adatait.",
         "data": {
           "username": "E-mail",
-          "password": "Jelszó",
-          "api_provider": "API szolgáltató"
+          "password": "JelszÃ³",
+          "api_provider": "API szolgÃ¡ltatÃ³"
         }
       },
       "heater": {
-        "title": "Kályha beállítás",
-        "description": "Válassza ki a szaunakályha modelljét és teljesítményét. Ez segít a helyes eszközinformáció megjelenítésében, és később módosítható.",
+        "title": "KÃ¡lyha beÃ¡llÃ­tÃ¡s",
+        "description": "VÃ¡lassza ki a szaunakÃ¡lyha modelljÃ©t Ã©s teljesÃ­tmÃ©nyÃ©t. Ez segÃ­t a helyes eszkÃ¶zinformÃ¡ciÃ³ megjelenÃ­tÃ©sÃ©ben, Ã©s kÃ©sÅbb mÃ³dosÃ­thatÃ³.",
         "data": {
-          "heater_model": "Kályha modell",
-          "heater_power": "Kályha teljesítmény (kW)"
+          "heater_model": "KÃ¡lyha modell",
+          "heater_power": "KÃ¡lyha teljesÃ­tmÃ©ny (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Harvia Szauna újrahitelesítés",
-        "description": "Adja meg frissített MyHarvia bejelentkezési adatait.",
+        "title": "Harvia Szauna ÃºjrahitelesÃ­tÃ©s",
+        "description": "Adja meg frissÃ­tett MyHarvia bejelentkezÃ©si adatait.",
         "data": {
           "username": "E-mail",
-          "password": "Jelszó"
+          "password": "JelszÃ³"
         }
       },
       "reconfigure": {
-        "title": "Harvia Szauna újrakonfigurálás",
-        "description": "Frissítse a kályha modelljét és teljesítményét.",
+        "title": "Harvia Szauna ÃºjrakonfigurÃ¡lÃ¡s",
+        "description": "FrissÃ­tse a kÃ¡lyha modelljÃ©t Ã©s teljesÃ­tmÃ©nyÃ©t.",
         "data": {
-          "heater_model": "Kályha modell",
-          "heater_power": "Kályha teljesítmény (kW)",
-          "password": "Új jelszó (hagyja üresen ha nem változik)",
+          "heater_model": "KÃ¡lyha modell",
+          "heater_power": "KÃ¡lyha teljesÃ­tmÃ©ny (kW)",
+          "password": "Ãj jelszÃ³ (hagyja Ã¼resen ha nem vÃ¡ltozik)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Érvénytelen bejelentkezési adatok. Ellenőrizze MyHarvia alkalmazás bejelentkezését.",
-      "cannot_connect": "Nem lehet csatlakozni a MyHarvia felhőhöz. Próbálja újra később.",
-      "unknown": "Váratlan hiba történt.",
-      "password_required": "Jelszó szükséges a felhasználónév módosításakor."
+      "invalid_auth": "ÃrvÃ©nytelen bejelentkezÃ©si adatok. EllenÅrizze MyHarvia alkalmazÃ¡s bejelentkezÃ©sÃ©t.",
+      "cannot_connect": "Nem lehet csatlakozni a MyHarvia felhÅhÃ¶z. PrÃ³bÃ¡lja Ãºjra kÃ©sÅbb.",
+      "unknown": "VÃ¡ratlan hiba tÃ¶rtÃ©nt.",
+      "password_required": "JelszÃ³ szÃ¼ksÃ©ges a felhasznÃ¡lÃ³nÃ©v mÃ³dosÃ­tÃ¡sakor."
     },
     "abort": {
-      "already_configured": "Ez a fiók már be van állítva.",
-      "reauth_successful": "Az újrahitelesítés sikeres volt.",
-      "reconfigure_successful": "Az újrakonfigurálás sikeres volt."
+      "already_configured": "Ez a fiÃ³k mÃ¡r be van Ã¡llÃ­tva.",
+      "reauth_successful": "Az ÃºjrahitelesÃ­tÃ©s sikeres volt.",
+      "reconfigure_successful": "Az ÃºjrakonfigurÃ¡lÃ¡s sikeres volt."
     }
   },
   "entity": {
     "climate": {
       "thermostat": {
-        "name": "Termosztát"
+        "name": "TermosztÃ¡t"
       }
     },
     "switch": {
       "power": {
-        "name": "Kapcsoló"
+        "name": "KapcsolÃ³"
       },
       "light": {
-        "name": "Világítás"
+        "name": "VilÃ¡gÃ­tÃ¡s"
       },
       "fan": {
-        "name": "Ventilátor"
+        "name": "VentilÃ¡tor"
       },
       "steamer": {
-        "name": "Gőzgenerátor"
+        "name": "GÅzgenerÃ¡tor"
       },
       "aroma": {
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "Automatikus fény"
+        "name": "Automatikus fÃ©ny"
       },
       "auto_fan": {
-        "name": "Automatikus ventilátor"
+        "name": "Automatikus ventilÃ¡tor"
       },
       "dehumidifier": {
-        "name": "Párátlanító"
+        "name": "PÃ¡rÃ¡tlanÃ­tÃ³"
       }
     },
     "sensor": {
       "current_temperature": {
-        "name": "Hőmérséklet"
+        "name": "HÅmÃ©rsÃ©klet"
       },
       "humidity": {
-        "name": "Páratartalom"
+        "name": "PÃ¡ratartalom"
       },
       "target_temperature": {
-        "name": "Célhőmérséklet"
+        "name": "CÃ©lhÅmÃ©rsÃ©klet"
       },
       "remaining_time": {
-        "name": "Hátralévő idő"
+        "name": "HÃ¡tralÃ©vÅ idÅ"
       },
       "heat_up_time": {
-        "name": "Felfűtési idő"
+        "name": "FelfÅ±tÃ©si idÅ"
       },
       "wifi_rssi": {
         "name": "WiFi jel"
       },
       "status_codes": {
-        "name": "Állapotkódok"
+        "name": "ÃllapotkÃ³dok"
       },
       "aroma_level": {
         "name": "Aroma szint"
       },
       "ph1_relay_counter": {
-        "name": "1. fázis reléciklusok"
+        "name": "1. fÃ¡zis relÃ©ciklusok"
       },
       "ph2_relay_counter": {
-        "name": "2. fázis reléciklusok"
+        "name": "2. fÃ¡zis relÃ©ciklusok"
       },
       "ph3_relay_counter": {
-        "name": "3. fázis reléciklusok"
+        "name": "3. fÃ¡zis relÃ©ciklusok"
       },
       "heat_on_counter": {
-        "name": "Fűtési ciklusok"
+        "name": "FÅ±tÃ©si ciklusok"
       },
       "steam_on_counter": {
-        "name": "Gőzciklusok"
+        "name": "GÅzciklusok"
       },
       "power": {
-        "name": "Teljesítmény"
+        "name": "Teljesítmény (becsült)"
       },
       "energy": {
-        "name": "Energiafogyasztás"
+        "name": "Energiafogyasztás (becsült)"
       },
       "last_session_duration": {
-        "name": "Utolsó ülés időtartama"
+        "name": "UtolsÃ³ Ã¼lÃ©s idÅtartama"
       },
       "last_session_max_temp": {
-        "name": "Utolsó ülés max. hőmérséklet"
+        "name": "UtolsÃ³ Ã¼lÃ©s max. hÅmÃ©rsÃ©klet"
       },
       "sessions_today": {
-        "name": "Mai ülések"
+        "name": "Mai Ã¼lÃ©sek"
       },
       "temp_trend": {
-        "name": "Hőmérséklet trend"
+        "name": "HÅmÃ©rsÃ©klet trend"
       },
       "heater_power_actual": {
-        "name": "Aktuális fűtési teljesítmény"
+        "name": "AktuÃ¡lis fÅ±tÃ©si teljesÃ­tmÃ©ny"
       },
       "main_sensor_temp": {
-        "name": "Fő szenzor hőmérséklete"
+        "name": "FÅ szenzor hÅmÃ©rsÃ©klete"
       },
       "ext_sensor_temp": {
-        "name": "Külső szenzor hőmérsékete"
+        "name": "KÃ¼lsÅ szenzor hÅmÃ©rsÃ©kete"
       },
       "panel_temp": {
-        "name": "Panel hőmérséklete"
+        "name": "Panel hÅmÃ©rsÃ©klete"
       },
       "total_sessions": {
-        "name": "Összes ülés"
+        "name": "Ãsszes Ã¼lÃ©s"
       },
       "total_bathing_hours": {
-        "name": "Összes fürdési óra"
+        "name": "Ãsszes fÃ¼rdÃ©si Ã³ra"
       },
       "total_hours": {
-        "name": "Összes működési óra"
+        "name": "Ãsszes mÅ±kÃ¶dÃ©si Ã³ra"
       },
       "active_profile": {
-        "name": "Aktív profil"
+        "name": "AktÃ­v profil"
       }
     },
     "binary_sensor": {
       "door": {
-        "name": "Ajtó"
+        "name": "AjtÃ³"
       },
       "heat_on": {
-        "name": "Fűtés"
+        "name": "FÅ±tÃ©s"
       },
       "steam_on": {
-        "name": "Gőz aktív"
+        "name": "GÅz aktÃ­v"
       },
       "safety_relay": {
-        "name": "Biztonsági relé"
+        "name": "BiztonsÃ¡gi relÃ©"
       },
       "screen_lock": {
-        "name": "Képernyőzár"
+        "name": "KÃ©pernyÅzÃ¡r"
       },
       "remote_allowed": {
-        "name": "Távirányítás engedélyezett"
+        "name": "TÃ¡virÃ¡nyÃ­tÃ¡s engedÃ©lyezett"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "Célpáratartalom"
+        "name": "CÃ©lpÃ¡ratartalom"
       },
       "aroma_level_set": {
         "name": "Aroma szint"
       },
       "on_time": {
-        "name": "Ülés idő"
+        "name": "ÃlÃ©s idÅ"
       }
     }
   }

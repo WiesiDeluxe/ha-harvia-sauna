@@ -44,6 +44,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[HarviaBinarySensorDescription] = [
         translation_key="heat_on",
         device_class=BinarySensorDeviceClass.HEAT,
         icon="mdi:fire",
+        entity_registry_enabled_default=False,
         value_fn=lambda d: d.heat_on,
     ),
     HarviaBinarySensorDescription(

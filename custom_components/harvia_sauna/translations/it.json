@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Configurazione stufa",
-        "description": "Seleziona il modello e la potenza della stufa per sauna. Questo aiuta a visualizzare le informazioni corrette e può essere modificato in seguito.",
+        "description": "Seleziona il modello e la potenza della stufa per sauna. Questo aiuta a visualizzare le informazioni corrette e puÃ² essere modificato in seguito.",
         "data": {
           "heater_model": "Modello stufa",
           "heater_power": "Potenza stufa (kW)"
@@ -39,12 +39,12 @@
     },
     "error": {
       "invalid_auth": "Credenziali non valide. Controlla i dati di accesso dell'app MyHarvia.",
-      "cannot_connect": "Impossibile connettersi al cloud MyHarvia. Riprova più tardi.",
-      "unknown": "Si è verificato un errore imprevisto.",
-      "password_required": "La password è obbligatoria quando si cambia il nome utente."
+      "cannot_connect": "Impossibile connettersi al cloud MyHarvia. Riprova piÃ¹ tardi.",
+      "unknown": "Si Ã¨ verificato un errore imprevisto.",
+      "password_required": "La password Ã¨ obbligatoria quando si cambia il nome utente."
     },
     "abort": {
-      "already_configured": "Questo account è già configurato.",
+      "already_configured": "Questo account Ã¨ giÃ  configurato.",
       "reauth_successful": "Riautenticazione riuscita.",
       "reconfigure_successful": "Riconfigurazione riuscita."
     }
@@ -86,7 +86,7 @@
         "name": "Temperatura"
       },
       "humidity": {
-        "name": "Umidità"
+        "name": "UmiditÃ "
       },
       "target_temperature": {
         "name": "Temperatura target"
@@ -107,13 +107,13 @@
         "name": "Livello aroma"
       },
       "ph1_relay_counter": {
-        "name": "Cicli relè fase 1"
+        "name": "Cicli relÃ¨ fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Cicli relè fase 2"
+        "name": "Cicli relÃ¨ fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Cicli relè fase 3"
+        "name": "Cicli relÃ¨ fase 3"
       },
       "heat_on_counter": {
         "name": "Cicli di riscaldamento"
@@ -122,10 +122,10 @@
         "name": "Cicli vapore"
       },
       "power": {
-        "name": "Potenza"
+        "name": "Potenza (stimata)"
       },
       "energy": {
-        "name": "Consumo energetico"
+        "name": "Consumo energetico (stimato)"
       },
       "last_session_duration": {
         "name": "Durata ultima sessione"
@@ -175,7 +175,7 @@
         "name": "Vapore attivo"
       },
       "safety_relay": {
-        "name": "Relè di sicurezza"
+        "name": "RelÃ¨ di sicurezza"
       },
       "screen_lock": {
         "name": "Blocco schermo"
@@ -186,7 +186,7 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Umidità target"
+        "name": "UmiditÃ  target"
       },
       "aroma_level_set": {
         "name": "Livello aroma"

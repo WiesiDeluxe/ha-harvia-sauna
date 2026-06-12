@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Sélectionnez votre type de contrôleur et entrez vos identifiants.",
+        "description": "SÃ©lectionnez votre type de contrÃ´leur et entrez vos identifiants.",
         "data": {
           "username": "E-mail",
           "password": "Mot de passe",
@@ -11,16 +11,16 @@
         }
       },
       "heater": {
-        "title": "Configuration du poêle",
-        "description": "Sélectionnez le modèle et la puissance de votre poêle de sauna. Cela permet d'afficher les bonnes informations et peut être modifié ultérieurement.",
+        "title": "Configuration du poÃªle",
+        "description": "SÃ©lectionnez le modÃ¨le et la puissance de votre poÃªle de sauna. Cela permet d'afficher les bonnes informations et peut Ãªtre modifiÃ© ultÃ©rieurement.",
         "data": {
-          "heater_model": "Modèle du poêle",
-          "heater_power": "Puissance du poêle (kW)"
+          "heater_model": "ModÃ¨le du poÃªle",
+          "heater_power": "Puissance du poÃªle (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Réauthentification Harvia Sauna",
-        "description": "Veuillez entrer vos identifiants MyHarvia mis à jour.",
+        "title": "RÃ©authentification Harvia Sauna",
+        "description": "Veuillez entrer vos identifiants MyHarvia mis Ã  jour.",
         "data": {
           "username": "E-mail",
           "password": "Mot de passe"
@@ -28,25 +28,25 @@
       },
       "reconfigure": {
         "title": "Reconfigurer Harvia Sauna",
-        "description": "Mettre à jour le modèle et la puissance du poêle.",
+        "description": "Mettre Ã  jour le modÃ¨le et la puissance du poÃªle.",
         "data": {
-          "heater_model": "Modèle de poêle",
-          "heater_power": "Puissance du poêle (kW)",
-          "password": "Nouveau mot de passe (laisser vide si inchangé)",
+          "heater_model": "ModÃ¨le de poÃªle",
+          "heater_power": "Puissance du poÃªle (kW)",
+          "password": "Nouveau mot de passe (laisser vide si inchangÃ©)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Identifiants invalides. Vérifiez vos données de connexion MyHarvia.",
-      "cannot_connect": "Connexion au cloud MyHarvia impossible. Veuillez réessayer plus tard.",
+      "invalid_auth": "Identifiants invalides. VÃ©rifiez vos donnÃ©es de connexion MyHarvia.",
+      "cannot_connect": "Connexion au cloud MyHarvia impossible. Veuillez rÃ©essayer plus tard.",
       "unknown": "Une erreur inattendue s'est produite.",
       "password_required": "Le mot de passe est requis lors du changement de nom d'utilisateur."
     },
     "abort": {
-      "already_configured": "Ce compte est déjà configuré.",
-      "reauth_successful": "Réauthentification réussie.",
-      "reconfigure_successful": "Reconfiguration réussie."
+      "already_configured": "Ce compte est dÃ©jÃ  configurÃ©.",
+      "reauth_successful": "RÃ©authentification rÃ©ussie.",
+      "reconfigure_successful": "Reconfiguration rÃ©ussie."
     }
   },
   "entity": {
@@ -60,36 +60,36 @@
         "name": "Alimentation"
       },
       "light": {
-        "name": "Lumière"
+        "name": "LumiÃ¨re"
       },
       "fan": {
         "name": "Ventilateur"
       },
       "steamer": {
-        "name": "Générateur de vapeur"
+        "name": "GÃ©nÃ©rateur de vapeur"
       },
       "aroma": {
-        "name": "Arôme"
+        "name": "ArÃ´me"
       },
       "auto_light": {
-        "name": "Lumière automatique"
+        "name": "LumiÃ¨re automatique"
       },
       "auto_fan": {
         "name": "Ventilateur automatique"
       },
       "dehumidifier": {
-        "name": "Déshumidificateur"
+        "name": "DÃ©shumidificateur"
       }
     },
     "sensor": {
       "current_temperature": {
-        "name": "Température"
+        "name": "TempÃ©rature"
       },
       "humidity": {
-        "name": "Humidité"
+        "name": "HumiditÃ©"
       },
       "target_temperature": {
-        "name": "Température cible"
+        "name": "TempÃ©rature cible"
       },
       "remaining_time": {
         "name": "Temps restant"
@@ -101,10 +101,10 @@
         "name": "Signal WiFi"
       },
       "status_codes": {
-        "name": "Codes d'état"
+        "name": "Codes d'Ã©tat"
       },
       "aroma_level": {
-        "name": "Niveau d'arôme"
+        "name": "Niveau d'arÃ´me"
       },
       "ph1_relay_counter": {
         "name": "Cycles relais phase 1"
@@ -122,34 +122,34 @@
         "name": "Cycles vapeur"
       },
       "power": {
-        "name": "Puissance"
+        "name": "Puissance (estimée)"
       },
       "energy": {
-        "name": "Consommation d'énergie"
+        "name": "Consommation (estimée)"
       },
       "last_session_duration": {
-        "name": "Durée dernière session"
+        "name": "DurÃ©e derniÃ¨re session"
       },
       "last_session_max_temp": {
-        "name": "Température max dernière session"
+        "name": "TempÃ©rature max derniÃ¨re session"
       },
       "sessions_today": {
         "name": "Sessions aujourd'hui"
       },
       "temp_trend": {
-        "name": "Tendance température"
+        "name": "Tendance tempÃ©rature"
       },
       "heater_power_actual": {
         "name": "Puissance actuelle du chauffage"
       },
       "main_sensor_temp": {
-        "name": "Température du capteur principal"
+        "name": "TempÃ©rature du capteur principal"
       },
       "ext_sensor_temp": {
-        "name": "Température du capteur externe"
+        "name": "TempÃ©rature du capteur externe"
       },
       "panel_temp": {
-        "name": "Température du panneau"
+        "name": "TempÃ©rature du panneau"
       },
       "total_sessions": {
         "name": "Total des sessions"
@@ -175,24 +175,24 @@
         "name": "Vapeur active"
       },
       "safety_relay": {
-        "name": "Relais de sécurité"
+        "name": "Relais de sÃ©curitÃ©"
       },
       "screen_lock": {
-        "name": "Verrouillage de l'écran"
+        "name": "Verrouillage de l'Ã©cran"
       },
       "remote_allowed": {
-        "name": "Contrôle à distance autorisé"
+        "name": "ContrÃ´le Ã  distance autorisÃ©"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "Humidité cible"
+        "name": "HumiditÃ© cible"
       },
       "aroma_level_set": {
-        "name": "Niveau d'arôme"
+        "name": "Niveau d'arÃ´me"
       },
       "on_time": {
-        "name": "Durée de session"
+        "name": "DurÃ©e de session"
       }
     }
   }

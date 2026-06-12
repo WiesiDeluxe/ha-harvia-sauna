@@ -5,25 +5,25 @@
         "title": "Harvia Sauna",
         "description": "Seleccione su tipo de controlador e introduzca sus credenciales.",
         "data": {
-          "username": "Correo electrónico",
-          "password": "Contraseña",
+          "username": "Correo electrÃ³nico",
+          "password": "ContraseÃ±a",
           "api_provider": "Proveedor API"
         }
       },
       "heater": {
-        "title": "Configuración de la estufa",
-        "description": "Selecciona el modelo y la potencia de tu estufa de sauna. Esto ayuda a mostrar la información correcta del dispositivo y se puede cambiar más tarde.",
+        "title": "ConfiguraciÃ³n de la estufa",
+        "description": "Selecciona el modelo y la potencia de tu estufa de sauna. Esto ayuda a mostrar la informaciÃ³n correcta del dispositivo y se puede cambiar mÃ¡s tarde.",
         "data": {
           "heater_model": "Modelo de estufa",
           "heater_power": "Potencia de estufa (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Reautenticación de Harvia Sauna",
+        "title": "ReautenticaciÃ³n de Harvia Sauna",
         "description": "Introduce tus credenciales actualizadas de MyHarvia.",
         "data": {
-          "username": "Correo electrónico",
-          "password": "Contraseña"
+          "username": "Correo electrÃ³nico",
+          "password": "ContraseÃ±a"
         }
       },
       "reconfigure": {
@@ -32,21 +32,21 @@
         "data": {
           "heater_model": "Modelo de calentador",
           "heater_power": "Potencia del calentador (kW)",
-          "password": "Nueva contraseña (dejar vacío si no cambia)",
+          "password": "Nueva contraseÃ±a (dejar vacÃ­o si no cambia)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Credenciales no válidas. Verifica tus datos de acceso de la app MyHarvia.",
-      "cannot_connect": "No se puede conectar con la nube de MyHarvia. Inténtalo de nuevo más tarde.",
+      "invalid_auth": "Credenciales no vÃ¡lidas. Verifica tus datos de acceso de la app MyHarvia.",
+      "cannot_connect": "No se puede conectar con la nube de MyHarvia. IntÃ©ntalo de nuevo mÃ¡s tarde.",
       "unknown": "Se ha producido un error inesperado.",
-      "password_required": "La contraseña es obligatoria al cambiar el nombre de usuario."
+      "password_required": "La contraseÃ±a es obligatoria al cambiar el nombre de usuario."
     },
     "abort": {
-      "already_configured": "Esta cuenta ya está configurada.",
-      "reauth_successful": "Reautenticación exitosa.",
-      "reconfigure_successful": "Reconfiguración exitosa."
+      "already_configured": "Esta cuenta ya estÃ¡ configurada.",
+      "reauth_successful": "ReautenticaciÃ³n exitosa.",
+      "reconfigure_successful": "ReconfiguraciÃ³n exitosa."
     }
   },
   "entity": {
@@ -72,10 +72,10 @@
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "Luz automática"
+        "name": "Luz automÃ¡tica"
       },
       "auto_fan": {
-        "name": "Ventilador automático"
+        "name": "Ventilador automÃ¡tico"
       },
       "dehumidifier": {
         "name": "Deshumidificador"
@@ -98,22 +98,22 @@
         "name": "Tiempo de calentamiento"
       },
       "wifi_rssi": {
-        "name": "Señal WiFi"
+        "name": "SeÃ±al WiFi"
       },
       "status_codes": {
-        "name": "Códigos de estado"
+        "name": "CÃ³digos de estado"
       },
       "aroma_level": {
         "name": "Nivel de aroma"
       },
       "ph1_relay_counter": {
-        "name": "Ciclos relé fase 1"
+        "name": "Ciclos relÃ© fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Ciclos relé fase 2"
+        "name": "Ciclos relÃ© fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Ciclos relé fase 3"
+        "name": "Ciclos relÃ© fase 3"
       },
       "heat_on_counter": {
         "name": "Ciclos de calentamiento"
@@ -122,16 +122,16 @@
         "name": "Ciclos de vapor"
       },
       "power": {
-        "name": "Potencia"
+        "name": "Potencia (estimada)"
       },
       "energy": {
-        "name": "Consumo de energía"
+        "name": "Consumo energético (estimado)"
       },
       "last_session_duration": {
-        "name": "Duración última sesión"
+        "name": "DuraciÃ³n Ãºltima sesiÃ³n"
       },
       "last_session_max_temp": {
-        "name": "Temperatura máxima última sesión"
+        "name": "Temperatura mÃ¡xima Ãºltima sesiÃ³n"
       },
       "sessions_today": {
         "name": "Sesiones hoy"
@@ -155,7 +155,7 @@
         "name": "Total de sesiones"
       },
       "total_bathing_hours": {
-        "name": "Total de horas de baño"
+        "name": "Total de horas de baÃ±o"
       },
       "total_hours": {
         "name": "Total de horas"
@@ -169,13 +169,13 @@
         "name": "Puerta"
       },
       "heat_on": {
-        "name": "Calefacción activa"
+        "name": "CalefacciÃ³n activa"
       },
       "steam_on": {
         "name": "Vapor activo"
       },
       "safety_relay": {
-        "name": "Relé de seguridad"
+        "name": "RelÃ© de seguridad"
       },
       "screen_lock": {
         "name": "Bloqueo de pantalla"
@@ -192,7 +192,7 @@
         "name": "Nivel de aroma"
       },
       "on_time": {
-        "name": "Duración de sesión"
+        "name": "DuraciÃ³n de sesiÃ³n"
       }
     }
   }
