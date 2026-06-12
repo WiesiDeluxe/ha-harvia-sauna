@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Párátlanító"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktív profil"
+      },
+      "time_to_ready": {
+        "name": "Idő a készenlétig"
+      },
+      "ready_at": {
+        "name": "Kész ekkor"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Távirányítás engedélyezett"
+      },
+      "ready": {
+        "name": "Kész"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referencia-hőmérséklet érzékelő a lehűléshez (opcionális, alapértelmezés: belső Harvia érzékelő)",
           "cooldown_hysteresis": "Hiszterézis a célhőmérséklet alatt",
           "cooldown_max_minutes": "Maximális lehűlési idő (biztonsági háló)",
-          "use_ext_sensor_for_max_temp": "Külső érzékelő használata a szakasz max. hőmérsékletéhez"
+          "use_ext_sensor_for_max_temp": "Külső érzékelő használata a szakasz max. hőmérsékletéhez",
+          "ready_mode": "Készenlét érzékelése",
+          "ready_fixed_temp": "Rögzített készenléti hőmérséklet",
+          "ambi_zone1_lights": "Ambilight 1. zóna: lámpák",
+          "ambi_zone1_curve": "Ambilight 1. zóna: színgörbe",
+          "ambi_zone1_offset": "Ambilight 1. zóna: hőmérséklet-eltolás",
+          "ambi_zone2_lights": "Ambilight 2. zóna: lámpák",
+          "ambi_zone2_curve": "Ambilight 2. zóna: színgörbe",
+          "ambi_zone2_offset": "Ambilight 2. zóna: hőmérséklet-eltolás",
+          "ambi_standard_kelvin": "Hétköznapi fény: színhőmérséklet",
+          "ambi_standard_brightness": "Hétköznapi fény: fényerő"
         },
         "data_description": {
           "linked_lights": "Válasszon HA lámpákat (pl. Hue szalagok), amelyek a Harvia panel fénygombját követik — akkor is, ha fizikailag nincs lámpa a vezérlőhöz kötve.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "A kályha kikapcsolásakor (klasszikus)",
         "cooldown": "Amikor a hőmérséklet a cél alá esik (lehűlés)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Kikapcsolva",
+        "full_spectrum": "Teljes spektrum (hideg fehér → vörös)",
+        "warm_only": "Csak meleg (meleg fehér → vörös)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Célhőmérséklet elérve",
+        "fixed": "Rögzített hőmérséklet"
       }
     }
   }

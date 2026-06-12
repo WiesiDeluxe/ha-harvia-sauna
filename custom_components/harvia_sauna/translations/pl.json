@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Osuszacz"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktywny profil"
+      },
+      "time_to_ready": {
+        "name": "Czas do gotowości"
+      },
+      "ready_at": {
+        "name": "Gotowa o"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Zdalne sterowanie dozwolone"
+      },
+      "ready": {
+        "name": "Gotowa"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referencyjny czujnik temperatury dla fazy stygnięcia (opcjonalny, domyślnie wewnętrzny czujnik Harvia)",
           "cooldown_hysteresis": "Histereza poniżej temperatury docelowej",
           "cooldown_max_minutes": "Maksymalny czas stygnięcia (zabezpieczenie)",
-          "use_ext_sensor_for_max_temp": "Użyj zewnętrznego czujnika także dla maks. temperatury sesji"
+          "use_ext_sensor_for_max_temp": "Użyj zewnętrznego czujnika także dla maks. temperatury sesji",
+          "ready_mode": "Wykrywanie gotowości",
+          "ready_fixed_temp": "Stała temperatura gotowości",
+          "ambi_zone1_lights": "Ambilight strefa 1: światła",
+          "ambi_zone1_curve": "Ambilight strefa 1: krzywa kolorów",
+          "ambi_zone1_offset": "Ambilight strefa 1: przesunięcie temperatury",
+          "ambi_zone2_lights": "Ambilight strefa 2: światła",
+          "ambi_zone2_curve": "Ambilight strefa 2: krzywa kolorów",
+          "ambi_zone2_offset": "Ambilight strefa 2: przesunięcie temperatury",
+          "ambi_standard_kelvin": "Światło codzienne: temperatura barwowa",
+          "ambi_standard_brightness": "Światło codzienne: jasność"
         },
         "data_description": {
           "linked_lights": "Wybierz encje świateł HA (np. taśmy Hue), które będą podążać za przyciskiem światła na panelu Harvia — nawet jeśli do sterownika nie podłączono fizycznie żadnego światła.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Po wyłączeniu pieca (klasyczne)",
         "cooldown": "Gdy temperatura spadnie poniżej celu (stygnięcie)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Wyłączone",
+        "full_spectrum": "Pełne spektrum (zimna biel → czerwień)",
+        "warm_only": "Tylko ciepłe (ciepła biel → czerwień)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Osiągnięto temperaturę docelową",
+        "fixed": "Stała temperatura"
       }
     }
   }

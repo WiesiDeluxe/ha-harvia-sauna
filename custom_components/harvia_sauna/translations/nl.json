@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Ontvochtiger"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Actief profiel"
+      },
+      "time_to_ready": {
+        "name": "Tijd tot gereed"
+      },
+      "ready_at": {
+        "name": "Gereed om"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Extern bedienen toegestaan"
+      },
+      "ready": {
+        "name": "Gereed"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referentietemperatuursensor voor afkoeling (optioneel, standaard de interne Harvia-sensor)",
           "cooldown_hysteresis": "Hysterese onder de doeltemperatuur",
           "cooldown_max_minutes": "Maximale afkoelduur (vangnet)",
-          "use_ext_sensor_for_max_temp": "Externe sensor ook gebruiken voor de max. sessietemperatuur"
+          "use_ext_sensor_for_max_temp": "Externe sensor ook gebruiken voor de max. sessietemperatuur",
+          "ready_mode": "Gereed-detectie",
+          "ready_fixed_temp": "Vaste gereed-temperatuur",
+          "ambi_zone1_lights": "Ambilight zone 1: lampen",
+          "ambi_zone1_curve": "Ambilight zone 1: kleurcurve",
+          "ambi_zone1_offset": "Ambilight zone 1: temperatuuroffset",
+          "ambi_zone2_lights": "Ambilight zone 2: lampen",
+          "ambi_zone2_curve": "Ambilight zone 2: kleurcurve",
+          "ambi_zone2_offset": "Ambilight zone 2: temperatuuroffset",
+          "ambi_standard_kelvin": "Dagelijks licht: kleurtemperatuur",
+          "ambi_standard_brightness": "Dagelijks licht: helderheid"
         },
         "data_description": {
           "linked_lights": "Kies HA-lichtentiteiten (bijv. Hue-strips) die de lichtknop op het Harvia-paneel volgen — ook als er fysiek geen lamp op de regelunit is aangesloten.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Bij uitschakelen van de kachel (klassiek)",
         "cooldown": "Wanneer de temperatuur onder het doel zakt (afkoeling)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Uitgeschakeld",
+        "full_spectrum": "Volledig spectrum (koud wit → rood)",
+        "warm_only": "Alleen warm (warm wit → rood)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Doeltemperatuur bereikt",
+        "fixed": "Vaste temperatuur"
       }
     }
   }

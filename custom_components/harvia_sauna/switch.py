@@ -8,8 +8,10 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
 from .coordinator import HarviaDeviceData, HarviaSaunaCoordinator
@@ -109,12 +111,14 @@ async def async_setup_entry(
     """Set up Harvia switch entities."""
     coordinator: HarviaSaunaCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    entities = []
+    entities: list = []
     for device_id in coordinator.data.devices:
         for description in SWITCH_DESCRIPTIONS:
             entities.append(
                 HarviaSwitch(coordinator, device_id, description)
             )
+        # v2.7.0: integration-level Ambilight enable switch (local, no API)
+        entities.append(HarviaAmbilightSwitch(coordinator, device_id))
 
     async_add_entities(entities)
 
@@ -171,3 +175,65 @@ class HarviaSwitch(HarviaBaseEntity, SwitchEntity):
         if device:
             setattr(device, self.entity_description.state_attr, False)
             self.async_write_ha_state()
+
+
+class HarviaAmbilightSwitch(HarviaBaseEntity, SwitchEntity, RestoreEntity):
+    """Enable/disable the temperature-driven Ambilight.
+
+    Local integration switch (no Harvia API interaction). Turning it on
+    re-arms Ambilight after a manual color override; turning it off
+    restores the configured everyday standard on the zone lights.
+    """
+
+    _attr_translation_key = "ambilight"
+    _attr_icon = "mdi:palette"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self, coordinator: HarviaSaunaCoordinator, device_id: str
+    ) -> None:
+        """Initialize the Ambilight switch."""
+        super().__init__(coordinator, device_id, "ambilight")
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the previous enable state."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state is not None and last_state.state in ("on", "off"):
+            device = self._get_device_data()
+            if device is not None:
+                device.ambilight_enabled = last_state.state == "on"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True if Ambilight is enabled."""
+        device = self._get_device_data()
+        if device is None:
+            return None
+        return device.ambilight_enabled
+
+    @property
+    def available(self) -> bool:
+        """Available only when Ambilight zones are configured."""
+        ambilight = getattr(self.coordinator, "ambilight", None)
+        return ambilight is not None and ambilight.configured
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable Ambilight and clear a manual override."""
+        device = self._get_device_data()
+        if device is not None:
+            device.ambilight_enabled = True
+        ambilight = getattr(self.coordinator, "ambilight", None)
+        if ambilight is not None:
+            ambilight.async_rearm()
+        self.async_write_ha_state()
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable Ambilight and restore the everyday standard."""
+        device = self._get_device_data()
+        if device is not None:
+            device.ambilight_enabled = False
+        ambilight = getattr(self.coordinator, "ambilight", None)
+        if ambilight is not None:
+            await ambilight.async_restore_standard()
+        self.async_write_ha_state()

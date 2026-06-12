@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Affugter"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktiv profil"
+      },
+      "time_to_ready": {
+        "name": "Tid til klar"
+      },
+      "ready_at": {
+        "name": "Klar kl."
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Fjernstyring tilladt"
+      },
+      "ready": {
+        "name": "Klar"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referencetemperatursensor til nedkøling (valgfri, standard: intern Harvia-sensor)",
           "cooldown_hysteresis": "Hysterese under måltemperaturen",
           "cooldown_max_minutes": "Maksimal nedkølingstid (sikkerhedsnet)",
-          "use_ext_sensor_for_max_temp": "Brug den eksterne sensor til sessionens makstemperatur"
+          "use_ext_sensor_for_max_temp": "Brug den eksterne sensor til sessionens makstemperatur",
+          "ready_mode": "Klar-registrering",
+          "ready_fixed_temp": "Fast klar-temperatur",
+          "ambi_zone1_lights": "Ambilight zone 1: lys",
+          "ambi_zone1_curve": "Ambilight zone 1: farvekurve",
+          "ambi_zone1_offset": "Ambilight zone 1: temperaturforskydning",
+          "ambi_zone2_lights": "Ambilight zone 2: lys",
+          "ambi_zone2_curve": "Ambilight zone 2: farvekurve",
+          "ambi_zone2_offset": "Ambilight zone 2: temperaturforskydning",
+          "ambi_standard_kelvin": "Hverdagslys: farvetemperatur",
+          "ambi_standard_brightness": "Hverdagslys: lysstyrke"
         },
         "data_description": {
           "linked_lights": "Vælg HA-lysenheder (f.eks. Hue-strips), der skal følge lysknappen på Harvia-panelet — selv hvis intet lys er fysisk tilsluttet styreenheden.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Når ovnen slukkes (klassisk)",
         "cooldown": "Når temperaturen falder under målet (nedkøling)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Deaktiveret",
+        "full_spectrum": "Fuldt spektrum (kold hvid → rød)",
+        "warm_only": "Kun varm (varm hvid → rød)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Måltemperatur nået",
+        "fixed": "Fast temperatur"
       }
     }
   }

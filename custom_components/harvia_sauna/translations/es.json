@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Deshumidificador"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Perfil activo"
+      },
+      "time_to_ready": {
+        "name": "Tiempo hasta lista"
+      },
+      "ready_at": {
+        "name": "Lista a las"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Control remoto permitido"
+      },
+      "ready": {
+        "name": "Lista"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Sensor de temperatura de referencia para el enfriamiento (opcional, por defecto el sensor interno de Harvia)",
           "cooldown_hysteresis": "Histéresis por debajo de la temperatura objetivo",
           "cooldown_max_minutes": "Duración máxima del enfriamiento (red de seguridad)",
-          "use_ext_sensor_for_max_temp": "Usar el sensor externo para la temperatura máxima de la sesión"
+          "use_ext_sensor_for_max_temp": "Usar el sensor externo para la temperatura máxima de la sesión",
+          "ready_mode": "Detección de lista",
+          "ready_fixed_temp": "Temperatura fija de lista",
+          "ambi_zone1_lights": "Ambilight zona 1: luces",
+          "ambi_zone1_curve": "Ambilight zona 1: curva de color",
+          "ambi_zone1_offset": "Ambilight zona 1: desfase de temperatura",
+          "ambi_zone2_lights": "Ambilight zona 2: luces",
+          "ambi_zone2_curve": "Ambilight zona 2: curva de color",
+          "ambi_zone2_offset": "Ambilight zona 2: desfase de temperatura",
+          "ambi_standard_kelvin": "Luz cotidiana: temperatura de color",
+          "ambi_standard_brightness": "Luz cotidiana: brillo"
         },
         "data_description": {
           "linked_lights": "Elija entidades de luz de HA (p. ej., tiras Hue) que sigan el botón de luz del panel Harvia, aunque no haya ninguna luz conectada físicamente a la unidad de control.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Al apagar el calefactor (clásico)",
         "cooldown": "Cuando la temperatura baja del objetivo (enfriamiento)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Desactivado",
+        "full_spectrum": "Espectro completo (blanco frío → rojo)",
+        "warm_only": "Solo cálido (blanco cálido → rojo)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Temperatura objetivo alcanzada",
+        "fixed": "Temperatura fija"
       }
     }
   }

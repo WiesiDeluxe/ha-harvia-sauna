@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "除湿機"
+      },
+      "ambilight": {
+        "name": "アンビライト"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "アクティブプロフィール"
+      },
+      "time_to_ready": {
+        "name": "準備完了までの時間"
+      },
+      "ready_at": {
+        "name": "準備完了時刻"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "リモート制御許可"
+      },
+      "ready": {
+        "name": "準備完了"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "クールダウン用の基準温度センサー（任意、既定はHarvia内蔵センサー）",
           "cooldown_hysteresis": "目標温度を下回るヒステリシス",
           "cooldown_max_minutes": "クールダウンの最大時間（セーフティネット）",
-          "use_ext_sensor_for_max_temp": "セッション最高温度にも外部センサーを使用"
+          "use_ext_sensor_for_max_temp": "セッション最高温度にも外部センサーを使用",
+          "ready_mode": "準備完了の判定",
+          "ready_fixed_temp": "固定の準備完了温度",
+          "ambi_zone1_lights": "アンビライト ゾーン1: ライト",
+          "ambi_zone1_curve": "アンビライト ゾーン1: カラーカーブ",
+          "ambi_zone1_offset": "アンビライト ゾーン1: 温度オフセット",
+          "ambi_zone2_lights": "アンビライト ゾーン2: ライト",
+          "ambi_zone2_curve": "アンビライト ゾーン2: カラーカーブ",
+          "ambi_zone2_offset": "アンビライト ゾーン2: 温度オフセット",
+          "ambi_standard_kelvin": "通常時の照明: 色温度",
+          "ambi_standard_brightness": "通常時の照明: 明るさ"
         },
         "data_description": {
           "linked_lights": "Harviaパネルのライトボタンに連動させるHAライト（例：Hueストリップ）を選択します。制御ユニットに照明が物理的に接続されていなくても機能します。",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "ヒーター停止時（従来）",
         "cooldown": "温度が目標を下回ったとき（クールダウン）"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "無効",
+        "full_spectrum": "フルスペクトル（寒色白 → 赤）",
+        "warm_only": "暖色のみ（暖色白 → 赤）"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "目標温度に到達",
+        "fixed": "固定温度"
       }
     }
   }

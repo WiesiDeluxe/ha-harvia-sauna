@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Õhukuivati"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktiivne profil"
+      },
+      "time_to_ready": {
+        "name": "Aeg valmimiseni"
+      },
+      "ready_at": {
+        "name": "Valmis kell"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Kaugjuhtimine lubatud"
+      },
+      "ready": {
+        "name": "Valmis"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Jahtumisfaasi referentstemperatuuri andur (valikuline, vaikimisi Harvia sisemine andur)",
           "cooldown_hysteresis": "Hüsterees alla sihttemperatuuri",
           "cooldown_max_minutes": "Maksimaalne jahtumisaeg (turvavõrk)",
-          "use_ext_sensor_for_max_temp": "Kasuta välist andurit ka seansi max temperatuuri jaoks"
+          "use_ext_sensor_for_max_temp": "Kasuta välist andurit ka seansi max temperatuuri jaoks",
+          "ready_mode": "Valmiduse tuvastus",
+          "ready_fixed_temp": "Fikseeritud valmidustemperatuur",
+          "ambi_zone1_lights": "Ambilight tsoon 1: valgustid",
+          "ambi_zone1_curve": "Ambilight tsoon 1: värvikõver",
+          "ambi_zone1_offset": "Ambilight tsoon 1: temperatuurinihe",
+          "ambi_zone2_lights": "Ambilight tsoon 2: valgustid",
+          "ambi_zone2_curve": "Ambilight tsoon 2: värvikõver",
+          "ambi_zone2_offset": "Ambilight tsoon 2: temperatuurinihe",
+          "ambi_standard_kelvin": "Igapäevavalgus: värvitemperatuur",
+          "ambi_standard_brightness": "Igapäevavalgus: heledus"
         },
         "data_description": {
           "linked_lights": "Vali HA valgustid (nt Hue ribad), mis järgivad Harvia paneeli valgusnuppu — isegi kui juhtplokiga pole füüsiliselt ühtegi valgustit ühendatud.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Kerise väljalülitamisel (klassikaline)",
         "cooldown": "Kui temperatuur langeb alla sihi (jahtumine)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Keelatud",
+        "full_spectrum": "Täisspekter (külm valge → punane)",
+        "warm_only": "Ainult soe (soe valge → punane)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Sihttemperatuur saavutatud",
+        "fixed": "Fikseeritud temperatuur"
       }
     }
   }

@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Kuivain"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktiivinen profiili"
+      },
+      "time_to_ready": {
+        "name": "Aika valmiiksi"
+      },
+      "ready_at": {
+        "name": "Valmis klo"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Etähallinta sallittu"
+      },
+      "ready": {
+        "name": "Valmis"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Jäähtymisvaiheen vertailulämpötila-anturi (valinnainen, oletuksena Harvian sisäinen anturi)",
           "cooldown_hysteresis": "Hystereesi tavoitelämpötilan alapuolella",
           "cooldown_max_minutes": "Jäähtymisen enimmäiskesto (turvaverkko)",
-          "use_ext_sensor_for_max_temp": "Käytä ulkoista anturia myös istunnon maksimilämpötilaan"
+          "use_ext_sensor_for_max_temp": "Käytä ulkoista anturia myös istunnon maksimilämpötilaan",
+          "ready_mode": "Valmiuden tunnistus",
+          "ready_fixed_temp": "Kiinteä valmiuslämpötila",
+          "ambi_zone1_lights": "Ambilight-vyöhyke 1: valot",
+          "ambi_zone1_curve": "Ambilight-vyöhyke 1: värikäyrä",
+          "ambi_zone1_offset": "Ambilight-vyöhyke 1: lämpötilapoikkeama",
+          "ambi_zone2_lights": "Ambilight-vyöhyke 2: valot",
+          "ambi_zone2_curve": "Ambilight-vyöhyke 2: värikäyrä",
+          "ambi_zone2_offset": "Ambilight-vyöhyke 2: lämpötilapoikkeama",
+          "ambi_standard_kelvin": "Arkivalo: värilämpötila",
+          "ambi_standard_brightness": "Arkivalo: kirkkaus"
         },
         "data_description": {
           "linked_lights": "Valitse HA-valot (esim. Hue-nauhat), jotka seuraavat Harvia-paneelin valopainiketta — vaikka ohjausyksikköön ei olisi fyysisesti kytketty valoa.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Kun kiuas sammuu (klassinen)",
         "cooldown": "Kun lämpötila laskee tavoitteen alle (jäähtyminen)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Pois käytöstä",
+        "full_spectrum": "Koko spektri (kylmä valkoinen → punainen)",
+        "warm_only": "Vain lämmin (lämmin valkoinen → punainen)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Tavoitelämpötila saavutettu",
+        "fixed": "Kiinteä lämpötila"
       }
     }
   }

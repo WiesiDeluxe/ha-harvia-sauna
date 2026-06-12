@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "ì ìµê¸°"
+      },
+      "ambilight": {
+        "name": "앰비라이트"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "íì± íë¡í"
+      },
+      "time_to_ready": {
+        "name": "준비까지 남은 시간"
+      },
+      "ready_at": {
+        "name": "준비 완료 시각"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "ìê²© ì ì´ íì©"
+      },
+      "ready": {
+        "name": "준비됨"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "쿨다운 기준 온도 센서 (선택 사항, 기본값: Harvia 내장 센서)",
           "cooldown_hysteresis": "목표 온도 아래 히스테리시스",
           "cooldown_max_minutes": "최대 쿨다운 시간 (안전장치)",
-          "use_ext_sensor_for_max_temp": "세션 최고 온도에도 외부 센서 사용"
+          "use_ext_sensor_for_max_temp": "세션 최고 온도에도 외부 센서 사용",
+          "ready_mode": "준비 감지",
+          "ready_fixed_temp": "고정 준비 온도",
+          "ambi_zone1_lights": "앰비라이트 구역 1: 조명",
+          "ambi_zone1_curve": "앰비라이트 구역 1: 색상 곡선",
+          "ambi_zone1_offset": "앰비라이트 구역 1: 온도 오프셋",
+          "ambi_zone2_lights": "앰비라이트 구역 2: 조명",
+          "ambi_zone2_curve": "앰비라이트 구역 2: 색상 곡선",
+          "ambi_zone2_offset": "앰비라이트 구역 2: 온도 오프셋",
+          "ambi_standard_kelvin": "일상 조명: 색온도",
+          "ambi_standard_brightness": "일상 조명: 밝기"
         },
         "data_description": {
           "linked_lights": "Harvia 패널의 조명 버튼을 따라갈 HA 조명(예: Hue 스트립)을 선택하세요. 제어 장치에 조명이 물리적으로 연결되어 있지 않아도 작동합니다.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "히터가 꺼질 때 (기본)",
         "cooldown": "온도가 목표 아래로 떨어질 때 (쿨다운)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "비활성화",
+        "full_spectrum": "전체 스펙트럼 (차가운 흰색 → 빨강)",
+        "warm_only": "따뜻한 색만 (따뜻한 흰색 → 빨강)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "목표 온도 도달",
+        "fixed": "고정 온도"
       }
     }
   }

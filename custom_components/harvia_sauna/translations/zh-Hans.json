@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "é¤æ¹¿å¨"
+      },
+      "ambilight": {
+        "name": "流光溢彩"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "æ´»è·éç½®æä»¶"
+      },
+      "time_to_ready": {
+        "name": "距就绪时间"
+      },
+      "ready_at": {
+        "name": "就绪时间"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "åè®¸è¿ç¨æ§å¶"
+      },
+      "ready": {
+        "name": "就绪"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "冷却阶段参考温度传感器（可选，默认使用 Harvia 内置传感器）",
           "cooldown_hysteresis": "低于目标温度的滞后值",
           "cooldown_max_minutes": "最长冷却时间（安全保护）",
-          "use_ext_sensor_for_max_temp": "会话最高温度也使用外部传感器"
+          "use_ext_sensor_for_max_temp": "会话最高温度也使用外部传感器",
+          "ready_mode": "就绪检测",
+          "ready_fixed_temp": "固定就绪温度",
+          "ambi_zone1_lights": "流光溢彩区域1：灯",
+          "ambi_zone1_curve": "流光溢彩区域1：色彩曲线",
+          "ambi_zone1_offset": "流光溢彩区域1：温度偏移",
+          "ambi_zone2_lights": "流光溢彩区域2：灯",
+          "ambi_zone2_curve": "流光溢彩区域2：色彩曲线",
+          "ambi_zone2_offset": "流光溢彩区域2：温度偏移",
+          "ambi_standard_kelvin": "日常灯光：色温",
+          "ambi_standard_brightness": "日常灯光：亮度"
         },
         "data_description": {
           "linked_lights": "选择跟随 Harvia 面板灯光按钮的 HA 灯实体（如 Hue 灯带）——即使控制单元未实际连接任何灯也可使用。",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "加热器关闭时（经典）",
         "cooldown": "温度降至目标以下时（冷却）"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "禁用",
+        "full_spectrum": "全光谱（冷白 → 红）",
+        "warm_only": "仅暖色（暖白 → 红）"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "达到目标温度",
+        "fixed": "固定温度"
       }
     }
   }

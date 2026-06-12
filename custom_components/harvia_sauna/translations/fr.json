@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Déshumidificateur"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Profil actif"
+      },
+      "time_to_ready": {
+        "name": "Temps avant prête"
+      },
+      "ready_at": {
+        "name": "Prête à"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Contrôle à distance autorisé"
+      },
+      "ready": {
+        "name": "Prête"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Capteur de température de référence pour le refroidissement (optionnel, par défaut le capteur interne Harvia)",
           "cooldown_hysteresis": "Hystérésis sous la température cible",
           "cooldown_max_minutes": "Durée maximale de refroidissement (garde-fou)",
-          "use_ext_sensor_for_max_temp": "Utiliser le capteur externe pour la température max de la séance"
+          "use_ext_sensor_for_max_temp": "Utiliser le capteur externe pour la température max de la séance",
+          "ready_mode": "Détection « prête »",
+          "ready_fixed_temp": "Température fixe « prête »",
+          "ambi_zone1_lights": "Ambilight zone 1 : lumières",
+          "ambi_zone1_curve": "Ambilight zone 1 : courbe de couleur",
+          "ambi_zone1_offset": "Ambilight zone 1 : décalage de température",
+          "ambi_zone2_lights": "Ambilight zone 2 : lumières",
+          "ambi_zone2_curve": "Ambilight zone 2 : courbe de couleur",
+          "ambi_zone2_offset": "Ambilight zone 2 : décalage de température",
+          "ambi_standard_kelvin": "Lumière quotidienne : température de couleur",
+          "ambi_standard_brightness": "Lumière quotidienne : luminosité"
         },
         "data_description": {
           "linked_lights": "Choisissez des entités lumière HA (p. ex. rubans Hue) qui suivront le bouton lumière du panneau Harvia — même si aucune lumière n'est physiquement raccordée au boîtier.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "À l'arrêt du poêle (classique)",
         "cooldown": "Quand la température passe sous la cible (refroidissement)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Désactivé",
+        "full_spectrum": "Spectre complet (blanc froid → rouge)",
+        "warm_only": "Chaud uniquement (blanc chaud → rouge)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Température cible atteinte",
+        "fixed": "Température fixe"
       }
     }
   }

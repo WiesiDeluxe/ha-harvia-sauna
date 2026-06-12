@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Dehumidifier"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Active profile"
+      },
+      "time_to_ready": {
+        "name": "Time to ready"
+      },
+      "ready_at": {
+        "name": "Ready at"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Remote control allowed"
+      },
+      "ready": {
+        "name": "Ready"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Reference temperature sensor for cooldown (optional, defaults to the internal Harvia sensor)",
           "cooldown_hysteresis": "Cooldown hysteresis below target temperature",
           "cooldown_max_minutes": "Maximum cooldown duration (safety net)",
-          "use_ext_sensor_for_max_temp": "Use the external sensor for the session max temperature"
+          "use_ext_sensor_for_max_temp": "Use the external sensor for the session max temperature",
+          "ready_mode": "Ready detection",
+          "ready_fixed_temp": "Fixed ready temperature",
+          "ambi_zone1_lights": "Ambilight zone 1: lights",
+          "ambi_zone1_curve": "Ambilight zone 1: color curve",
+          "ambi_zone1_offset": "Ambilight zone 1: temperature offset",
+          "ambi_zone2_lights": "Ambilight zone 2: lights",
+          "ambi_zone2_curve": "Ambilight zone 2: color curve",
+          "ambi_zone2_offset": "Ambilight zone 2: temperature offset",
+          "ambi_standard_kelvin": "Everyday light: color temperature",
+          "ambi_standard_brightness": "Everyday light: brightness"
         },
         "data_description": {
           "linked_lights": "Choose HA light entities (e.g. Hue strips) that should follow the light button on the Harvia panel even if no light is physically wired to the power unit.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "When the heater turns off (classic)",
         "cooldown": "When temperature falls below target (cooldown)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Disabled",
+        "full_spectrum": "Full spectrum (cool white → red)",
+        "warm_only": "Warm only (warm white → red)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Target temperature reached",
+        "fixed": "Fixed temperature"
       }
     }
   }

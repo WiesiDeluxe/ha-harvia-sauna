@@ -51,6 +51,23 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         icon="mdi:thermometer",
         value_fn=lambda d: d.current_temp,
     ),
+    # v2.7.0: Time-to-ready estimation from the reference temp trend
+    HarviaSensorDescription(
+        key="time_to_ready",
+        translation_key="time_to_ready",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:timer-sand",
+        value_fn=lambda d: d.time_to_ready_min,
+    ),
+    HarviaSensorDescription(
+        key="ready_at",
+        translation_key="ready_at",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:clock-check-outline",
+        value_fn=lambda d: d.ready_at,
+    ),
     HarviaSensorDescription(
         key="humidity",
         translation_key="humidity",

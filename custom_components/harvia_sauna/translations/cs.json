@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Odvlhčovač"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktivní profil"
+      },
+      "time_to_ready": {
+        "name": "Čas do připravenosti"
+      },
+      "ready_at": {
+        "name": "Připraveno v"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Vzdálené ovládání povoleno"
+      },
+      "ready": {
+        "name": "Připraveno"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referenční teplotní senzor pro fázi chladnutí (volitelné, výchozí: interní senzor Harvia)",
           "cooldown_hysteresis": "Hystereze pod cílovou teplotou",
           "cooldown_max_minutes": "Maximální doba chladnutí (pojistka)",
-          "use_ext_sensor_for_max_temp": "Použít externí senzor i pro max. teplotu relace"
+          "use_ext_sensor_for_max_temp": "Použít externí senzor i pro max. teplotu relace",
+          "ready_mode": "Detekce připravenosti",
+          "ready_fixed_temp": "Pevná teplota připravenosti",
+          "ambi_zone1_lights": "Ambilight zóna 1: světla",
+          "ambi_zone1_curve": "Ambilight zóna 1: barevná křivka",
+          "ambi_zone1_offset": "Ambilight zóna 1: teplotní posun",
+          "ambi_zone2_lights": "Ambilight zóna 2: světla",
+          "ambi_zone2_curve": "Ambilight zóna 2: barevná křivka",
+          "ambi_zone2_offset": "Ambilight zóna 2: teplotní posun",
+          "ambi_standard_kelvin": "Běžné světlo: teplota barvy",
+          "ambi_standard_brightness": "Běžné světlo: jas"
         },
         "data_description": {
           "linked_lights": "Vyberte HA světla (např. Hue pásky), která mají následovat tlačítko světla na panelu Harvia — i když ke řídicí jednotce není fyzicky připojeno žádné světlo.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Při vypnutí kamen (klasické)",
         "cooldown": "Při poklesu teploty pod cíl (chladnutí)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Vypnuto",
+        "full_spectrum": "Plné spektrum (studená bílá → červená)",
+        "warm_only": "Pouze teplé (teplá bílá → červená)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Dosažena cílová teplota",
+        "fixed": "Pevná teplota"
       }
     }
   }

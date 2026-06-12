@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Deumidificatore"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Profilo attivo"
+      },
+      "time_to_ready": {
+        "name": "Tempo alla prontezza"
+      },
+      "ready_at": {
+        "name": "Pronta alle"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Controllo remoto consentito"
+      },
+      "ready": {
+        "name": "Pronta"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Sensore di temperatura di riferimento per il raffreddamento (opzionale, predefinito: sensore interno Harvia)",
           "cooldown_hysteresis": "Isteresi sotto la temperatura target",
           "cooldown_max_minutes": "Durata massima del raffreddamento (rete di sicurezza)",
-          "use_ext_sensor_for_max_temp": "Usa il sensore esterno per la temperatura max della sessione"
+          "use_ext_sensor_for_max_temp": "Usa il sensore esterno per la temperatura max della sessione",
+          "ready_mode": "Rilevamento prontezza",
+          "ready_fixed_temp": "Temperatura fissa di prontezza",
+          "ambi_zone1_lights": "Ambilight zona 1: luci",
+          "ambi_zone1_curve": "Ambilight zona 1: curva colore",
+          "ambi_zone1_offset": "Ambilight zona 1: offset temperatura",
+          "ambi_zone2_lights": "Ambilight zona 2: luci",
+          "ambi_zone2_curve": "Ambilight zona 2: curva colore",
+          "ambi_zone2_offset": "Ambilight zona 2: offset temperatura",
+          "ambi_standard_kelvin": "Luce quotidiana: temperatura colore",
+          "ambi_standard_brightness": "Luce quotidiana: luminosità"
         },
         "data_description": {
           "linked_lights": "Scegli entità luce HA (es. strisce Hue) che seguiranno il pulsante luce del pannello Harvia — anche se nessuna luce è collegata fisicamente alla centralina.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Allo spegnimento della stufa (classico)",
         "cooldown": "Quando la temperatura scende sotto il target (raffreddamento)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Disattivato",
+        "full_spectrum": "Spettro completo (bianco freddo → rosso)",
+        "warm_only": "Solo caldo (bianco caldo → rosso)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Temperatura target raggiunta",
+        "fixed": "Temperatura fissa"
       }
     }
   }

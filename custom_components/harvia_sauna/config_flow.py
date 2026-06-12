@@ -30,8 +30,19 @@ from homeassistant.helpers.selector import (
 from .api_base import HarviaApiClientBase
 from .api_factory import create_api_client, get_provider_from_entry_data
 from .const import (
+    AMBI_CURVE_FULL,
+    AMBI_CURVE_OFF,
+    AMBI_CURVE_WARM,
     API_PROVIDER_MYHARVIA,
     API_PROVIDERS,
+    CONF_AMBI_STANDARD_BRIGHTNESS,
+    CONF_AMBI_STANDARD_KELVIN,
+    CONF_AMBI_ZONE1_CURVE,
+    CONF_AMBI_ZONE1_LIGHTS,
+    CONF_AMBI_ZONE1_OFFSET,
+    CONF_AMBI_ZONE2_CURVE,
+    CONF_AMBI_ZONE2_LIGHTS,
+    CONF_AMBI_ZONE2_OFFSET,
     CONF_API_PROVIDER,
     CONF_COOLDOWN_HYSTERESIS,
     CONF_COOLDOWN_MAX_MINUTES,
@@ -41,11 +52,19 @@ from .const import (
     CONF_HEATER_POWER,
     CONF_LIGHT_SYNC_MODE,
     CONF_LINKED_LIGHTS,
+    CONF_READY_FIXED_TEMP,
+    CONF_READY_MODE,
     CONF_SESSION_END_MODE,
+    DEFAULT_AMBI_CURVE,
+    DEFAULT_AMBI_OFFSET,
+    DEFAULT_AMBI_STANDARD_BRIGHTNESS,
+    DEFAULT_AMBI_STANDARD_KELVIN,
     DEFAULT_COOLDOWN_HYSTERESIS,
     DEFAULT_COOLDOWN_MAX_MINUTES,
     DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
     DEFAULT_LIGHT_SYNC_MODE,
+    DEFAULT_READY_FIXED_TEMP,
+    DEFAULT_READY_MODE,
     DEFAULT_SESSION_END_MODE,
     DOMAIN,
     HEATER_MODELS,
@@ -53,6 +72,8 @@ from .const import (
     LIGHT_SYNC_BIDIRECTIONAL,
     LIGHT_SYNC_OFF,
     LIGHT_SYNC_PANEL_TO_HA,
+    READY_MODE_FIXED,
+    READY_MODE_TARGET,
     SESSION_END_COOLDOWN,
     SESSION_END_HEATER_OFF,
 )
@@ -454,6 +475,134 @@ class HarviaOptionsFlow(OptionsFlow):
                         DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
                     ),
                 ): BooleanSelector(),
+                # ── Ready detection (v2.7.0) ──────────────────────────
+                vol.Optional(
+                    CONF_READY_MODE,
+                    default=options.get(CONF_READY_MODE, DEFAULT_READY_MODE),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[READY_MODE_TARGET, READY_MODE_FIXED],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="ready_mode",
+                    )
+                ),
+                vol.Optional(
+                    CONF_READY_FIXED_TEMP,
+                    default=options.get(
+                        CONF_READY_FIXED_TEMP, DEFAULT_READY_FIXED_TEMP
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=40,
+                        max=110,
+                        step=1,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                # ── Ambilight (v2.7.0) ────────────────────────────────
+                vol.Optional(
+                    CONF_AMBI_ZONE1_LIGHTS,
+                    default=options.get(CONF_AMBI_ZONE1_LIGHTS, []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="light", multiple=True)
+                ),
+                vol.Optional(
+                    CONF_AMBI_ZONE1_CURVE,
+                    default=options.get(
+                        CONF_AMBI_ZONE1_CURVE, DEFAULT_AMBI_CURVE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            AMBI_CURVE_OFF,
+                            AMBI_CURVE_FULL,
+                            AMBI_CURVE_WARM,
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="ambilight_curve",
+                    )
+                ),
+                vol.Optional(
+                    CONF_AMBI_ZONE1_OFFSET,
+                    default=options.get(
+                        CONF_AMBI_ZONE1_OFFSET, DEFAULT_AMBI_OFFSET
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=-15,
+                        max=15,
+                        step=0.5,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_AMBI_ZONE2_LIGHTS,
+                    default=options.get(CONF_AMBI_ZONE2_LIGHTS, []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="light", multiple=True)
+                ),
+                vol.Optional(
+                    CONF_AMBI_ZONE2_CURVE,
+                    default=options.get(
+                        CONF_AMBI_ZONE2_CURVE, DEFAULT_AMBI_CURVE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            AMBI_CURVE_OFF,
+                            AMBI_CURVE_FULL,
+                            AMBI_CURVE_WARM,
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="ambilight_curve",
+                    )
+                ),
+                vol.Optional(
+                    CONF_AMBI_ZONE2_OFFSET,
+                    default=options.get(
+                        CONF_AMBI_ZONE2_OFFSET, DEFAULT_AMBI_OFFSET
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=-15,
+                        max=15,
+                        step=0.5,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_AMBI_STANDARD_KELVIN,
+                    default=options.get(
+                        CONF_AMBI_STANDARD_KELVIN,
+                        DEFAULT_AMBI_STANDARD_KELVIN,
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=2000,
+                        max=6500,
+                        step=50,
+                        unit_of_measurement="K",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_AMBI_STANDARD_BRIGHTNESS,
+                    default=options.get(
+                        CONF_AMBI_STANDARD_BRIGHTNESS,
+                        DEFAULT_AMBI_STANDARD_BRIGHTNESS,
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=1,
+                        max=100,
+                        step=1,
+                        unit_of_measurement="%",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
             }
         )
 

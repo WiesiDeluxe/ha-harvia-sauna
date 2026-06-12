@@ -39,6 +39,13 @@ BINARY_SENSOR_DESCRIPTIONS: list[HarviaBinarySensorDescription] = [
         icon="mdi:door",
         value_fn=lambda d: d.door_open,
     ),
+    # v2.7.0: latched per-session ready flag
+    HarviaBinarySensorDescription(
+        key="ready",
+        translation_key="ready",
+        icon="mdi:check-circle-outline",
+        value_fn=lambda d: d.ready,
+    ),
     HarviaBinarySensorDescription(
         key="heat_on",
         translation_key="heat_on",

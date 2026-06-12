@@ -108,3 +108,47 @@ DEFAULT_EXT_SENSOR_FOR_MAX_TEMP = True
 # Grace period: if the external sensor is unavailable longer than this,
 # fall back to the internal Harvia sensor for cooldown decisions
 COOLDOWN_EXT_SENSOR_GRACE_SEC = 600
+
+# ── Ambilight & Ready (v2.7.0) ────────────────────────────────────
+# Ambilight: temperature-driven light color in two independent zones
+CONF_AMBI_ZONE1_LIGHTS = "ambi_zone1_lights"
+CONF_AMBI_ZONE1_CURVE = "ambi_zone1_curve"
+CONF_AMBI_ZONE1_OFFSET = "ambi_zone1_offset"
+CONF_AMBI_ZONE2_LIGHTS = "ambi_zone2_lights"
+CONF_AMBI_ZONE2_CURVE = "ambi_zone2_curve"
+CONF_AMBI_ZONE2_OFFSET = "ambi_zone2_offset"
+AMBI_CURVE_OFF = "off"
+AMBI_CURVE_FULL = "full_spectrum"
+AMBI_CURVE_WARM = "warm_only"
+DEFAULT_AMBI_CURVE = AMBI_CURVE_OFF
+DEFAULT_AMBI_OFFSET = 0.0
+
+# Standard/everyday light value restored after the session ends
+CONF_AMBI_STANDARD_KELVIN = "ambi_standard_kelvin"
+DEFAULT_AMBI_STANDARD_KELVIN = 2000
+CONF_AMBI_STANDARD_BRIGHTNESS = "ambi_standard_brightness"
+DEFAULT_AMBI_STANDARD_BRIGHTNESS = 100  # percent
+
+# Ambilight engine tuning
+AMBI_MIN_TEMP_DELTA_C = 1.0      # recompute only on >= 1 °C change
+AMBI_MIN_INTERVAL_SEC = 30.0     # ... or at most every 30 s
+AMBI_TRANSITION_SEC = 2          # smooth fade
+AMBI_CCT_SAT_THRESHOLD = 35.0    # below this saturation prefer CCT mode
+
+# Ready detection
+CONF_READY_MODE = "ready_mode"
+READY_MODE_TARGET = "target"
+READY_MODE_FIXED = "fixed"
+DEFAULT_READY_MODE = READY_MODE_TARGET
+CONF_READY_FIXED_TEMP = "ready_fixed_temp"
+DEFAULT_READY_FIXED_TEMP = 60.0
+
+EVENT_READY = f"{DOMAIN}_ready"
+
+# Time-to-ready estimation
+READY_TREND_MIN_C_PER_MIN = 0.05  # below this the ETA is unknown (guard)
+REF_TREND_HISTORY_MAX = 10
+
+# Combi safety: the MyHarvia app enforces targetTemp + targetRh <= 140,
+# the API does not — we clamp to protect combi heaters
+COMBI_TEMP_RH_LIMIT = 140

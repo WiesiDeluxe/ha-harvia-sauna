@@ -18,19 +18,28 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api_base import HarviaApiClientBase
 from .const import (
+    COMBI_TEMP_RH_LIMIT,
     CONF_COOLDOWN_HYSTERESIS,
     CONF_COOLDOWN_MAX_MINUTES,
     CONF_COOLDOWN_TEMP_SENSOR,
     CONF_EXT_SENSOR_FOR_MAX_TEMP,
+    CONF_READY_FIXED_TEMP,
+    CONF_READY_MODE,
     CONF_SESSION_END_MODE,
     COOLDOWN_EXT_SENSOR_GRACE_SEC,
     DEFAULT_COOLDOWN_HYSTERESIS,
     DEFAULT_COOLDOWN_MAX_MINUTES,
     DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
+    DEFAULT_READY_FIXED_TEMP,
+    DEFAULT_READY_MODE,
     DEFAULT_SESSION_END_MODE,
     DOMAIN,
+    EVENT_READY,
     EVENT_SESSION_END,
     EVENT_SESSION_START,
+    READY_MODE_FIXED,
+    READY_TREND_MIN_C_PER_MIN,
+    REF_TREND_HISTORY_MAX,
     SCAN_INTERVAL_FALLBACK,
     SESSION_END_COOLDOWN,
     SESSION_MIN_DURATION_SEC,
@@ -118,6 +127,19 @@ class HarviaDeviceData:
     _session_active: bool = False
     _session_start_time: float | None = None
     _session_max_temp: float = 0.0
+    # Ready detection (v2.7.0): latched once per session
+    ready: bool = False
+    # Time-to-ready estimation from the reference temp trend
+    ref_trend: float | None = None          # °C/min from reference sensor
+    time_to_ready_min: float | None = None  # minutes, None = unknown
+    ready_at: Any = None                    # datetime | None
+    _ref_temp_history: deque = field(
+        default_factory=lambda: deque(maxlen=REF_TREND_HISTORY_MAX)
+    )
+    # Ambilight enable flag (driven by the integration's switch entity,
+    # restored via RestoreEntity in switch.py)
+    ambilight_enabled: bool = True
+
     # Cooldown phase (session_end_mode = "cooldown"): after heater-off the
     # session keeps running until temperature drops below the frozen target
     _cooldown_active: bool = False
@@ -163,6 +185,8 @@ class SessionOptions:
     hysteresis_c: float = DEFAULT_COOLDOWN_HYSTERESIS
     max_cooldown_sec: float = DEFAULT_COOLDOWN_MAX_MINUTES * 60
     ext_sensor_for_max_temp: bool = DEFAULT_EXT_SENSOR_FOR_MAX_TEMP
+    ready_mode: str = DEFAULT_READY_MODE
+    ready_fixed_temp: float = DEFAULT_READY_FIXED_TEMP
 
 
 def parse_session_options(options: dict[str, Any]) -> SessionOptions:
@@ -181,6 +205,10 @@ def parse_session_options(options: dict[str, Any]) -> SessionOptions:
             options.get(
                 CONF_EXT_SENSOR_FOR_MAX_TEMP, DEFAULT_EXT_SENSOR_FOR_MAX_TEMP
             )
+        ),
+        ready_mode=options.get(CONF_READY_MODE, DEFAULT_READY_MODE),
+        ready_fixed_temp=float(
+            options.get(CONF_READY_FIXED_TEMP, DEFAULT_READY_FIXED_TEMP)
         ),
     )
 
@@ -225,11 +253,12 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         """Set up real-time push updates if supported by the provider."""
         await self.api.async_start_push_updates(self._async_handle_ws_update)
 
-        # In cooldown mode with an external sensor, session end is driven by
-        # that sensor — listen to its updates so the session can end even
-        # when no Harvia WS/poll update arrives at that moment.
+        # With an external reference sensor configured, ready detection,
+        # time-to-ready and the cooldown session end are all driven by that
+        # sensor — listen to its updates so they react even when no Harvia
+        # WS/poll update arrives at that moment.
         opts = self.session_options
-        if opts.end_mode == SESSION_END_COOLDOWN and opts.ext_sensor:
+        if opts.ext_sensor:
             self._ext_sensor_unsub = async_track_state_change_event(
                 self.hass, [opts.ext_sensor], self._async_ext_sensor_changed
             )
@@ -240,7 +269,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             return
         updated = False
         for device in self.data.devices.values():
-            if device._cooldown_active:
+            if device._session_active or device._cooldown_active:
                 self._run_session_tracking(device)
                 updated = True
         if updated:
@@ -250,6 +279,8 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         """Run session tracking with current options and external sensor."""
         ext_temp = self._get_external_temp_c(device)
         _update_session_tracking(self.hass, device, self.session_options, ext_temp)
+        _update_ready_state(self.hass, device, self.session_options, ext_temp)
+        _update_ref_trend_and_eta(device, self.session_options, ext_temp)
 
     def _get_external_temp_c(self, device: HarviaDeviceData) -> float | None:
         """Read the configured external temp sensor, normalized to °C.
@@ -390,12 +421,58 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         self, device_id: str, payload: dict[str, Any]
     ) -> None:
         """Send a state change command to a device."""
+        payload = self._apply_combi_limit(device_id, payload)
         try:
             await self.api.async_request_state_change(device_id, payload)
         except HarviaAuthError as err:
             raise ConfigEntryAuthFailed(
                 f"Authentication error during command: {err}"
             ) from err
+
+    def _apply_combi_limit(
+        self, device_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Enforce targetTemp + targetRh <= COMBI_TEMP_RH_LIMIT.
+
+        Only the MyHarvia app enforces this limit — the API does not, so
+        values set via HA would otherwise drive a combi heater beyond spec
+        (community finding). Humidity is clamped, never temperature.
+        """
+        if "targetTemp" not in payload and "targetRh" not in payload:
+            return payload
+        device = (
+            self.data.devices.get(device_id) if self.data else None
+        )
+        try:
+            temp = float(
+                payload.get(
+                    "targetTemp",
+                    (device.target_temp if device else None) or 0,
+                )
+            )
+            rh = float(
+                payload.get(
+                    "targetRh",
+                    (device.target_rh if device else 0) or 0,
+                )
+            )
+        except (TypeError, ValueError):
+            return payload
+        if rh <= 0 or temp + rh <= COMBI_TEMP_RH_LIMIT:
+            return payload
+        clamped = max(0, int(COMBI_TEMP_RH_LIMIT - temp))
+        _LOGGER.warning(
+            "Combi limit: targetTemp %.0f + targetRh %.0f exceeds %d — "
+            "clamping humidity to %d (device %s)",
+            temp,
+            rh,
+            COMBI_TEMP_RH_LIMIT,
+            clamped,
+            device_id,
+        )
+        payload = dict(payload)
+        payload["targetRh"] = clamped
+        return payload
 
     def is_device_stale(self, device_id: str) -> bool:
         """Check if a device has not received updates recently."""
@@ -627,6 +704,7 @@ def _update_session_tracking(
         device._cooldown_active = False
         device._cooldown_started = None
         device._frozen_target_temp = None
+        device.ready = False  # re-arm ready detection for the new session
 
         hass.bus.async_fire(EVENT_SESSION_START, {
             "device_id": device.device_id,
@@ -763,6 +841,111 @@ def _end_session(
 
     device._session_start_time = None
     device._session_max_temp = 0.0
+    device.ready = False
+    device.time_to_ready_min = None
+    device.ready_at = None
+
+
+def _ready_threshold(
+    device: HarviaDeviceData, opts: SessionOptions
+) -> float | None:
+    """Return the ready threshold in °C, or None if undeterminable."""
+    if opts.ready_mode == READY_MODE_FIXED:
+        return opts.ready_fixed_temp
+    return float(device.target_temp) if device.target_temp is not None else None
+
+
+def _update_ready_state(
+    hass: HomeAssistant,
+    device: HarviaDeviceData,
+    opts: SessionOptions,
+    ext_temp_c: float | None,
+) -> None:
+    """Latch the per-session ready flag and fire the ready event once.
+
+    Ready = reference temperature reached the threshold (target temp or a
+    fixed value, per options). Latched: stays True until the session ends,
+    even if the temperature dips afterwards (door opening etc.).
+    """
+    if not device._session_active or device.ready:
+        return
+    threshold = _ready_threshold(device, opts)
+    ref_temp = ext_temp_c if ext_temp_c is not None else device.current_temp
+    if threshold is None or ref_temp is None:
+        return
+    if float(ref_temp) >= threshold:
+        device.ready = True
+        device.time_to_ready_min = 0.0
+        device.ready_at = None
+        hass.bus.async_fire(EVENT_READY, {
+            "device_id": device.device_id,
+            "temperature": round(float(ref_temp), 1),
+            "threshold": round(threshold, 1),
+        })
+        _LOGGER.debug(
+            "Sauna ready: %.1f°C >= %.1f°C (device %s)",
+            float(ref_temp),
+            threshold,
+            device.device_id,
+        )
+
+
+def _update_ref_trend_and_eta(
+    device: HarviaDeviceData,
+    opts: SessionOptions,
+    ext_temp_c: float | None,
+) -> None:
+    """Maintain the reference-temp trend and the time-to-ready estimate.
+
+    Uses the external sensor when configured (numerator AND denominator
+    from the same source — mixing the fast external sensor with the slow
+    internal trend systematically skews the ETA).
+    """
+    import datetime as dt
+
+    ref_temp = ext_temp_c if ext_temp_c is not None else device.current_temp
+    if ref_temp is None:
+        return
+
+    now = time.monotonic()
+    device._ref_temp_history.append((now, float(ref_temp)))
+
+    if len(device._ref_temp_history) >= 2:
+        t_old, temp_old = device._ref_temp_history[0]
+        t_new, temp_new = device._ref_temp_history[-1]
+        elapsed_min = (t_new - t_old) / 60.0
+        if elapsed_min >= 0.1:
+            device.ref_trend = round((temp_new - temp_old) / elapsed_min, 2)
+
+    # ETA only while actively heating towards the threshold
+    if not device._session_active or device.ready or device._cooldown_active:
+        if not device._session_active:
+            device.time_to_ready_min = None
+            device.ready_at = None
+        return
+
+    threshold = _ready_threshold(device, opts)
+    trend = device.ref_trend
+    if (
+        threshold is None
+        or trend is None
+        or trend <= READY_TREND_MIN_C_PER_MIN
+    ):
+        device.time_to_ready_min = None
+        device.ready_at = None
+        return
+
+    remaining_c = threshold - float(ref_temp)
+    if remaining_c <= 0:
+        device.time_to_ready_min = 0.0
+        device.ready_at = dt.datetime.now(dt.timezone.utc)
+        return
+    minutes = remaining_c / trend
+    device.time_to_ready_min = round(minutes, 0)
+    device.ready_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(
+        minutes=minutes
+    )
+
 
 def _update_temp_trend(device: HarviaDeviceData) -> None:
     """Calculate temperature change rate (°C/min)."""

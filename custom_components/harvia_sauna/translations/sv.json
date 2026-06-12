@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Avfuktare"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktiv profil"
+      },
+      "time_to_ready": {
+        "name": "Tid till klar"
+      },
+      "ready_at": {
+        "name": "Klar kl."
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Fjärrstyring tillåten"
+      },
+      "ready": {
+        "name": "Klar"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referenstemperatursensor för avsvalning (valfri, standard: intern Harvia-sensor)",
           "cooldown_hysteresis": "Hysteres under måltemperaturen",
           "cooldown_max_minutes": "Maximal avsvalningstid (skyddsnät)",
-          "use_ext_sensor_for_max_temp": "Använd den externa sensorn för sessionens maxtemperatur"
+          "use_ext_sensor_for_max_temp": "Använd den externa sensorn för sessionens maxtemperatur",
+          "ready_mode": "Klar-detektering",
+          "ready_fixed_temp": "Fast klar-temperatur",
+          "ambi_zone1_lights": "Ambilight zon 1: lampor",
+          "ambi_zone1_curve": "Ambilight zon 1: färgkurva",
+          "ambi_zone1_offset": "Ambilight zon 1: temperaturförskjutning",
+          "ambi_zone2_lights": "Ambilight zon 2: lampor",
+          "ambi_zone2_curve": "Ambilight zon 2: färgkurva",
+          "ambi_zone2_offset": "Ambilight zon 2: temperaturförskjutning",
+          "ambi_standard_kelvin": "Vardagsljus: färgtemperatur",
+          "ambi_standard_brightness": "Vardagsljus: ljusstyrka"
         },
         "data_description": {
           "linked_lights": "Välj HA-ljusentiteter (t.ex. Hue-strips) som ska följa ljusknappen på Harvia-panelen — även om ingen lampa är fysiskt ansluten till styrenheten.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "När aggregatet stängs av (klassiskt)",
         "cooldown": "När temperaturen sjunker under målet (avsvalning)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Inaktiverad",
+        "full_spectrum": "Fullt spektrum (kall vit → röd)",
+        "warm_only": "Endast varm (varm vit → röd)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Måltemperatur uppnådd",
+        "fixed": "Fast temperatur"
       }
     }
   }

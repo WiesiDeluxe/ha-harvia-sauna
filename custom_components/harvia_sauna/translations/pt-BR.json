@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Desumidificador"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Perfil ativo"
+      },
+      "time_to_ready": {
+        "name": "Tempo até pronta"
+      },
+      "ready_at": {
+        "name": "Pronta às"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Controle remoto permitido"
+      },
+      "ready": {
+        "name": "Pronta"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Sensor de temperatura de referência para o resfriamento (opcional, padrão: sensor interno Harvia)",
           "cooldown_hysteresis": "Histerese abaixo da temperatura alvo",
           "cooldown_max_minutes": "Duração máxima do resfriamento (rede de segurança)",
-          "use_ext_sensor_for_max_temp": "Usar o sensor externo para a temperatura máx. da sessão"
+          "use_ext_sensor_for_max_temp": "Usar o sensor externo para a temperatura máx. da sessão",
+          "ready_mode": "Detecção de pronta",
+          "ready_fixed_temp": "Temperatura fixa de pronta",
+          "ambi_zone1_lights": "Ambilight zona 1: luzes",
+          "ambi_zone1_curve": "Ambilight zona 1: curva de cor",
+          "ambi_zone1_offset": "Ambilight zona 1: deslocamento de temperatura",
+          "ambi_zone2_lights": "Ambilight zona 2: luzes",
+          "ambi_zone2_curve": "Ambilight zona 2: curva de cor",
+          "ambi_zone2_offset": "Ambilight zona 2: deslocamento de temperatura",
+          "ambi_standard_kelvin": "Luz cotidiana: temperatura de cor",
+          "ambi_standard_brightness": "Luz cotidiana: brilho"
         },
         "data_description": {
           "linked_lights": "Escolha entidades de luz do HA (ex.: fitas Hue) que seguirão o botão de luz do painel Harvia — mesmo sem nenhuma luz fisicamente conectada à central.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Ao desligar o aquecedor (clássico)",
         "cooldown": "Quando a temperatura cai abaixo do alvo (resfriamento)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Desativado",
+        "full_spectrum": "Espectro completo (branco frio → vermelho)",
+        "warm_only": "Apenas quente (branco quente → vermelho)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Temperatura alvo atingida",
+        "fixed": "Temperatura fixa"
       }
     }
   }

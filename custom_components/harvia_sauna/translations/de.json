@@ -79,6 +79,9 @@
       },
       "dehumidifier": {
         "name": "Entfeuchter"
+      },
+      "ambilight": {
+        "name": "Ambilight"
       }
     },
     "sensor": {
@@ -162,6 +165,12 @@
       },
       "active_profile": {
         "name": "Aktives Profil"
+      },
+      "time_to_ready": {
+        "name": "Restzeit bis bereit"
+      },
+      "ready_at": {
+        "name": "Bereit um"
       }
     },
     "binary_sensor": {
@@ -182,6 +191,9 @@
       },
       "remote_allowed": {
         "name": "Fernsteuerung erlaubt"
+      },
+      "ready": {
+        "name": "Bereit"
       }
     },
     "number": {
@@ -207,7 +219,17 @@
           "cooldown_temp_sensor": "Referenz-Temperatursensor für die Abkühlphase (optional, Standard: interner Harvia-Fühler)",
           "cooldown_hysteresis": "Hysterese unterhalb der Zieltemperatur",
           "cooldown_max_minutes": "Maximale Abkühldauer (Sicherheitsnetz)",
-          "use_ext_sensor_for_max_temp": "Externen Sensor auch für die Max-Temperatur der Sitzung verwenden"
+          "use_ext_sensor_for_max_temp": "Externen Sensor auch für die Max-Temperatur der Sitzung verwenden",
+          "ready_mode": "Bereit-Erkennung",
+          "ready_fixed_temp": "Fester Bereit-Schwellwert",
+          "ambi_zone1_lights": "Ambilight Zone 1: Lichter",
+          "ambi_zone1_curve": "Ambilight Zone 1: Farbkurve",
+          "ambi_zone1_offset": "Ambilight Zone 1: Temperatur-Offset",
+          "ambi_zone2_lights": "Ambilight Zone 2: Lichter",
+          "ambi_zone2_curve": "Ambilight Zone 2: Farbkurve",
+          "ambi_zone2_offset": "Ambilight Zone 2: Temperatur-Offset",
+          "ambi_standard_kelvin": "Alltagslicht: Farbtemperatur",
+          "ambi_standard_brightness": "Alltagslicht: Helligkeit"
         },
         "data_description": {
           "linked_lights": "HA-Licht-Entitäten (z.B. Hue-Stripes) wählen, die der Licht-Taste am Harvia-Panel folgen sollen — auch wenn kein Licht physisch am Steuergerät angeschlossen ist.",
@@ -228,6 +250,19 @@
       "options": {
         "heater_off": "Beim Ausschalten des Ofens (klassisch)",
         "cooldown": "Bei Abkühlung unter die Zieltemperatur (Abkühlphase)"
+      }
+    },
+    "ambilight_curve": {
+      "options": {
+        "off": "Deaktiviert",
+        "full_spectrum": "Vollspektrum (Kaltweiß → Rot)",
+        "warm_only": "Nur warm (Warmweiß → Rot)"
+      }
+    },
+    "ready_mode": {
+      "options": {
+        "target": "Zieltemperatur erreicht",
+        "fixed": "Fester Schwellwert"
       }
     }
   }

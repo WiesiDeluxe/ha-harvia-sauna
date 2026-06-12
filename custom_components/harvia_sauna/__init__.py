@@ -22,6 +22,7 @@ from .const import (
 )
 from .coordinator import HarviaSaunaCoordinator
 from .errors import HarviaAuthError, HarviaConnectionError
+from .ambilight import HarviaAmbilight
 from .light_sync import HarviaLightSync
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,6 +82,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
+    # v2.7.0: temperature-driven Ambilight (attach before platforms so the
+    # Ambilight switch can report availability)
+    ambilight = HarviaAmbilight(hass, coordinator, entry)
+    coordinator.ambilight = ambilight
+
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -88,6 +94,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     light_sync = HarviaLightSync(hass, coordinator, entry)
     await light_sync.async_setup()
     entry.async_on_unload(light_sync.async_teardown)
+
+    await ambilight.async_setup()
+    entry.async_on_unload(ambilight.async_teardown)
 
     # Register services (once)
     _async_register_services(hass)

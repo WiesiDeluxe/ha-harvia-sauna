@@ -103,6 +103,27 @@ optional external HA temperature sensor can be used as the reference (and
 for the session max temperature) instead of the slower internal Harvia
 sensor. A maximum cooldown duration acts as a safety net.
 
+## Ambilight & Ready Detection (v2.7.0+)
+
+**Ambilight** — temperature-driven light color in up to two independent
+zones (e.g. ceiling strip = full spectrum from cool white to deep red,
+bench strip = warm-only), each with an optional temperature offset. Only
+the color is driven; brightness stays under your control. A manual color
+change pauses Ambilight until the session ends or the integration's
+**Ambilight switch** is toggled. When the session ends, the configured
+everyday standard (color temperature + brightness) is restored.
+
+**Ready detection** — a latched `Ready` binary sensor plus the
+`harvia_sauna_ready` event, fired once per session when the reference
+temperature reaches the threshold (target temperature, or a fixed value —
+useful for stone-heavy heaters you enter before the target is reached).
+Companion sensors: **Time to ready** (minutes, from the reference-sensor
+heating trend) and **Ready at** (timestamp) for notifications like
+"Sauna ready at 17:42".
+
+**Combi safety** — `target temperature + target humidity` is clamped to
+140 (the MyHarvia app enforces this limit, the raw API does not).
+
 ## Custom Service
 
 ```yaml
