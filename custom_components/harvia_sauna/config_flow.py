@@ -7,8 +7,25 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    BooleanSelector,
+    EntitySelector,
+    EntitySelectorConfig,
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .api_base import HarviaApiClientBase
 from .api_factory import create_api_client, get_provider_from_entry_data
@@ -16,11 +33,28 @@ from .const import (
     API_PROVIDER_MYHARVIA,
     API_PROVIDERS,
     CONF_API_PROVIDER,
+    CONF_COOLDOWN_HYSTERESIS,
+    CONF_COOLDOWN_MAX_MINUTES,
+    CONF_COOLDOWN_TEMP_SENSOR,
+    CONF_EXT_SENSOR_FOR_MAX_TEMP,
     CONF_HEATER_MODEL,
     CONF_HEATER_POWER,
+    CONF_LIGHT_SYNC_MODE,
+    CONF_LINKED_LIGHTS,
+    CONF_SESSION_END_MODE,
+    DEFAULT_COOLDOWN_HYSTERESIS,
+    DEFAULT_COOLDOWN_MAX_MINUTES,
+    DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
+    DEFAULT_LIGHT_SYNC_MODE,
+    DEFAULT_SESSION_END_MODE,
     DOMAIN,
     HEATER_MODELS,
     HEATER_POWER_OPTIONS,
+    LIGHT_SYNC_BIDIRECTIONAL,
+    LIGHT_SYNC_OFF,
+    LIGHT_SYNC_PANEL_TO_HA,
+    SESSION_END_COOLDOWN,
+    SESSION_END_HEATER_OFF,
 )
 from .errors import HarviaAuthError, HarviaConnectionError
 
@@ -57,6 +91,12 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Harvia Sauna."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> HarviaOptionsFlow:
+        """Return the options flow handler."""
+        return HarviaOptionsFlow()
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -317,3 +357,104 @@ class HarviaSaunaConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=STEP_REAUTH_DATA_SCHEMA,
             errors=errors,
         )
+
+
+class HarviaOptionsFlow(OptionsFlow):
+    """Handle Harvia Sauna options (light sync, session end behavior)."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        options = self.config_entry.options
+
+        schema = vol.Schema(
+            {
+                # ── Light sync ────────────────────────────────────────
+                vol.Optional(
+                    CONF_LINKED_LIGHTS,
+                    default=options.get(CONF_LINKED_LIGHTS, []),
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="light", multiple=True)
+                ),
+                vol.Optional(
+                    CONF_LIGHT_SYNC_MODE,
+                    default=options.get(
+                        CONF_LIGHT_SYNC_MODE, DEFAULT_LIGHT_SYNC_MODE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            LIGHT_SYNC_OFF,
+                            LIGHT_SYNC_PANEL_TO_HA,
+                            LIGHT_SYNC_BIDIRECTIONAL,
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="light_sync_mode",
+                    )
+                ),
+                # ── Session end ───────────────────────────────────────
+                vol.Optional(
+                    CONF_SESSION_END_MODE,
+                    default=options.get(
+                        CONF_SESSION_END_MODE, DEFAULT_SESSION_END_MODE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[SESSION_END_HEATER_OFF, SESSION_END_COOLDOWN],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="session_end_mode",
+                    )
+                ),
+                vol.Optional(
+                    CONF_COOLDOWN_TEMP_SENSOR,
+                    description={
+                        "suggested_value": options.get(CONF_COOLDOWN_TEMP_SENSOR)
+                    },
+                ): EntitySelector(
+                    EntitySelectorConfig(
+                        domain="sensor", device_class="temperature"
+                    )
+                ),
+                vol.Optional(
+                    CONF_COOLDOWN_HYSTERESIS,
+                    default=options.get(
+                        CONF_COOLDOWN_HYSTERESIS, DEFAULT_COOLDOWN_HYSTERESIS
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0,
+                        max=10,
+                        step=0.5,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_COOLDOWN_MAX_MINUTES,
+                    default=options.get(
+                        CONF_COOLDOWN_MAX_MINUTES, DEFAULT_COOLDOWN_MAX_MINUTES
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=30,
+                        max=480,
+                        step=15,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_EXT_SENSOR_FOR_MAX_TEMP,
+                    default=options.get(
+                        CONF_EXT_SENSOR_FOR_MAX_TEMP,
+                        DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
+                    ),
+                ): BooleanSelector(),
+            }
+        )
+
+        return self.async_show_form(step_id="init", data_schema=schema)

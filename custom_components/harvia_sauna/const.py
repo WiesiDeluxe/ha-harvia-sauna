@@ -80,3 +80,31 @@ HEATER_POWER_OPTIONS: dict[str, str] = {
 
 # Heater
 DEFAULT_HEATER_POWER_W = 10800  # Default Nennleistung in Watt (10.8 kW)
+
+# ── Options (v2.6.0) ──────────────────────────────────────────────
+# Light sync: mirror the panel light button to HA light entities
+CONF_LINKED_LIGHTS = "linked_lights"
+CONF_LIGHT_SYNC_MODE = "light_sync_mode"
+LIGHT_SYNC_OFF = "off"
+LIGHT_SYNC_PANEL_TO_HA = "panel_to_ha"
+LIGHT_SYNC_BIDIRECTIONAL = "bidirectional"
+DEFAULT_LIGHT_SYNC_MODE = LIGHT_SYNC_BIDIRECTIONAL
+LIGHT_SYNC_DEBOUNCE_SEC = 1.0  # HA→Panel debounce
+
+# Session end mode: classic (heater off) or cooldown (temp below target)
+CONF_SESSION_END_MODE = "session_end_mode"
+SESSION_END_HEATER_OFF = "heater_off"
+SESSION_END_COOLDOWN = "cooldown"
+DEFAULT_SESSION_END_MODE = SESSION_END_HEATER_OFF
+
+CONF_COOLDOWN_TEMP_SENSOR = "cooldown_temp_sensor"
+CONF_COOLDOWN_HYSTERESIS = "cooldown_hysteresis"
+DEFAULT_COOLDOWN_HYSTERESIS = 2.0  # °C below frozen target temp
+CONF_COOLDOWN_MAX_MINUTES = "cooldown_max_minutes"
+DEFAULT_COOLDOWN_MAX_MINUTES = 180
+CONF_EXT_SENSOR_FOR_MAX_TEMP = "use_ext_sensor_for_max_temp"
+DEFAULT_EXT_SENSOR_FOR_MAX_TEMP = True
+
+# Grace period: if the external sensor is unavailable longer than this,
+# fall back to the internal Harvia sensor for cooldown decisions
+COOLDOWN_EXT_SENSOR_GRACE_SEC = 600

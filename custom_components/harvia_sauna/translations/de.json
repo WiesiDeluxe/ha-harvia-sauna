@@ -195,5 +195,40 @@
         "name": "Sitzungsdauer"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna Optionen",
+        "data": {
+          "linked_lights": "Verknüpfte HA-Lichter (gesteuert über die Licht-Taste am Panel)",
+          "light_sync_mode": "Licht-Sync-Richtung",
+          "session_end_mode": "Sitzungsende-Verhalten",
+          "cooldown_temp_sensor": "Referenz-Temperatursensor für die Abkühlphase (optional, Standard: interner Harvia-Fühler)",
+          "cooldown_hysteresis": "Hysterese unterhalb der Zieltemperatur",
+          "cooldown_max_minutes": "Maximale Abkühldauer (Sicherheitsnetz)",
+          "use_ext_sensor_for_max_temp": "Externen Sensor auch für die Max-Temperatur der Sitzung verwenden"
+        },
+        "data_description": {
+          "linked_lights": "HA-Licht-Entitäten (z.B. Hue-Stripes) wählen, die der Licht-Taste am Harvia-Panel folgen sollen — auch wenn kein Licht physisch am Steuergerät angeschlossen ist.",
+          "session_end_mode": "'Abkühlphase' lässt die Sitzung nach Ofen-Aus weiterlaufen, bis die Temperatur unter den Sollwert fällt — sinnvoll bei Öfen mit großer Steinmasse, die lange nachheizen."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Deaktiviert",
+        "panel_to_ha": "Nur Panel → HA",
+        "bidirectional": "Bidirektional (Panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Beim Ausschalten des Ofens (klassisch)",
+        "cooldown": "Bei Abkühlung unter die Zieltemperatur (Abkühlphase)"
+      }
+    }
   }
 }

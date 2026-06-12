@@ -36,6 +36,10 @@ class HarviaIoApiClient(HarviaApiClientBase):
         self._user_data: dict[str, Any] | None = None
         self._ws_manager = None
         self._devices: list[dict[str, Any]] = []  # Store device list for receiver selection
+        # Raw payload buffers for diagnostics (lets users share a single
+        # diagnostics download instead of enabling debug logging)
+        self._last_raw_state: dict[str, Any] = {}      # device_id -> raw payload
+        self._last_raw_telemetry: dict[str, Any] = {}  # device_id -> raw payload
 
     async def async_authenticate(self) -> bool:
         """Authenticate using REST token endpoint."""
@@ -136,6 +140,7 @@ class HarviaIoApiClient(HarviaApiClientBase):
             "/devices/state",
             params={"deviceId": device_id, "subId": "C1"},
         )
+        self._last_raw_state[device_id] = data
         return _normalize_state_payload(device_id, data)
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
@@ -146,7 +151,25 @@ class HarviaIoApiClient(HarviaApiClientBase):
             "/data/latest-data",
             params={"deviceId": device_id, "cabinId": "C1"},
         )
+        self._last_raw_telemetry[device_id] = data
         return _normalize_telemetry_payload(data)
+
+    @property
+    def last_raw_state(self) -> dict[str, Any]:
+        """Return last raw state payloads per device (for diagnostics)."""
+        return self._last_raw_state
+
+    @property
+    def last_raw_telemetry(self) -> dict[str, Any]:
+        """Return last raw telemetry payloads per device (for diagnostics)."""
+        return self._last_raw_telemetry
+
+    @property
+    def last_ws_messages(self) -> list[dict[str, Any]]:
+        """Return recent raw WebSocket messages (for diagnostics)."""
+        if self._ws_manager is not None:
+            return list(getattr(self._ws_manager, "raw_messages", []))
+        return []
 
     async def async_request_state_change(
         self, device_id: str, payload: dict
@@ -521,12 +544,59 @@ def _normalize_state_payload(device_id: str, payload: dict[str, Any]) -> dict[st
         "remoteAllowed": "remoteAllowed",
         "demoMode": "demoMode",
         "screenLock": "screenLock",
+        # Device metadata from state feed (fix from moritzj29/a3f792d)
+        "signalStrength": "wifiRSSI",
     }
     for source, target in key_map.items():
         if source in state:
             normalized[target] = state[source]
+
+    # Extract heater.on as active (heater is a nested object in Fenix state;
+    # fix from moritzj29/a3f792d)
+    if "heater" in state and isinstance(state["heater"], dict):
+        heater_val = state["heater"].get("on")
+        if heater_val is not None:
+            normalized["active"] = heater_val
+
+    # Door status: exact Fenix field name is not documented and may vary by
+    # device generation / heater type. Map known candidates defensively and
+    # log which one matched so user debug logs immediately reveal the field.
+    _map_door_field(state, normalized)
+
     _LOGGER.debug("Normalized state payload for %s: raw=%s -> normalized=%s", device_id, state, normalized)
     return normalized
+
+
+# Candidate field names for the door sensor in Fenix payloads.
+# NOTE on semantics: a field named *SafetyState may be inverted
+# (True = safe/closed). _map_door_field handles that.
+DOOR_FIELD_CANDIDATES = ("doorOpen", "door", "doorState", "doorSensor")
+DOOR_SAFETY_CANDIDATES = ("doorSafetyState", "safetyState")
+
+
+def _map_door_field(data: dict[str, Any], normalized: dict[str, Any]) -> None:
+    """Map door status from candidate fields into normalized['doorOpen']."""
+    for candidate in DOOR_FIELD_CANDIDATES:
+        if candidate in data:
+            value = data[candidate]
+            if isinstance(value, dict):  # nested object like heater/screenLock
+                value = value.get("open", value.get("on"))
+            if value is not None:
+                normalized["doorOpen"] = value
+                _LOGGER.debug("Door field matched: %s = %s", candidate, value)
+                return
+    for candidate in DOOR_SAFETY_CANDIDATES:
+        if candidate in data:
+            value = data[candidate]
+            if isinstance(value, dict):
+                value = value.get("on", value.get("state"))
+            if value is not None:
+                # Safety semantics: True = circuit closed/safe = door closed
+                normalized["doorOpen"] = not bool(value)
+                _LOGGER.debug(
+                    "Door safety field matched (inverted): %s = %s", candidate, value
+                )
+                return
 
 
 def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -562,6 +632,9 @@ def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
     for source, target in telemetry_map.items():
         if source in data:
             normalized[target] = data[source]
+
+    # Door status may arrive via telemetry instead of state on Fenix
+    _map_door_field(data, normalized)
 
     if "timestamp" in payload:
         normalized["timestamp"] = payload["timestamp"]

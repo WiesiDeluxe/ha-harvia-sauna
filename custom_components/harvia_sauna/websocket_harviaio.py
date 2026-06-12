@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 import json
 import logging
 import random
@@ -32,6 +33,8 @@ class HarviaIoWebSocketManager:
         self._connections: list[HarviaIoWebSocket] = []
         self._tasks: list[asyncio.Task] = []
         self._running = False
+        # Ring buffer of recent raw feed messages for diagnostics
+        self.raw_messages: deque = deque(maxlen=10)
 
     async def async_start(self) -> None:
         """Start data and device feed subscriptions."""
@@ -83,6 +86,7 @@ class HarviaIoWebSocketManager:
     async def _handle_message(self, endpoint: str, message: dict[str, Any]) -> None:
         """Map provider feed payloads into coordinator-compatible update payloads."""
         payload_data = message.get("payload", {}).get("data", {})
+        self.raw_messages.append({"endpoint": endpoint, "payload": payload_data})
         if endpoint == "device":
             feed = payload_data.get("devicesStatesUpdateFeed", {})
             item = feed.get("item", {})

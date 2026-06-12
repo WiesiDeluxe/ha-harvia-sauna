@@ -65,8 +65,21 @@ async def async_get_config_entry_diagnostics(
                 "temp_trend": device.temp_trend,
             }
 
+    # Raw API payloads (Fenix/harvia.io client buffers these) — lets users
+    # share a single diagnostics download instead of enabling debug logging.
+    # Essential for mapping undocumented fields like the Fenix door sensor.
+    raw_payloads = {
+        "last_state": getattr(coordinator.api, "last_raw_state", None),
+        "last_telemetry": getattr(coordinator.api, "last_raw_telemetry", None),
+        "last_websocket_messages": getattr(
+            coordinator.api, "last_ws_messages", None
+        ),
+    }
+
     return {
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),
+        "options": dict(entry.options),
+        "raw_payloads": raw_payloads,
         "provider": get_provider_from_entry_data(entry.data),
         "coordinator": {
             "last_update_success": coordinator.last_update_success,

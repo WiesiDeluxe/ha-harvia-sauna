@@ -195,5 +195,40 @@
         "name": "Session time"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna Options",
+        "data": {
+          "linked_lights": "Linked HA lights (controlled by the panel light button)",
+          "light_sync_mode": "Light sync direction",
+          "session_end_mode": "Session end behavior",
+          "cooldown_temp_sensor": "Reference temperature sensor for cooldown (optional, defaults to the internal Harvia sensor)",
+          "cooldown_hysteresis": "Cooldown hysteresis below target temperature",
+          "cooldown_max_minutes": "Maximum cooldown duration (safety net)",
+          "use_ext_sensor_for_max_temp": "Use the external sensor for the session max temperature"
+        },
+        "data_description": {
+          "linked_lights": "Choose HA light entities (e.g. Hue strips) that should follow the light button on the Harvia panel even if no light is physically wired to the power unit.",
+          "session_end_mode": "'Cooldown' keeps the session running after heater-off until the temperature drops below the target — useful for stone-heavy heaters that stay sauna-hot long after power-off."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Disabled",
+        "panel_to_ha": "Panel → HA only",
+        "bidirectional": "Bidirectional (Panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "When the heater turns off (classic)",
+        "cooldown": "When temperature falls below target (cooldown)"
+      }
+    }
   }
 }

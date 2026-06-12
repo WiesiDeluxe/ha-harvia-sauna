@@ -1,7 +1,9 @@
 {
   "domain": "harvia_sauna",
   "name": "Harvia Sauna",
-  "codeowners": ["@WiesiDeluxe"],
+  "codeowners": [
+    "@WiesiDeluxe"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/WiesiDeluxe/ha-harvia-sauna",
@@ -12,5 +14,5 @@
     "pycognito>=2024.2.0",
     "websockets>=12.0"
   ],
-  "version": "2.5.0"
+  "version": "2.6.0"
 }

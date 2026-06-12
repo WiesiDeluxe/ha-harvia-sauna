@@ -85,6 +85,24 @@ Door, Heating active, Steam active
 ### Number Controls
 Target humidity, Aroma level, Session time
 
+## Options (v2.6.0+)
+
+Open **Settings → Devices & Services → Harvia Sauna → Configure** to access:
+
+**Light sync** — Link HA light entities (e.g. Hue strips) to the light button
+on the Harvia panel, even if no light is physically wired to the power unit.
+Modes: disabled, panel → HA only, or bidirectional (panel ↔ HA with loop
+protection and any-on aggregation across multiple lights).
+
+**Session end behavior** — By default a session ends when the heater turns
+off. The *cooldown* mode keeps the session running until the temperature
+drops below the target temperature (frozen at heater-off) minus a
+configurable hysteresis — designed for stone-heavy heaters (e.g. Legend with
+100 kg of stones) that keep the cabin sauna-hot long after power-off. An
+optional external HA temperature sensor can be used as the reference (and
+for the session max temperature) instead of the slower internal Harvia
+sensor. A maximum cooldown duration acts as a safety net.
+
 ## Custom Service
 
 ```yaml

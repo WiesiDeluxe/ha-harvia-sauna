@@ -22,6 +22,7 @@ from .const import (
 )
 from .coordinator import HarviaSaunaCoordinator
 from .errors import HarviaAuthError, HarviaConnectionError
+from .light_sync import HarviaLightSync
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -82,6 +83,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Set up panel<->HA light sync (configured via options flow)
+    light_sync = HarviaLightSync(hass, coordinator, entry)
+    await light_sync.async_setup()
+    entry.async_on_unload(light_sync.async_teardown)
 
     # Register services (once)
     _async_register_services(hass)

@@ -13,14 +13,26 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api_base import HarviaApiClientBase
 from .const import (
+    CONF_COOLDOWN_HYSTERESIS,
+    CONF_COOLDOWN_MAX_MINUTES,
+    CONF_COOLDOWN_TEMP_SENSOR,
+    CONF_EXT_SENSOR_FOR_MAX_TEMP,
+    CONF_SESSION_END_MODE,
+    COOLDOWN_EXT_SENSOR_GRACE_SEC,
+    DEFAULT_COOLDOWN_HYSTERESIS,
+    DEFAULT_COOLDOWN_MAX_MINUTES,
+    DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
+    DEFAULT_SESSION_END_MODE,
     DOMAIN,
     EVENT_SESSION_END,
     EVENT_SESSION_START,
     SCAN_INTERVAL_FALLBACK,
+    SESSION_END_COOLDOWN,
     SESSION_MIN_DURATION_SEC,
 )
 from .errors import HarviaAuthError, HarviaConnectionError
@@ -72,7 +84,9 @@ class HarviaDeviceData:
 
     # Status
     status_codes: str | None = None
-    door_open: bool = False
+    # None = no door data ever received (entity shows "unknown" instead of
+    # a misleading "closed" on providers that don't deliver door status yet)
+    door_open: bool | None = None
     heat_on: bool = False
 
     # Telemetry
@@ -104,6 +118,12 @@ class HarviaDeviceData:
     _session_active: bool = False
     _session_start_time: float | None = None
     _session_max_temp: float = 0.0
+    # Cooldown phase (session_end_mode = "cooldown"): after heater-off the
+    # session keeps running until temperature drops below the frozen target
+    _cooldown_active: bool = False
+    _cooldown_started: float | None = None
+    _frozen_target_temp: float | None = None
+    _ext_sensor_last_valid: float | None = None  # monotonic ts of last valid ext reading
     last_session_duration: float = 0.0  # Minuten
     last_session_max_temp: float = 0.0  # °C
     sessions_today: int = 0
@@ -132,6 +152,37 @@ class HarviaDeviceData:
         default_factory=lambda: deque(maxlen=TEMP_HISTORY_MAX)
     )
     temp_trend: float | None = None  # °C/min
+
+
+@dataclass
+class SessionOptions:
+    """Parsed session/cooldown options from the config entry."""
+
+    end_mode: str = DEFAULT_SESSION_END_MODE
+    ext_sensor: str | None = None
+    hysteresis_c: float = DEFAULT_COOLDOWN_HYSTERESIS
+    max_cooldown_sec: float = DEFAULT_COOLDOWN_MAX_MINUTES * 60
+    ext_sensor_for_max_temp: bool = DEFAULT_EXT_SENSOR_FOR_MAX_TEMP
+
+
+def parse_session_options(options: dict[str, Any]) -> SessionOptions:
+    """Build SessionOptions from config entry options."""
+    return SessionOptions(
+        end_mode=options.get(CONF_SESSION_END_MODE, DEFAULT_SESSION_END_MODE),
+        ext_sensor=options.get(CONF_COOLDOWN_TEMP_SENSOR) or None,
+        hysteresis_c=float(
+            options.get(CONF_COOLDOWN_HYSTERESIS, DEFAULT_COOLDOWN_HYSTERESIS)
+        ),
+        max_cooldown_sec=float(
+            options.get(CONF_COOLDOWN_MAX_MINUTES, DEFAULT_COOLDOWN_MAX_MINUTES)
+        )
+        * 60,
+        ext_sensor_for_max_temp=bool(
+            options.get(
+                CONF_EXT_SENSOR_FOR_MAX_TEMP, DEFAULT_EXT_SENSOR_FOR_MAX_TEMP
+            )
+        ),
+    )
 
 
 @dataclass
@@ -167,13 +218,80 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             update_interval=timedelta(seconds=SCAN_INTERVAL_FALLBACK),
         )
         self.api = api
+        self.session_options = parse_session_options(dict(config_entry.options))
+        self._ext_sensor_unsub = None
 
     async def async_setup(self) -> None:
         """Set up real-time push updates if supported by the provider."""
         await self.api.async_start_push_updates(self._async_handle_ws_update)
 
+        # In cooldown mode with an external sensor, session end is driven by
+        # that sensor — listen to its updates so the session can end even
+        # when no Harvia WS/poll update arrives at that moment.
+        opts = self.session_options
+        if opts.end_mode == SESSION_END_COOLDOWN and opts.ext_sensor:
+            self._ext_sensor_unsub = async_track_state_change_event(
+                self.hass, [opts.ext_sensor], self._async_ext_sensor_changed
+            )
+
+    async def _async_ext_sensor_changed(self, event) -> None:
+        """Re-evaluate session tracking when the external temp sensor updates."""
+        if not self.data:
+            return
+        updated = False
+        for device in self.data.devices.values():
+            if device._cooldown_active:
+                self._run_session_tracking(device)
+                updated = True
+        if updated:
+            self.async_set_updated_data(self.data)
+
+    def _run_session_tracking(self, device: HarviaDeviceData) -> None:
+        """Run session tracking with current options and external sensor."""
+        ext_temp = self._get_external_temp_c(device)
+        _update_session_tracking(self.hass, device, self.session_options, ext_temp)
+
+    def _get_external_temp_c(self, device: HarviaDeviceData) -> float | None:
+        """Read the configured external temp sensor, normalized to °C.
+
+        Returns None if no sensor is configured, the sensor is unavailable,
+        or the value cannot be parsed. Falls back to None (caller then uses
+        the internal Harvia sensor) if the sensor has been invalid longer
+        than COOLDOWN_EXT_SENSOR_GRACE_SEC.
+        """
+        opts = self.session_options
+        if not opts.ext_sensor:
+            return None
+        state = self.hass.states.get(opts.ext_sensor)
+        now = time.monotonic()
+        if state is None or state.state in ("unknown", "unavailable"):
+            if (
+                device._ext_sensor_last_valid is not None
+                and now - device._ext_sensor_last_valid
+                > COOLDOWN_EXT_SENSOR_GRACE_SEC
+            ):
+                _LOGGER.warning(
+                    "External cooldown sensor %s unavailable for >%ds — "
+                    "falling back to internal Harvia sensor",
+                    opts.ext_sensor,
+                    COOLDOWN_EXT_SENSOR_GRACE_SEC,
+                )
+            return None
+        try:
+            value = float(state.state)
+        except (ValueError, TypeError):
+            return None
+        unit = state.attributes.get("unit_of_measurement", "")
+        if unit in ("°F", "F"):
+            value = (value - 32.0) * 5.0 / 9.0
+        device._ext_sensor_last_valid = now
+        return value
+
     async def async_shutdown(self) -> None:
         """Shut down push update connections."""
+        if self._ext_sensor_unsub is not None:
+            self._ext_sensor_unsub()
+            self._ext_sensor_unsub = None
         await self.api.async_stop_push_updates()
 
     @property
@@ -211,7 +329,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
 
                 _apply_state_data(device_data, state)
                 _apply_telemetry_data(device_data, telemetry)
-                _update_session_tracking(self.hass, device_data)
+                self._run_session_tracking(device_data)
                 _update_temp_trend(device_data)
 
                 data.devices[device_id] = device_data
@@ -247,7 +365,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     if device_id and device_id in self.data.devices:
                         device = self.data.devices[device_id]
                         _apply_state_data(device, state)
-                        _update_session_tracking(self.hass, device)
+                        self._run_session_tracking(device)
                         updated = True
 
             elif "onDataUpdates" in payload_data:
@@ -258,7 +376,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     telemetry["timestamp"] = item.get("timestamp")
                     device = self.data.devices[device_id]
                     _apply_telemetry_data(device, telemetry)
-                    _update_session_tracking(self.hass, device)
+                    self._run_session_tracking(device)
                     _update_temp_trend(device)
                     updated = True
 
@@ -354,10 +472,13 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     if "statusCodes" in data:
         device.status_codes = str(data["statusCodes"])
         # Parse door status from status codes (2nd digit = 9 means door open)
+        # — Xenio only; Fenix delivers a normalized "doorOpen" key instead
         try:
             device.door_open = int(str(data["statusCodes"])[1]) == 9
         except (IndexError, ValueError):
             pass
+    if "doorOpen" in data:
+        device.door_open = _to_bool(data["doorOpen"])
     if "fwVersion" in data:
         device.firmware_version = str(data["fwVersion"])
     elif "swVersion" in data:
@@ -451,6 +572,8 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         device.ontime_lt = data["ontimeLT"]
     if "safetyRelay" in data:
         device.safety_relay = bool(data["safetyRelay"])
+    if "doorOpen" in data:
+        device.door_open = _to_bool(data["doorOpen"])
     # Real-time light and fan status from telemetry (overrides state if present)
     if "lightOn" in data:
         device.lights_on = bool(data["lightOn"])
@@ -461,12 +584,23 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
 
 
 def _update_session_tracking(
-    hass: HomeAssistant, device: HarviaDeviceData
+    hass: HomeAssistant,
+    device: HarviaDeviceData,
+    opts: SessionOptions,
+    ext_temp_c: float | None,
 ) -> None:
     """Track sauna session start/end and fire HA events.
 
-    Sessions shorter than SESSION_MIN_DURATION_SEC are ignored to filter
-    out WebSocket state bounces and door-sensor rapid toggles.
+    Two end modes:
+    - heater_off (default): session ends when the heater turns off.
+    - cooldown: after heater-off the session continues until the reference
+      temperature drops below the target temperature (frozen at heater-off)
+      minus a hysteresis. Designed for stone-heavy heaters (e.g. Legend with
+      100 kg stones) that keep the cabin sauna-hot long after power-off.
+
+    Reference temperature: the configured external HA sensor if available,
+    otherwise the internal Harvia sensor. Sessions shorter than
+    SESSION_MIN_DURATION_SEC are ignored to filter out state bounces.
     """
     import datetime as dt
 
@@ -477,62 +611,158 @@ def _update_session_tracking(
         device._sessions_today_date = today
 
     now = time.monotonic()
+    cooldown_mode = opts.end_mode == SESSION_END_COOLDOWN
 
-    # Session just started
+    # Reference temperature for cooldown decisions and (optionally) max temp
+    ref_temp = ext_temp_c if ext_temp_c is not None else device.current_temp
+
+    # ── Session start / re-heat during cooldown ─────────────────────
     if device.active and not device._session_active:
         device._session_active = True
         device._session_start_time = now
-        device._session_max_temp = device.current_temp or 0.0
+        device._session_max_temp = (
+            ref_temp if (opts.ext_sensor_for_max_temp and ext_temp_c is not None)
+            else device.current_temp
+        ) or 0.0
+        device._cooldown_active = False
+        device._cooldown_started = None
+        device._frozen_target_temp = None
 
         hass.bus.async_fire(EVENT_SESSION_START, {
             "device_id": device.device_id,
             "target_temp": device.target_temp,
         })
+        _LOGGER.debug("Sauna session started (device %s)", device.device_id)
+        return
+
+    if device.active and device._session_active:
+        if device._cooldown_active:
+            # Heater re-activated during cooldown (e.g. re-heat for another
+            # round) — same session continues, cooldown is cancelled
+            device._cooldown_active = False
+            device._cooldown_started = None
+            device._frozen_target_temp = None
+            _LOGGER.debug(
+                "Heater re-activated during cooldown — continuing session "
+                "(device %s)",
+                device.device_id,
+            )
+        # Session ongoing — track max temperature
+        _track_max_temp(device, opts, ext_temp_c)
+        return
+
+    # ── Heater just turned off ───────────────────────────────────────
+    if not device.active and device._session_active and not device._cooldown_active:
+        if not cooldown_mode:
+            _end_session(hass, device, now)
+            return
+
+        # Cooldown mode: freeze the target temp and keep the session running.
+        # If the cabin is already below target (short session that never
+        # reached temperature), the end condition is met immediately —
+        # behaves exactly like heater_off mode in that case.
+        frozen = device.target_temp
+        if frozen is None or ref_temp is None:
+            # Without a target or reference there is nothing to wait for
+            _end_session(hass, device, now)
+            return
+        device._cooldown_active = True
+        device._cooldown_started = now
+        device._frozen_target_temp = float(frozen)
         _LOGGER.debug(
-            "Sauna session started (device %s)", device.device_id
+            "Heater off — cooldown phase started (device %s, frozen target "
+            "%.1f°C, hysteresis %.1f°C, ref %.1f°C)",
+            device.device_id,
+            device._frozen_target_temp,
+            opts.hysteresis_c,
+            ref_temp,
         )
+        # fall through to cooldown evaluation below
 
-    # Session ongoing - track max temperature
-    elif device.active and device._session_active:
-        if device.current_temp and device.current_temp > device._session_max_temp:
-            device._session_max_temp = device.current_temp
+    # ── Cooldown phase evaluation ────────────────────────────────────
+    if device._session_active and device._cooldown_active:
+        _track_max_temp(device, opts, ext_temp_c)
 
-    # Session just ended
-    elif not device.active and device._session_active:
-        device._session_active = False
+        # Safety net: hard stop after max cooldown duration
+        if (
+            device._cooldown_started is not None
+            and now - device._cooldown_started > opts.max_cooldown_sec
+        ):
+            _LOGGER.debug(
+                "Max cooldown duration exceeded — ending session (device %s)",
+                device.device_id,
+            )
+            _end_session(hass, device, now)
+            return
 
-        if device._session_start_time is not None:
-            duration_sec = now - device._session_start_time
-            duration_min = duration_sec / 60.0
+        # No usable reference temperature right now → hold state, decide later
+        if ref_temp is None or device._frozen_target_temp is None:
+            return
 
-            if duration_sec >= SESSION_MIN_DURATION_SEC:
-                # Real session — update public values
-                device.last_session_duration = round(duration_min, 1)
-                device.last_session_max_temp = device._session_max_temp
-                device.sessions_today += 1
+        threshold = device._frozen_target_temp - opts.hysteresis_c
+        if float(ref_temp) < threshold:
+            _LOGGER.debug(
+                "Reference temp %.1f°C below threshold %.1f°C — ending "
+                "session (device %s)",
+                float(ref_temp),
+                threshold,
+                device.device_id,
+            )
+            _end_session(hass, device, now)
 
-                hass.bus.async_fire(EVENT_SESSION_END, {
-                    "device_id": device.device_id,
-                    "duration_min": device.last_session_duration,
-                    "max_temp": device.last_session_max_temp,
-                })
-                _LOGGER.debug(
-                    "Sauna session ended (device %s): %.1f min, max %.0f°C",
-                    device.device_id,
-                    device.last_session_duration,
-                    device.last_session_max_temp,
-                )
-            else:
-                _LOGGER.debug(
-                    "Sauna session too short (%.0fs < %ds), ignoring bounce (device %s)",
-                    duration_sec,
-                    SESSION_MIN_DURATION_SEC,
-                    device.device_id,
-                )
 
-        device._session_start_time = None
-        device._session_max_temp = 0.0
+def _track_max_temp(
+    device: HarviaDeviceData, opts: SessionOptions, ext_temp_c: float | None
+) -> None:
+    """Update the session max temperature from the configured source."""
+    if opts.ext_sensor_for_max_temp and ext_temp_c is not None:
+        if ext_temp_c > device._session_max_temp:
+            device._session_max_temp = ext_temp_c
+    elif device.current_temp and device.current_temp > device._session_max_temp:
+        device._session_max_temp = device.current_temp
 
+
+def _end_session(
+    hass: HomeAssistant, device: HarviaDeviceData, now: float
+) -> None:
+    """Finalize a session: compute duration, fire event, reset tracking."""
+    device._session_active = False
+    device._cooldown_active = False
+    device._cooldown_started = None
+    device._frozen_target_temp = None
+
+    if device._session_start_time is not None:
+        duration_sec = now - device._session_start_time
+        duration_min = duration_sec / 60.0
+
+        if duration_sec >= SESSION_MIN_DURATION_SEC:
+            # Real session — update public values
+            device.last_session_duration = round(duration_min, 1)
+            device.last_session_max_temp = device._session_max_temp
+            device.sessions_today += 1
+
+            hass.bus.async_fire(EVENT_SESSION_END, {
+                "device_id": device.device_id,
+                "duration_min": device.last_session_duration,
+                "max_temp": device.last_session_max_temp,
+            })
+            _LOGGER.debug(
+                "Sauna session ended (device %s): %.1f min, max %.0f°C",
+                device.device_id,
+                device.last_session_duration,
+                device.last_session_max_temp,
+            )
+        else:
+            _LOGGER.debug(
+                "Sauna session too short (%.0fs < %ds), ignoring bounce "
+                "(device %s)",
+                duration_sec,
+                SESSION_MIN_DURATION_SEC,
+                device.device_id,
+            )
+
+    device._session_start_time = None
+    device._session_max_temp = 0.0
 
 def _update_temp_trend(device: HarviaDeviceData) -> None:
     """Calculate temperature change rate (°C/min)."""
