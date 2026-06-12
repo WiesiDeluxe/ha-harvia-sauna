@@ -3,16 +3,16 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Wybierz typ kontrolera i wprowadÅº dane logowania.",
+        "description": "Wybierz typ kontrolera i wprowadź dane logowania.",
         "data": {
           "username": "E-mail",
-          "password": "HasÅo",
+          "password": "Hasło",
           "api_provider": "Dostawca API"
         }
       },
       "heater": {
         "title": "Konfiguracja pieca",
-        "description": "Wybierz model i moc pieca do sauny. Pomaga to wyÅwietlaÄ prawidÅowe informacje o urzÄdzeniu i moÅ¼na to zmieniÄ pÃ³Åºniej.",
+        "description": "Wybierz model i moc pieca do sauny. Pomaga to wyświetlać prawidłowe informacje o urządzeniu i można to zmienić później.",
         "data": {
           "heater_model": "Model pieca",
           "heater_power": "Moc pieca (kW)"
@@ -20,10 +20,10 @@
       },
       "reauth_confirm": {
         "title": "Ponowna autoryzacja Harvia Sauna",
-        "description": "WprowadÅº zaktualizowane dane logowania MyHarvia.",
+        "description": "Wprowadź zaktualizowane dane logowania MyHarvia.",
         "data": {
           "username": "E-mail",
-          "password": "HasÅo"
+          "password": "Hasło"
         }
       },
       "reconfigure": {
@@ -32,21 +32,21 @@
         "data": {
           "heater_model": "Model pieca",
           "heater_power": "Moc pieca (kW)",
-          "password": "Nowe hasÅo (pozostaw puste jeÅli bez zmian)",
+          "password": "Nowe hasło (pozostaw puste jeśli bez zmian)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "NieprawidÅowe dane logowania. SprawdÅº login w aplikacji MyHarvia.",
-      "cannot_connect": "Nie moÅ¼na poÅÄczyÄ siÄ z chmurÄ MyHarvia. SprÃ³buj ponownie pÃ³Åºniej.",
-      "unknown": "WystÄpiÅ nieoczekiwany bÅÄd.",
-      "password_required": "HasÅo jest wymagane przy zmianie nazwy uÅ¼ytkownika."
+      "invalid_auth": "Nieprawidłowe dane logowania. Sprawdź login w aplikacji MyHarvia.",
+      "cannot_connect": "Nie można połączyć się z chmurą MyHarvia. Spróbuj ponownie później.",
+      "unknown": "Wystąpił nieoczekiwany błąd.",
+      "password_required": "Hasło jest wymagane przy zmianie nazwy użytkownika."
     },
     "abort": {
-      "already_configured": "To konto jest juÅ¼ skonfigurowane.",
-      "reauth_successful": "Ponowna autoryzacja powiodÅa siÄ.",
-      "reconfigure_successful": "Rekonfiguracja powiodÅa siÄ."
+      "already_configured": "To konto jest już skonfigurowane.",
+      "reauth_successful": "Ponowna autoryzacja powiodła się.",
+      "reconfigure_successful": "Rekonfiguracja powiodła się."
     }
   },
   "entity": {
@@ -60,7 +60,7 @@
         "name": "Zasilanie"
       },
       "light": {
-        "name": "OÅwietlenie"
+        "name": "Oświetlenie"
       },
       "fan": {
         "name": "Wentylator"
@@ -72,7 +72,7 @@
         "name": "Aromat"
       },
       "auto_light": {
-        "name": "Automatyczne ÅwiatÅo"
+        "name": "Automatyczne światło"
       },
       "auto_fan": {
         "name": "Automatyczny wentylator"
@@ -86,19 +86,19 @@
         "name": "Temperatura"
       },
       "humidity": {
-        "name": "WilgotnoÅÄ"
+        "name": "Wilgotność"
       },
       "target_temperature": {
         "name": "Temperatura docelowa"
       },
       "remaining_time": {
-        "name": "PozostaÅy czas"
+        "name": "Pozostały czas"
       },
       "heat_up_time": {
         "name": "Czas nagrzewania"
       },
       "wifi_rssi": {
-        "name": "SygnaÅ WiFi"
+        "name": "Sygnał WiFi"
       },
       "status_codes": {
         "name": "Kody statusu"
@@ -107,13 +107,13 @@
         "name": "Poziom aromatu"
       },
       "ph1_relay_counter": {
-        "name": "Cykle przekaÅºnika fazy 1"
+        "name": "Cykle przekaźnika fazy 1"
       },
       "ph2_relay_counter": {
-        "name": "Cykle przekaÅºnika fazy 2"
+        "name": "Cykle przekaźnika fazy 2"
       },
       "ph3_relay_counter": {
-        "name": "Cykle przekaÅºnika fazy 3"
+        "name": "Cykle przekaźnika fazy 3"
       },
       "heat_on_counter": {
         "name": "Cykle grzania"
@@ -143,22 +143,22 @@
         "name": "Aktualna moc grzewcza"
       },
       "main_sensor_temp": {
-        "name": "Temperatura gÅÃ³wnego czujnika"
+        "name": "Temperatura głównego czujnika"
       },
       "ext_sensor_temp": {
-        "name": "Temperatura zewnÄtrznego czujnika"
+        "name": "Temperatura zewnętrznego czujnika"
       },
       "panel_temp": {
         "name": "Temperatura panelu"
       },
       "total_sessions": {
-        "name": "ÅÄczna liczba sesji"
+        "name": "Łączna liczba sesji"
       },
       "total_bathing_hours": {
-        "name": "ÅÄczne godziny saunowania"
+        "name": "Łączne godziny saunowania"
       },
       "total_hours": {
-        "name": "ÅÄczny czas pracy"
+        "name": "Łączny czas pracy"
       },
       "active_profile": {
         "name": "Aktywny profil"
@@ -175,7 +175,7 @@
         "name": "Para aktywna"
       },
       "safety_relay": {
-        "name": "PrzekaÅºnik bezpieczeÅstwa"
+        "name": "Przekaźnik bezpieczeństwa"
       },
       "screen_lock": {
         "name": "Blokada ekranu"
@@ -186,13 +186,48 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Docelowa wilgotnoÅÄ"
+        "name": "Docelowa wilgotność"
       },
       "aroma_level_set": {
         "name": "Poziom aromatu"
       },
       "on_time": {
         "name": "Czas sesji"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje Harvia Sauna",
+        "data": {
+          "linked_lights": "Powiązane światła HA (sterowane przyciskiem światła na panelu)",
+          "light_sync_mode": "Kierunek synchronizacji światła",
+          "session_end_mode": "Zachowanie zakończenia sesji",
+          "cooldown_temp_sensor": "Referencyjny czujnik temperatury dla fazy stygnięcia (opcjonalny, domyślnie wewnętrzny czujnik Harvia)",
+          "cooldown_hysteresis": "Histereza poniżej temperatury docelowej",
+          "cooldown_max_minutes": "Maksymalny czas stygnięcia (zabezpieczenie)",
+          "use_ext_sensor_for_max_temp": "Użyj zewnętrznego czujnika także dla maks. temperatury sesji"
+        },
+        "data_description": {
+          "linked_lights": "Wybierz encje świateł HA (np. taśmy Hue), które będą podążać za przyciskiem światła na panelu Harvia — nawet jeśli do sterownika nie podłączono fizycznie żadnego światła.",
+          "session_end_mode": "Tryb „stygnięcie” utrzymuje sesję po wyłączeniu pieca, dopóki temperatura nie spadnie poniżej celu — przydatne przy piecach z dużą masą kamieni."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Wyłączone",
+        "panel_to_ha": "Tylko panel → HA",
+        "bidirectional": "Dwukierunkowo (panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Po wyłączeniu pieca (klasyczne)",
+        "cooldown": "Gdy temperatura spadnie poniżej celu (stygnięcie)"
       }
     }
   }

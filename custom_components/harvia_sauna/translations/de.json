@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "WÃ¤hle deinen Controller-Typ und gib deine Zugangsdaten ein.",
+        "description": "Wähle deinen Controller-Typ und gib deine Zugangsdaten ein.",
         "data": {
           "username": "E-Mail",
           "password": "Passwort",
@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Ofen-Konfiguration",
-        "description": "WÃ¤hle dein Saunaofen-Modell und die Leistung. Das Modell wird fÃ¼r die Benennung in der Home-Assistant-OberflÃ¤che verwendet. Der Leistungswert wird zur Berechnung der ungefÃ¤hren absoluten Leistung in Watt (W) genutzt. Beides kann spÃ¤ter geÃ¤ndert werden.",
+        "description": "Wähle dein Saunaofen-Modell und die Leistung. Das Modell wird für die Benennung in der Home-Assistant-Oberfläche verwendet. Der Leistungswert wird zur Berechnung der ungefähren absoluten Leistung in Watt (W) genutzt. Beides kann später geändert werden.",
         "data": {
           "heater_model": "Ofenmodell",
           "heater_power": "Ofenleistung (kW)"
@@ -28,7 +28,7 @@
       },
       "reconfigure": {
         "title": "Harvia Sauna neu konfigurieren",
-        "description": "Zugangsdaten, Ofenmodell und Leistung Ã¤ndern. Das Modell wird fÃ¼r die Benennung in der Home-Assistant-OberflÃ¤che verwendet. Der Leistungswert wird zur Berechnung der ungefÃ¤hren absoluten Leistung in Watt (W) genutzt. Das Passwort wird nur geÃ¤ndert, wenn du ein neues eingibst.",
+        "description": "Zugangsdaten, Ofenmodell und Leistung ändern. Das Modell wird für die Benennung in der Home-Assistant-Oberfläche verwendet. Der Leistungswert wird zur Berechnung der ungefähren absoluten Leistung in Watt (W) genutzt. Das Passwort wird nur geändert, wenn du ein neues eingibst.",
         "data": {
           "username": "E-Mail",
           "password": "Neues Passwort (optional)",
@@ -38,9 +38,9 @@
       }
     },
     "error": {
-      "invalid_auth": "UngÃ¼ltige Zugangsdaten. Bitte Ã¼berprÃ¼fe deinen MyHarvia-App Login.",
-      "cannot_connect": "Verbindung zur MyHarvia-Cloud nicht mÃ¶glich. Bitte versuche es spÃ¤ter erneut.",
-      "password_required": "Beim Ãndern der E-Mail muss ein neues Passwort eingegeben werden.",
+      "invalid_auth": "Ungültige Zugangsdaten. Bitte überprüfe deinen MyHarvia-App Login.",
+      "cannot_connect": "Verbindung zur MyHarvia-Cloud nicht möglich. Bitte versuche es später erneut.",
+      "password_required": "Beim Ändern der E-Mail muss ein neues Passwort eingegeben werden.",
       "unknown": "Ein unerwarteter Fehler ist aufgetreten."
     },
     "abort": {
@@ -63,7 +63,7 @@
         "name": "Licht"
       },
       "fan": {
-        "name": "LÃ¼fter"
+        "name": "Lüfter"
       },
       "steamer": {
         "name": "Dampferzeuger"
@@ -75,7 +75,7 @@
         "name": "Automatisches Licht"
       },
       "auto_fan": {
-        "name": "Automatischer LÃ¼fter"
+        "name": "Automatischer Lüfter"
       },
       "dehumidifier": {
         "name": "Entfeuchter"
@@ -166,7 +166,7 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "TÃ¼r"
+        "name": "Tür"
       },
       "heat_on": {
         "name": "Heizung aktiv"

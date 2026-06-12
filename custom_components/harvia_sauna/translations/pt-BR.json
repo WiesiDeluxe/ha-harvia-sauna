@@ -11,11 +11,11 @@
         }
       },
       "heater": {
-        "title": "ConfiguraÃ§Ã£o do aquecedor",
-        "description": "Selecione o modelo e a potÃªncia do aquecedor da sauna. Isso ajuda a exibir informaÃ§Ãµes corretas do dispositivo e pode ser alterado posteriormente.",
+        "title": "Configuração do aquecedor",
+        "description": "Selecione o modelo e a potência do aquecedor da sauna. Isso ajuda a exibir informações corretas do dispositivo e pode ser alterado posteriormente.",
         "data": {
           "heater_model": "Modelo do aquecedor",
-          "heater_power": "PotÃªncia do aquecedor (kW)"
+          "heater_power": "Potência do aquecedor (kW)"
         }
       },
       "reauth_confirm": {
@@ -28,25 +28,25 @@
       },
       "reconfigure": {
         "title": "Reconfigurar Harvia Sauna",
-        "description": "Atualize o modelo e a potÃªncia do aquecedor.",
+        "description": "Atualize o modelo e a potência do aquecedor.",
         "data": {
           "heater_model": "Modelo do aquecedor",
-          "heater_power": "PotÃªncia do aquecedor (kW)",
+          "heater_power": "Potência do aquecedor (kW)",
           "password": "Nova senha (deixe em branco se inalterada)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Credenciais invÃ¡lidas. Verifique seu login no app MyHarvia.",
-      "cannot_connect": "NÃ£o foi possÃ­vel conectar Ã  nuvem MyHarvia. Tente novamente mais tarde.",
+      "invalid_auth": "Credenciais inválidas. Verifique seu login no app MyHarvia.",
+      "cannot_connect": "Não foi possível conectar à nuvem MyHarvia. Tente novamente mais tarde.",
       "unknown": "Ocorreu um erro inesperado.",
-      "password_required": "Senha Ã© obrigatÃ³ria ao alterar o nome de usuÃ¡rio."
+      "password_required": "Senha é obrigatória ao alterar o nome de usuário."
     },
     "abort": {
-      "already_configured": "Esta conta jÃ¡ estÃ¡ configurada.",
-      "reauth_successful": "ReautenticaÃ§Ã£o bem-sucedida.",
-      "reconfigure_successful": "ReconfiguraÃ§Ã£o bem-sucedida."
+      "already_configured": "Esta conta já está configurada.",
+      "reauth_successful": "Reautenticação bem-sucedida.",
+      "reconfigure_successful": "Reconfiguração bem-sucedida."
     }
   },
   "entity": {
@@ -72,10 +72,10 @@
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "Luz automÃ¡tica"
+        "name": "Luz automática"
       },
       "auto_fan": {
-        "name": "Ventilador automÃ¡tico"
+        "name": "Ventilador automático"
       },
       "dehumidifier": {
         "name": "Desumidificador"
@@ -101,19 +101,19 @@
         "name": "Sinal WiFi"
       },
       "status_codes": {
-        "name": "CÃ³digos de status"
+        "name": "Códigos de status"
       },
       "aroma_level": {
-        "name": "NÃ­vel de aroma"
+        "name": "Nível de aroma"
       },
       "ph1_relay_counter": {
-        "name": "Ciclos relÃ© fase 1"
+        "name": "Ciclos relé fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Ciclos relÃ© fase 2"
+        "name": "Ciclos relé fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Ciclos relÃ© fase 3"
+        "name": "Ciclos relé fase 3"
       },
       "heat_on_counter": {
         "name": "Ciclos de aquecimento"
@@ -128,19 +128,19 @@
         "name": "Consumo de energia (estimado)"
       },
       "last_session_duration": {
-        "name": "DuraÃ§Ã£o da Ãºltima sessÃ£o"
+        "name": "Duração da última sessão"
       },
       "last_session_max_temp": {
-        "name": "Temperatura mÃ¡xima da Ãºltima sessÃ£o"
+        "name": "Temperatura máxima da última sessão"
       },
       "sessions_today": {
-        "name": "SessÃµes hoje"
+        "name": "Sessões hoje"
       },
       "temp_trend": {
-        "name": "TendÃªncia de temperatura"
+        "name": "Tendência de temperatura"
       },
       "heater_power_actual": {
-        "name": "PotÃªncia atual do aquecedor"
+        "name": "Potência atual do aquecedor"
       },
       "main_sensor_temp": {
         "name": "Temperatura do sensor principal"
@@ -152,7 +152,7 @@
         "name": "Temperatura do painel"
       },
       "total_sessions": {
-        "name": "Total de sessÃµes"
+        "name": "Total de sessões"
       },
       "total_bathing_hours": {
         "name": "Total de horas na sauna"
@@ -175,7 +175,7 @@
         "name": "Vapor ativo"
       },
       "safety_relay": {
-        "name": "RelÃ© de seguranÃ§a"
+        "name": "Relé de segurança"
       },
       "screen_lock": {
         "name": "Bloqueio de tela"
@@ -189,10 +189,45 @@
         "name": "Umidade alvo"
       },
       "aroma_level_set": {
-        "name": "NÃ­vel de aroma"
+        "name": "Nível de aroma"
       },
       "on_time": {
-        "name": "Tempo de sessÃ£o"
+        "name": "Tempo de sessão"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Harvia Sauna",
+        "data": {
+          "linked_lights": "Luzes HA vinculadas (controladas pelo botão de luz do painel)",
+          "light_sync_mode": "Direção da sincronização de luz",
+          "session_end_mode": "Comportamento de fim de sessão",
+          "cooldown_temp_sensor": "Sensor de temperatura de referência para o resfriamento (opcional, padrão: sensor interno Harvia)",
+          "cooldown_hysteresis": "Histerese abaixo da temperatura alvo",
+          "cooldown_max_minutes": "Duração máxima do resfriamento (rede de segurança)",
+          "use_ext_sensor_for_max_temp": "Usar o sensor externo para a temperatura máx. da sessão"
+        },
+        "data_description": {
+          "linked_lights": "Escolha entidades de luz do HA (ex.: fitas Hue) que seguirão o botão de luz do painel Harvia — mesmo sem nenhuma luz fisicamente conectada à central.",
+          "session_end_mode": "O modo \"resfriamento\" mantém a sessão ativa após desligar o aquecedor até a temperatura cair abaixo do alvo — útil para aquecedores com grande massa de pedras."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Desativado",
+        "panel_to_ha": "Apenas painel → HA",
+        "bidirectional": "Bidirecional (painel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Ao desligar o aquecedor (clássico)",
+        "cooldown": "Quando a temperatura cai abaixo do alvo (resfriamento)"
       }
     }
   }

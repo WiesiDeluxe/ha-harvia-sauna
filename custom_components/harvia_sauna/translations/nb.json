@@ -7,19 +7,19 @@
         "data": {
           "username": "E-post",
           "password": "Passord",
-          "api_provider": "API-leverandÃ¸r"
+          "api_provider": "API-leverandør"
         }
       },
       "heater": {
         "title": "Ovnskonfigurasjon",
-        "description": "Velg badstueovnmodell og effekt. Dette hjelper med Ã¥ vise riktig enhetsinformasjon og kan endres senere.",
+        "description": "Velg badstueovnmodell og effekt. Dette hjelper med å vise riktig enhetsinformasjon og kan endres senere.",
         "data": {
           "heater_model": "Ovnsmodell",
           "heater_power": "Ovnseffekt (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Autentiser Harvia Badstue pÃ¥ nytt",
+        "title": "Autentiser Harvia Badstue på nytt",
         "description": "Oppgi oppdatert MyHarvia-innlogging.",
         "data": {
           "username": "E-post",
@@ -32,16 +32,16 @@
         "data": {
           "heater_model": "Ovnsmodell",
           "heater_power": "Ovnseffekt (kW)",
-          "password": "Nytt passord (la stÃ¥ tomt hvis uendret)",
+          "password": "Nytt passord (la stå tomt hvis uendret)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Ugyldig innlogging. Sjekk MyHarvia-appinnloggingen.",
-      "cannot_connect": "Kan ikke koble til MyHarvia-skyen. PrÃ¸v igjen senere.",
+      "cannot_connect": "Kan ikke koble til MyHarvia-skyen. Prøv igjen senere.",
       "unknown": "En uventet feil oppstod.",
-      "password_required": "Passord er pÃ¥krevd ved endring av brukernavn."
+      "password_required": "Passord er påkrevd ved endring av brukernavn."
     },
     "abort": {
       "already_configured": "Denne kontoen er allerede konfigurert.",
@@ -57,7 +57,7 @@
     },
     "switch": {
       "power": {
-        "name": "StrÃ¸m"
+        "name": "Strøm"
       },
       "light": {
         "name": "Lys"
@@ -89,10 +89,10 @@
         "name": "Fuktighet"
       },
       "target_temperature": {
-        "name": "MÃ¥ltemperatur"
+        "name": "Måltemperatur"
       },
       "remaining_time": {
-        "name": "GjenstÃ¥ende tid"
+        "name": "Gjenstående tid"
       },
       "heat_up_time": {
         "name": "Oppvarmingstid"
@@ -104,7 +104,7 @@
         "name": "Statuskoder"
       },
       "aroma_level": {
-        "name": "AromanivÃ¥"
+        "name": "Aromanivå"
       },
       "ph1_relay_counter": {
         "name": "Fase 1 relesykluser"
@@ -128,13 +128,13 @@
         "name": "Energiforbruk (estimert)"
       },
       "last_session_duration": {
-        "name": "Siste Ã¸ktvarighet"
+        "name": "Siste øktvarighet"
       },
       "last_session_max_temp": {
-        "name": "Siste Ã¸kt maks. temperatur"
+        "name": "Siste økt maks. temperatur"
       },
       "sessions_today": {
-        "name": "Ãkter i dag"
+        "name": "Økter i dag"
       },
       "temp_trend": {
         "name": "Temperaturtrend"
@@ -166,7 +166,7 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "DÃ¸r"
+        "name": "Dør"
       },
       "heat_on": {
         "name": "Oppvarming"
@@ -175,10 +175,10 @@
         "name": "Damp aktiv"
       },
       "safety_relay": {
-        "name": "SikkerhetsrelÃ©"
+        "name": "Sikkerhetsrelé"
       },
       "screen_lock": {
-        "name": "SkjermlÃ¥s"
+        "name": "Skjermlås"
       },
       "remote_allowed": {
         "name": "Fjernstyring tillatt"
@@ -186,13 +186,48 @@
     },
     "number": {
       "target_humidity": {
-        "name": "MÃ¥lfuktighet"
+        "name": "Målfuktighet"
       },
       "aroma_level_set": {
-        "name": "AromanivÃ¥"
+        "name": "Aromanivå"
       },
       "on_time": {
-        "name": "Ãkttid"
+        "name": "Økttid"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna-alternativer",
+        "data": {
+          "linked_lights": "Tilknyttede HA-lys (styres med lysknappen på panelet)",
+          "light_sync_mode": "Retning for lyssynkronisering",
+          "session_end_mode": "Atferd ved øktslutt",
+          "cooldown_temp_sensor": "Referansetemperatursensor for nedkjøling (valgfri, standard: intern Harvia-sensor)",
+          "cooldown_hysteresis": "Hysterese under måltemperaturen",
+          "cooldown_max_minutes": "Maksimal nedkjølingstid (sikkerhetsnett)",
+          "use_ext_sensor_for_max_temp": "Bruk den eksterne sensoren for øktas makstemperatur"
+        },
+        "data_description": {
+          "linked_lights": "Velg HA-lysenheter (f.eks. Hue-striper) som skal følge lysknappen på Harvia-panelet — selv om ingen lys er fysisk koblet til styreenheten.",
+          "session_end_mode": "«Nedkjøling» lar økten fortsette etter at ovnen slås av, til temperaturen faller under målet — nyttig for ovner med stor steinmasse."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Deaktivert",
+        "panel_to_ha": "Kun panel → HA",
+        "bidirectional": "Toveis (panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Når ovnen slås av (klassisk)",
+        "cooldown": "Når temperaturen faller under målet (nedkjøling)"
       }
     }
   }

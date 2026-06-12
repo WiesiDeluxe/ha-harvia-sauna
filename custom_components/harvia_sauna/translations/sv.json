@@ -3,27 +3,27 @@
     "step": {
       "user": {
         "title": "Harvia Bastu",
-        "description": "VÃ¤lj din styrenhetstyp och ange dina inloggningsuppgifter.",
+        "description": "Välj din styrenhetstyp och ange dina inloggningsuppgifter.",
         "data": {
           "username": "E-post",
-          "password": "LÃ¶senord",
-          "api_provider": "API-leverantÃ¶r"
+          "password": "Lösenord",
+          "api_provider": "API-leverantör"
         }
       },
       "heater": {
-        "title": "AggregatinstÃ¤llning",
-        "description": "VÃ¤lj modell och effekt fÃ¶r din bastuugn. Detta hjÃ¤lper till att visa rÃ¤tt enhetsinformation och kan Ã¤ndras senare.",
+        "title": "Aggregatinställning",
+        "description": "Välj modell och effekt för din bastuugn. Detta hjälper till att visa rätt enhetsinformation och kan ändras senare.",
         "data": {
           "heater_model": "Aggregatmodell",
           "heater_power": "Aggregateffekt (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "Ãterautentisering av Harvia Bastu",
+        "title": "Återautentisering av Harvia Bastu",
         "description": "Ange dina uppdaterade MyHarvia-uppgifter.",
         "data": {
           "username": "E-post",
-          "password": "LÃ¶senord"
+          "password": "Lösenord"
         }
       },
       "reconfigure": {
@@ -32,20 +32,20 @@
         "data": {
           "heater_model": "Aggregatsmodell",
           "heater_power": "Aggregatseffekt (kW)",
-          "password": "Nytt lÃ¶senord (lÃ¤mna tomt om ofÃ¶rÃ¤ndrat)",
+          "password": "Nytt lösenord (lämna tomt om oförändrat)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Ogiltiga inloggningsuppgifter. Kontrollera din MyHarvia-appinloggning.",
-      "cannot_connect": "Kan inte ansluta till MyHarvia-molnet. FÃ¶rsÃ¶k igen senare.",
-      "unknown": "Ett ovÃ¤ntat fel intrÃ¤ffade.",
-      "password_required": "LÃ¶senord krÃ¤vs vid byte av anvÃ¤ndarnamn."
+      "cannot_connect": "Kan inte ansluta till MyHarvia-molnet. Försök igen senare.",
+      "unknown": "Ett oväntat fel inträffade.",
+      "password_required": "Lösenord krävs vid byte av användarnamn."
     },
     "abort": {
-      "already_configured": "Detta konto Ã¤r redan konfigurerat.",
-      "reauth_successful": "Ãterautentisering lyckades.",
+      "already_configured": "Detta konto är redan konfigurerat.",
+      "reauth_successful": "Återautentisering lyckades.",
       "reconfigure_successful": "Omkonfigurering lyckades."
     }
   },
@@ -57,16 +57,16 @@
     },
     "switch": {
       "power": {
-        "name": "StrÃ¶m"
+        "name": "Ström"
       },
       "light": {
         "name": "Belysning"
       },
       "fan": {
-        "name": "FlÃ¤kt"
+        "name": "Fläkt"
       },
       "steamer": {
-        "name": "Ãnggenerator"
+        "name": "Ånggenerator"
       },
       "aroma": {
         "name": "Arom"
@@ -75,7 +75,7 @@
         "name": "Automatisk belysning"
       },
       "auto_fan": {
-        "name": "Automatisk flÃ¤kt"
+        "name": "Automatisk fläkt"
       },
       "dehumidifier": {
         "name": "Avfuktare"
@@ -89,13 +89,13 @@
         "name": "Luftfuktighet"
       },
       "target_temperature": {
-        "name": "MÃ¥ltemperatur"
+        "name": "Måltemperatur"
       },
       "remaining_time": {
-        "name": "ÃterstÃ¥ende tid"
+        "name": "Återstående tid"
       },
       "heat_up_time": {
-        "name": "UppvÃ¤rmningstid"
+        "name": "Uppvärmningstid"
       },
       "wifi_rssi": {
         "name": "WiFi-signal"
@@ -104,22 +104,22 @@
         "name": "Statuskoder"
       },
       "aroma_level": {
-        "name": "AromnivÃ¥"
+        "name": "Aromnivå"
       },
       "ph1_relay_counter": {
-        "name": "Fas 1 relÃ¤chcykler"
+        "name": "Fas 1 relächcykler"
       },
       "ph2_relay_counter": {
-        "name": "Fas 2 relÃ¤chcykler"
+        "name": "Fas 2 relächcykler"
       },
       "ph3_relay_counter": {
-        "name": "Fas 3 relÃ¤chcykler"
+        "name": "Fas 3 relächcykler"
       },
       "heat_on_counter": {
-        "name": "UppvÃ¤rmningscykler"
+        "name": "Uppvärmningscykler"
       },
       "steam_on_counter": {
-        "name": "Ãngcykler"
+        "name": "Ångcykler"
       },
       "power": {
         "name": "Effekt (uppskattad)"
@@ -128,13 +128,13 @@
         "name": "Energiförbrukning (uppskattad)"
       },
       "last_session_duration": {
-        "name": "Senaste bastuns lÃ¤ngd"
+        "name": "Senaste bastuns längd"
       },
       "last_session_max_temp": {
         "name": "Senaste bastuns maxtemperatur"
       },
       "sessions_today": {
-        "name": "BastubesÃ¶k idag"
+        "name": "Bastubesök idag"
       },
       "temp_trend": {
         "name": "Temperaturtrend"
@@ -166,33 +166,68 @@
     },
     "binary_sensor": {
       "door": {
-        "name": "DÃ¶rr"
+        "name": "Dörr"
       },
       "heat_on": {
-        "name": "UppvÃ¤rmning aktiv"
+        "name": "Uppvärmning aktiv"
       },
       "steam_on": {
-        "name": "Ãnga aktiv"
+        "name": "Ånga aktiv"
       },
       "safety_relay": {
-        "name": "SÃ¤kerhetsrelÃ¤"
+        "name": "Säkerhetsrelä"
       },
       "screen_lock": {
-        "name": "SkÃ¤rmlÃ¥s"
+        "name": "Skärmlås"
       },
       "remote_allowed": {
-        "name": "FjÃ¤rrstyring tillÃ¥ten"
+        "name": "Fjärrstyring tillåten"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "MÃ¥l-luftfuktighet"
+        "name": "Mål-luftfuktighet"
       },
       "aroma_level_set": {
-        "name": "AromnivÃ¥"
+        "name": "Aromnivå"
       },
       "on_time": {
-        "name": "SessionslÃ¤ngd"
+        "name": "Sessionslängd"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna-alternativ",
+        "data": {
+          "linked_lights": "Länkade HA-lampor (styrs med ljusknappen på panelen)",
+          "light_sync_mode": "Riktning för ljussynkronisering",
+          "session_end_mode": "Beteende vid sessionsslut",
+          "cooldown_temp_sensor": "Referenstemperatursensor för avsvalning (valfri, standard: intern Harvia-sensor)",
+          "cooldown_hysteresis": "Hysteres under måltemperaturen",
+          "cooldown_max_minutes": "Maximal avsvalningstid (skyddsnät)",
+          "use_ext_sensor_for_max_temp": "Använd den externa sensorn för sessionens maxtemperatur"
+        },
+        "data_description": {
+          "linked_lights": "Välj HA-ljusentiteter (t.ex. Hue-strips) som ska följa ljusknappen på Harvia-panelen — även om ingen lampa är fysiskt ansluten till styrenheten.",
+          "session_end_mode": "”Avsvalning” låter sessionen fortsätta efter att aggregatet stängts av tills temperaturen sjunker under målet — användbart för aggregat med stor stenmassa."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Inaktiverad",
+        "panel_to_ha": "Endast panel → HA",
+        "bidirectional": "Dubbelriktad (panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "När aggregatet stängs av (klassiskt)",
+        "cooldown": "När temperaturen sjunker under målet (avsvalning)"
       }
     }
   }

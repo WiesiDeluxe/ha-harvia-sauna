@@ -5,25 +5,25 @@
         "title": "Harvia Sauna",
         "description": "Seleccione su tipo de controlador e introduzca sus credenciales.",
         "data": {
-          "username": "Correo electrÃ³nico",
-          "password": "ContraseÃ±a",
+          "username": "Correo electrónico",
+          "password": "Contraseña",
           "api_provider": "Proveedor API"
         }
       },
       "heater": {
-        "title": "ConfiguraciÃ³n de la estufa",
-        "description": "Selecciona el modelo y la potencia de tu estufa de sauna. Esto ayuda a mostrar la informaciÃ³n correcta del dispositivo y se puede cambiar mÃ¡s tarde.",
+        "title": "Configuración de la estufa",
+        "description": "Selecciona el modelo y la potencia de tu estufa de sauna. Esto ayuda a mostrar la información correcta del dispositivo y se puede cambiar más tarde.",
         "data": {
           "heater_model": "Modelo de estufa",
           "heater_power": "Potencia de estufa (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "ReautenticaciÃ³n de Harvia Sauna",
+        "title": "Reautenticación de Harvia Sauna",
         "description": "Introduce tus credenciales actualizadas de MyHarvia.",
         "data": {
-          "username": "Correo electrÃ³nico",
-          "password": "ContraseÃ±a"
+          "username": "Correo electrónico",
+          "password": "Contraseña"
         }
       },
       "reconfigure": {
@@ -32,21 +32,21 @@
         "data": {
           "heater_model": "Modelo de calentador",
           "heater_power": "Potencia del calentador (kW)",
-          "password": "Nueva contraseÃ±a (dejar vacÃ­o si no cambia)",
+          "password": "Nueva contraseña (dejar vacío si no cambia)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "Credenciales no vÃ¡lidas. Verifica tus datos de acceso de la app MyHarvia.",
-      "cannot_connect": "No se puede conectar con la nube de MyHarvia. IntÃ©ntalo de nuevo mÃ¡s tarde.",
+      "invalid_auth": "Credenciales no válidas. Verifica tus datos de acceso de la app MyHarvia.",
+      "cannot_connect": "No se puede conectar con la nube de MyHarvia. Inténtalo de nuevo más tarde.",
       "unknown": "Se ha producido un error inesperado.",
-      "password_required": "La contraseÃ±a es obligatoria al cambiar el nombre de usuario."
+      "password_required": "La contraseña es obligatoria al cambiar el nombre de usuario."
     },
     "abort": {
-      "already_configured": "Esta cuenta ya estÃ¡ configurada.",
-      "reauth_successful": "ReautenticaciÃ³n exitosa.",
-      "reconfigure_successful": "ReconfiguraciÃ³n exitosa."
+      "already_configured": "Esta cuenta ya está configurada.",
+      "reauth_successful": "Reautenticación exitosa.",
+      "reconfigure_successful": "Reconfiguración exitosa."
     }
   },
   "entity": {
@@ -72,10 +72,10 @@
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "Luz automÃ¡tica"
+        "name": "Luz automática"
       },
       "auto_fan": {
-        "name": "Ventilador automÃ¡tico"
+        "name": "Ventilador automático"
       },
       "dehumidifier": {
         "name": "Deshumidificador"
@@ -98,22 +98,22 @@
         "name": "Tiempo de calentamiento"
       },
       "wifi_rssi": {
-        "name": "SeÃ±al WiFi"
+        "name": "Señal WiFi"
       },
       "status_codes": {
-        "name": "CÃ³digos de estado"
+        "name": "Códigos de estado"
       },
       "aroma_level": {
         "name": "Nivel de aroma"
       },
       "ph1_relay_counter": {
-        "name": "Ciclos relÃ© fase 1"
+        "name": "Ciclos relé fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Ciclos relÃ© fase 2"
+        "name": "Ciclos relé fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Ciclos relÃ© fase 3"
+        "name": "Ciclos relé fase 3"
       },
       "heat_on_counter": {
         "name": "Ciclos de calentamiento"
@@ -128,10 +128,10 @@
         "name": "Consumo energético (estimado)"
       },
       "last_session_duration": {
-        "name": "DuraciÃ³n Ãºltima sesiÃ³n"
+        "name": "Duración última sesión"
       },
       "last_session_max_temp": {
-        "name": "Temperatura mÃ¡xima Ãºltima sesiÃ³n"
+        "name": "Temperatura máxima última sesión"
       },
       "sessions_today": {
         "name": "Sesiones hoy"
@@ -155,7 +155,7 @@
         "name": "Total de sesiones"
       },
       "total_bathing_hours": {
-        "name": "Total de horas de baÃ±o"
+        "name": "Total de horas de baño"
       },
       "total_hours": {
         "name": "Total de horas"
@@ -169,13 +169,13 @@
         "name": "Puerta"
       },
       "heat_on": {
-        "name": "CalefacciÃ³n activa"
+        "name": "Calefacción activa"
       },
       "steam_on": {
         "name": "Vapor activo"
       },
       "safety_relay": {
-        "name": "RelÃ© de seguridad"
+        "name": "Relé de seguridad"
       },
       "screen_lock": {
         "name": "Bloqueo de pantalla"
@@ -192,7 +192,42 @@
         "name": "Nivel de aroma"
       },
       "on_time": {
-        "name": "DuraciÃ³n de sesiÃ³n"
+        "name": "Duración de sesión"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de Harvia Sauna",
+        "data": {
+          "linked_lights": "Luces de HA vinculadas (controladas con el botón de luz del panel)",
+          "light_sync_mode": "Dirección de sincronización de luz",
+          "session_end_mode": "Comportamiento de fin de sesión",
+          "cooldown_temp_sensor": "Sensor de temperatura de referencia para el enfriamiento (opcional, por defecto el sensor interno de Harvia)",
+          "cooldown_hysteresis": "Histéresis por debajo de la temperatura objetivo",
+          "cooldown_max_minutes": "Duración máxima del enfriamiento (red de seguridad)",
+          "use_ext_sensor_for_max_temp": "Usar el sensor externo para la temperatura máxima de la sesión"
+        },
+        "data_description": {
+          "linked_lights": "Elija entidades de luz de HA (p. ej., tiras Hue) que sigan el botón de luz del panel Harvia, aunque no haya ninguna luz conectada físicamente a la unidad de control.",
+          "session_end_mode": "El modo «enfriamiento» mantiene la sesión activa tras apagar el calefactor hasta que la temperatura baje del objetivo — útil con calefactores de gran masa de piedras."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Desactivado",
+        "panel_to_ha": "Solo panel → HA",
+        "bidirectional": "Bidireccional (panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Al apagar el calefactor (clásico)",
+        "cooldown": "Cuando la temperatura baja del objetivo (enfriamiento)"
       }
     }
   }

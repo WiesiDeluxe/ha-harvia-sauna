@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Vyberte typ ovlÃ¡dacÃ­ho panelu a zadejte pÅihlaÅ¡ovacÃ­ Ãºdaje.",
+        "description": "Vyberte typ ovládacího panelu a zadejte přihlašovací údaje.",
         "data": {
           "username": "E-mail",
           "password": "Heslo",
@@ -11,42 +11,42 @@
         }
       },
       "heater": {
-        "title": "Konfigurace topenÃ­",
-        "description": "Vyberte model a vÃ½kon saunovÃ½ch kamen. PomÃ¡hÃ¡ to zobrazit sprÃ¡vnÃ© informace o zaÅÃ­zenÃ­ a lze to pozdÄji zmÄnit.",
+        "title": "Konfigurace topení",
+        "description": "Vyberte model a výkon saunových kamen. Pomáhá to zobrazit správné informace o zařízení a lze to později změnit.",
         "data": {
           "heater_model": "Model kamen",
-          "heater_power": "VÃ½kon kamen (kW)"
+          "heater_power": "Výkon kamen (kW)"
         }
       },
       "reauth_confirm": {
-        "title": "OpÄtovnÃ¡ autorizace Harvia Sauna",
-        "description": "Zadejte aktualizovanÃ© pÅihlaÅ¡ovacÃ­ Ãºdaje MyHarvia.",
+        "title": "Opětovná autorizace Harvia Sauna",
+        "description": "Zadejte aktualizované přihlašovací údaje MyHarvia.",
         "data": {
           "username": "E-mail",
           "password": "Heslo"
         }
       },
       "reconfigure": {
-        "title": "PÅekonfigurovat Harvia Sauna",
-        "description": "Aktualizujte model a vÃ½kon kamen.",
+        "title": "Překonfigurovat Harvia Sauna",
+        "description": "Aktualizujte model a výkon kamen.",
         "data": {
           "heater_model": "Model kamen",
-          "heater_power": "VÃ½kon kamen (kW)",
-          "password": "NovÃ© heslo (ponechte prÃ¡zdnÃ© pokud se nemÄnÃ­)",
+          "heater_power": "Výkon kamen (kW)",
+          "password": "Nové heslo (ponechte prázdné pokud se nemění)",
           "username": "E-mail"
         }
       }
     },
     "error": {
-      "invalid_auth": "NeplatnÃ© pÅihlaÅ¡ovacÃ­ Ãºdaje. OvÄÅte pÅihlÃ¡Å¡enÃ­ v aplikaci MyHarvia.",
-      "cannot_connect": "Nelze se pÅipojit ke cloudu MyHarvia. Zkuste to pozdÄji.",
-      "unknown": "DoÅ¡lo k neoÄekÃ¡vanÃ© chybÄ.",
-      "password_required": "Heslo je vyÅ¾adovÃ¡no pÅi zmÄnÄ uÅ¾ivatelskÃ©ho jmÃ©na."
+      "invalid_auth": "Neplatné přihlašovací údaje. Ověřte přihlášení v aplikaci MyHarvia.",
+      "cannot_connect": "Nelze se připojit ke cloudu MyHarvia. Zkuste to později.",
+      "unknown": "Došlo k neočekávané chybě.",
+      "password_required": "Heslo je vyžadováno při změně uživatelského jména."
     },
     "abort": {
-      "already_configured": "Tento ÃºÄet je jiÅ¾ nakonfigurovÃ¡n.",
-      "reauth_successful": "OpÄtovnÃ¡ autorizace probÄhla ÃºspÄÅ¡nÄ.",
-      "reconfigure_successful": "PÅekonfigurovÃ¡nÃ­ probÄhlo ÃºspÄÅ¡nÄ."
+      "already_configured": "Tento účet je již nakonfigurován.",
+      "reauth_successful": "Opětovná autorizace proběhla úspěšně.",
+      "reconfigure_successful": "Překonfigurování proběhlo úspěšně."
     }
   },
   "entity": {
@@ -57,28 +57,28 @@
     },
     "switch": {
       "power": {
-        "name": "NapÃ¡jenÃ­"
+        "name": "Napájení"
       },
       "light": {
-        "name": "OsvÄtlenÃ­"
+        "name": "Osvětlení"
       },
       "fan": {
-        "name": "VentilÃ¡tor"
+        "name": "Ventilátor"
       },
       "steamer": {
-        "name": "ParnÃ­ generÃ¡tor"
+        "name": "Parní generátor"
       },
       "aroma": {
         "name": "Aroma"
       },
       "auto_light": {
-        "name": "AutomatickÃ© svÄtlo"
+        "name": "Automatické světlo"
       },
       "auto_fan": {
-        "name": "AutomatickÃ½ ventilÃ¡tor"
+        "name": "Automatický ventilátor"
       },
       "dehumidifier": {
-        "name": "OdvlhÄovaÄ"
+        "name": "Odvlhčovač"
       }
     },
     "sensor": {
@@ -89,37 +89,37 @@
         "name": "Vlhkost"
       },
       "target_temperature": {
-        "name": "CÃ­lovÃ¡ teplota"
+        "name": "Cílová teplota"
       },
       "remaining_time": {
-        "name": "ZbÃ½vajÃ­cÃ­ Äas"
+        "name": "Zbývající čas"
       },
       "heat_up_time": {
-        "name": "Doba zahÅÃ­vÃ¡nÃ­"
+        "name": "Doba zahřívání"
       },
       "wifi_rssi": {
-        "name": "WiFi signÃ¡l"
+        "name": "WiFi signál"
       },
       "status_codes": {
-        "name": "StavovÃ© kÃ³dy"
+        "name": "Stavové kódy"
       },
       "aroma_level": {
-        "name": "ÃroveÅ aromatu"
+        "name": "Úroveň aromatu"
       },
       "ph1_relay_counter": {
-        "name": "Cykly relÃ© fÃ¡ze 1"
+        "name": "Cykly relé fáze 1"
       },
       "ph2_relay_counter": {
-        "name": "Cykly relÃ© fÃ¡ze 2"
+        "name": "Cykly relé fáze 2"
       },
       "ph3_relay_counter": {
-        "name": "Cykly relÃ© fÃ¡ze 3"
+        "name": "Cykly relé fáze 3"
       },
       "heat_on_counter": {
-        "name": "Cykly topenÃ­"
+        "name": "Cykly topení"
       },
       "steam_on_counter": {
-        "name": "Cykly pÃ¡ry"
+        "name": "Cykly páry"
       },
       "power": {
         "name": "Výkon (odhad)"
@@ -128,71 +128,106 @@
         "name": "Spotřeba energie (odhad)"
       },
       "last_session_duration": {
-        "name": "DÃ©lka poslednÃ­ho sezenÃ­"
+        "name": "Délka posledního sezení"
       },
       "last_session_max_temp": {
-        "name": "Max. teplota poslednÃ­ho sezenÃ­"
+        "name": "Max. teplota posledního sezení"
       },
       "sessions_today": {
-        "name": "SezenÃ­ dnes"
+        "name": "Sezení dnes"
       },
       "temp_trend": {
-        "name": "TeplotnÃ­ trend"
+        "name": "Teplotní trend"
       },
       "heater_power_actual": {
-        "name": "AktuÃ¡lnÃ­ vÃ½kon kamen"
+        "name": "Aktuální výkon kamen"
       },
       "main_sensor_temp": {
-        "name": "Teplota hlavnÃ­ho senzoru"
+        "name": "Teplota hlavního senzoru"
       },
       "ext_sensor_temp": {
-        "name": "Teplota externÃ­ho senzoru"
+        "name": "Teplota externího senzoru"
       },
       "panel_temp": {
         "name": "Teplota panelu"
       },
       "total_sessions": {
-        "name": "CelkovÃ½ poÄet sezenÃ­"
+        "name": "Celkový počet sezení"
       },
       "total_bathing_hours": {
-        "name": "CelkovÃ© saunovacÃ­ hodiny"
+        "name": "Celkové saunovací hodiny"
       },
       "total_hours": {
-        "name": "CelkovÃ© provoznÃ­ hodiny"
+        "name": "Celkové provozní hodiny"
       },
       "active_profile": {
-        "name": "AktivnÃ­ profil"
+        "name": "Aktivní profil"
       }
     },
     "binary_sensor": {
       "door": {
-        "name": "DveÅe"
+        "name": "Dveře"
       },
       "heat_on": {
-        "name": "TopenÃ­"
+        "name": "Topení"
       },
       "steam_on": {
-        "name": "PÃ¡ra aktivnÃ­"
+        "name": "Pára aktivní"
       },
       "safety_relay": {
-        "name": "BezpeÄnostnÃ­ relÃ©"
+        "name": "Bezpečnostní relé"
       },
       "screen_lock": {
-        "name": "ZÃ¡mek obrazovky"
+        "name": "Zámek obrazovky"
       },
       "remote_allowed": {
-        "name": "VzdÃ¡lenÃ© ovlÃ¡dÃ¡nÃ­ povoleno"
+        "name": "Vzdálené ovládání povoleno"
       }
     },
     "number": {
       "target_humidity": {
-        "name": "CÃ­lovÃ¡ vlhkost"
+        "name": "Cílová vlhkost"
       },
       "aroma_level_set": {
-        "name": "ÃroveÅ aromatu"
+        "name": "Úroveň aromatu"
       },
       "on_time": {
-        "name": "Doba sezenÃ­"
+        "name": "Doba sezení"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Možnosti Harvia Sauna",
+        "data": {
+          "linked_lights": "Propojená HA světla (ovládaná tlačítkem světla na panelu)",
+          "light_sync_mode": "Směr synchronizace světla",
+          "session_end_mode": "Chování ukončení relace",
+          "cooldown_temp_sensor": "Referenční teplotní senzor pro fázi chladnutí (volitelné, výchozí: interní senzor Harvia)",
+          "cooldown_hysteresis": "Hystereze pod cílovou teplotou",
+          "cooldown_max_minutes": "Maximální doba chladnutí (pojistka)",
+          "use_ext_sensor_for_max_temp": "Použít externí senzor i pro max. teplotu relace"
+        },
+        "data_description": {
+          "linked_lights": "Vyberte HA světla (např. Hue pásky), která mají následovat tlačítko světla na panelu Harvia — i když ke řídicí jednotce není fyzicky připojeno žádné světlo.",
+          "session_end_mode": "„Chladnutí“ nechá relaci běžet i po vypnutí kamen, dokud teplota neklesne pod cílovou hodnotu — užitečné u kamen s velkou masou kamenů."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Vypnuto",
+        "panel_to_ha": "Pouze panel → HA",
+        "bidirectional": "Obousměrně (panel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Při vypnutí kamen (klasické)",
+        "cooldown": "Při poklesu teploty pod cíl (chladnutí)"
       }
     }
   }

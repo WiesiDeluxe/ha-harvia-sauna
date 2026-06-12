@@ -195,5 +195,40 @@
         "name": "ä½¿ç¨æ¶é´"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna 选项",
+        "data": {
+          "linked_lights": "关联的 HA 灯（由面板灯光按钮控制）",
+          "light_sync_mode": "灯光同步方向",
+          "session_end_mode": "会话结束行为",
+          "cooldown_temp_sensor": "冷却阶段参考温度传感器（可选，默认使用 Harvia 内置传感器）",
+          "cooldown_hysteresis": "低于目标温度的滞后值",
+          "cooldown_max_minutes": "最长冷却时间（安全保护）",
+          "use_ext_sensor_for_max_temp": "会话最高温度也使用外部传感器"
+        },
+        "data_description": {
+          "linked_lights": "选择跟随 Harvia 面板灯光按钮的 HA 灯实体（如 Hue 灯带）——即使控制单元未实际连接任何灯也可使用。",
+          "session_end_mode": "“冷却”模式在加热器关闭后继续会话，直到温度降至目标以下——适用于石量大的加热器。"
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "禁用",
+        "panel_to_ha": "仅面板 → HA",
+        "bidirectional": "双向（面板 ↔ HA）"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "加热器关闭时（经典）",
+        "cooldown": "温度降至目标以下时（冷却）"
+      }
+    }
   }
 }

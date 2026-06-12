@@ -309,7 +309,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
     HarviaSensorDescription(
         key="temp_trend",
         translation_key="temp_trend",
-        native_unit_of_measurement="Â°C/min",
+        native_unit_of_measurement="°C/min",
         icon="mdi:trending-up",
         state_class=SensorStateClass.MEASUREMENT,
         entity_registry_enabled_default=False,
@@ -430,7 +430,7 @@ class HarviaSessionSensor(HarviaSensor, RestoreEntity):
 
         elif key == "last_session_max_temp" and device.last_session_max_temp == 0.0:
             device.last_session_max_temp = restored_value
-            _LOGGER.debug("Restored last_session_max_temp: %.0fÂ°C", restored_value)
+            _LOGGER.debug("Restored last_session_max_temp: %.0f°C", restored_value)
 
         elif key == "sessions_today" and device.sessions_today == 0:
             # Only restore if same day (otherwise the midnight reset is correct)

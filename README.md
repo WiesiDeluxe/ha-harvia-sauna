@@ -8,29 +8,29 @@ Custom Home Assistant integration for **Harvia sauna heaters** with **Xenio WiFi
 
 ## Features
 
-- ð¡ï¸ **Climate control** â thermostat with current/target temperature
-- ð **Dual controller support** â Xenio WiFi (myHarvia) and Fenix (harvia.io)
-- â¡ **Real-time updates** via WebSocket push â no polling delay
-- ð **Session tracking** â duration, max temperature, daily count
-- ð **Energy monitoring** â power (W) and cumulative energy (kWh), persistent across restarts
-- ð¡ **Full device control** â power, light, fan, steam, aroma, dehumidifier
-- ðï¸ **Configurable setpoints** â session time, target humidity, aroma level
-- ð§ **Custom service** `harvia_sauna.set_session` â configure sessions in one call
-- ð¡ **HA Events** â `session_start` / `session_end` for automation triggers
-- ð **Diagnostics** â anonymized debug export for troubleshooting
-- ð **19 languages** â EN, DE, FI, IT, FR, SV, ES, JA, ET, NL, NB, DA, PL, PT-BR, RU, ZH-Hans, KO, CS, HU
+- 🌡️ **Climate control** — thermostat with current/target temperature
+- 🔌 **Dual controller support** — Xenio WiFi (myHarvia) and Fenix (harvia.io)
+- ⚡ **Real-time updates** via WebSocket push — no polling delay
+- 📊 **Session tracking** — duration, max temperature, daily count
+- 🔋 **Energy monitoring** — power (W) and cumulative energy (kWh), persistent across restarts
+- 💡 **Full device control** — power, light, fan, steam, aroma, dehumidifier
+- 🎚️ **Configurable setpoints** — session time, target humidity, aroma level
+- 🔧 **Custom service** `harvia_sauna.set_session` — configure sessions in one call
+- 📡 **HA Events** — `session_start` / `session_end` for automation triggers
+- 🔒 **Diagnostics** — anonymized debug export for troubleshooting
+- 🌍 **19 languages** — EN, DE, FI, IT, FR, SV, ES, JA, ET, NL, NB, DA, PL, PT-BR, RU, ZH-Hans, KO, CS, HU
 
 ## Requirements
 
 - A Harvia sauna heater with **Xenio WiFi** (CX110 / CX001WIFI) or **Fenix** (FX001XW / FX002XW) control panel
 - An active **MyHarvia** or **MyHarvia 2** app account
-- Internet connectivity (cloud API â no local control available)
+- Internet connectivity (cloud API — no local control available)
 
 ## Installation
 
 ### HACS (recommended)
 
-1. Open HACS â **Integrations** â â® â **Custom repositories**
+1. Open HACS → **Integrations** → ⋮ → **Custom repositories**
 2. Add `https://github.com/WiesiDeluxe/ha-harvia-sauna` as type **Integration**
 3. Search for "Harvia Sauna" and install
 4. Restart Home Assistant
@@ -43,14 +43,14 @@ Custom Home Assistant integration for **Harvia sauna heaters** with **Xenio WiFi
 
 ## Setup
 
-1. **Settings** â **Devices & Services** â **Add Integration** â search "Harvia Sauna"
+1. **Settings** → **Devices & Services** → **Add Integration** → search "Harvia Sauna"
 2. Select your **API Provider**:
-   - **myHarvia (Xenio controller)** â for Xenio WiFi panels (CX110 / CX001WIFI)
-   - **myHarvia 2 - harvia.io (Fenix controller)** â for Fenix panels (FX001XW / FX002XW)
+   - **myHarvia (Xenio controller)** — for Xenio WiFi panels (CX110 / CX001WIFI)
+   - **myHarvia 2 - harvia.io (Fenix controller)** — for Fenix panels (FX001XW / FX002XW)
 3. Enter your credentials (same email/password as in the app)
 4. Select heater model and power rating (auto-detection attempted)
 
-To change model/power later: **â®** â **Reconfigure**
+To change model/power later: **⋮** → **Reconfigure**
 
 ## Entities
 
@@ -74,7 +74,7 @@ Power, Light, Fan, Steamer, Aroma, Auto Light, Auto Fan, Dehumidifier
 | Last session duration | Duration of most recent session |
 | Last session max temp | Peak temperature of most recent session |
 | Sessions today | Daily session counter |
-| Temperature trend | Heating rate in Â°C/min (disabled by default) |
+| Temperature trend | Heating rate in °C/min (disabled by default) |
 | WiFi signal | RSSI (diagnostic) |
 | Status codes | Device status (diagnostic) |
 | Relay counters | Phase 1/2/3, heater, steam cycle counters (diagnostic) |
@@ -109,8 +109,8 @@ sensor. A maximum cooldown duration acts as a safety net.
 action: harvia_sauna.set_session
 data:
   device_id: "your_device_id"
-  target_temp: 80        # 40â110 Â°C
-  duration: 60           # 1â720 minutes
+  target_temp: 80        # 40–110 °C
+  duration: 60           # 1–720 minutes
   active: true           # start/stop
 ```
 
@@ -141,20 +141,20 @@ The energy sensor uses `state_class: total_increasing` and works with the HA Ene
 ## Architecture
 
 ```
-Xenio WiFi Panel ââMQTT/TLSâââ¶ AWS IoT Core (eu-west-1)
-                                     â²
-This Integration ââCognitoâââ¶ AWS AppSync (GraphQL + WebSocket)
+Xenio WiFi Panel ──MQTT/TLS──▶ AWS IoT Core (eu-west-1)
+                                     ▲
+This Integration ──Cognito──▶ AWS AppSync (GraphQL + WebSocket)
 
-Fenix Panel ââMQTT/TLSâââ¶ AWS IoT Core (eu-central-1)
-                                  â²
-This Integration ââRESTâââ¶ harvia.io API (REST + GraphQL + WebSocket)
+Fenix Panel ──MQTT/TLS──▶ AWS IoT Core (eu-central-1)
+                                  ▲
+This Integration ──REST──▶ harvia.io API (REST + GraphQL + WebSocket)
 ```
 
-**IoT class:** `cloud_push` â real-time WebSocket subscriptions with REST polling fallback every 5 minutes. Both providers use the same coordinator, entities, and session tracking.
+**IoT class:** `cloud_push` — real-time WebSocket subscriptions with REST polling fallback every 5 minutes. Both providers use the same coordinator, entities, and session tracking.
 
 ## Troubleshooting
 
-**Download diagnostics:** Settings â Devices & Services â Harvia Sauna â â® â Download diagnostics
+**Download diagnostics:** Settings → Devices & Services → Harvia Sauna → ⋮ → Download diagnostics
 
 | Issue | Solution |
 |-------|----------|
@@ -174,4 +174,4 @@ MIT License. This project is not affiliated with Harvia Oyj.
 
 ---
 
-<p align="center"><i>Scripted in Austria ð¦ð¹ â Happy Schwitzing! ð§ââï¸ð¥</i></p>
+<p align="center"><i>Scripted in Austria 🇦🇹 — Happy Schwitzing! 🧖‍♂️🔥</i></p>

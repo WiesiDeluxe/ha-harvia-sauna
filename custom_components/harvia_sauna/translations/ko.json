@@ -195,5 +195,40 @@
         "name": "ì¸ì ìê°"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna 옵션",
+        "data": {
+          "linked_lights": "연결된 HA 조명 (패널의 조명 버튼으로 제어)",
+          "light_sync_mode": "조명 동기화 방향",
+          "session_end_mode": "세션 종료 동작",
+          "cooldown_temp_sensor": "쿨다운 기준 온도 센서 (선택 사항, 기본값: Harvia 내장 센서)",
+          "cooldown_hysteresis": "목표 온도 아래 히스테리시스",
+          "cooldown_max_minutes": "최대 쿨다운 시간 (안전장치)",
+          "use_ext_sensor_for_max_temp": "세션 최고 온도에도 외부 센서 사용"
+        },
+        "data_description": {
+          "linked_lights": "Harvia 패널의 조명 버튼을 따라갈 HA 조명(예: Hue 스트립)을 선택하세요. 제어 장치에 조명이 물리적으로 연결되어 있지 않아도 작동합니다.",
+          "session_end_mode": "'쿨다운' 모드는 히터가 꺼진 후에도 온도가 목표 아래로 떨어질 때까지 세션을 유지합니다. 돌이 많은 히터에 유용합니다."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "비활성화",
+        "panel_to_ha": "패널 → HA만",
+        "bidirectional": "양방향 (패널 ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "히터가 꺼질 때 (기본)",
+        "cooldown": "온도가 목표 아래로 떨어질 때 (쿨다운)"
+      }
+    }
   }
 }

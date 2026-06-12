@@ -19,7 +19,7 @@
         }
       },
       "reauth_confirm": {
-        "title": "Harvia Sauna opnieuw verifiÃ«ren",
+        "title": "Harvia Sauna opnieuw verifiëren",
         "description": "Voer je bijgewerkte MyHarvia-inloggegevens in.",
         "data": {
           "username": "E-mail",
@@ -45,7 +45,7 @@
     },
     "abort": {
       "already_configured": "Dit account is al geconfigureerd.",
-      "reauth_successful": "Opnieuw verifiÃ«ren is gelukt.",
+      "reauth_successful": "Opnieuw verifiëren is gelukt.",
       "reconfigure_successful": "Herconfiguratie is gelukt."
     }
   },
@@ -175,7 +175,7 @@
         "name": "Stoom actief"
       },
       "safety_relay": {
-        "name": "VeiligheidsrelÃ©"
+        "name": "Veiligheidsrelé"
       },
       "screen_lock": {
         "name": "Schermvergrendeling"
@@ -193,6 +193,41 @@
       },
       "on_time": {
         "name": "Sessietijd"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna-opties",
+        "data": {
+          "linked_lights": "Gekoppelde HA-lampen (bediend met de lichtknop op het paneel)",
+          "light_sync_mode": "Richting lichtsynchronisatie",
+          "session_end_mode": "Gedrag bij sessie-einde",
+          "cooldown_temp_sensor": "Referentietemperatuursensor voor afkoeling (optioneel, standaard de interne Harvia-sensor)",
+          "cooldown_hysteresis": "Hysterese onder de doeltemperatuur",
+          "cooldown_max_minutes": "Maximale afkoelduur (vangnet)",
+          "use_ext_sensor_for_max_temp": "Externe sensor ook gebruiken voor de max. sessietemperatuur"
+        },
+        "data_description": {
+          "linked_lights": "Kies HA-lichtentiteiten (bijv. Hue-strips) die de lichtknop op het Harvia-paneel volgen — ook als er fysiek geen lamp op de regelunit is aangesloten.",
+          "session_end_mode": "'Afkoeling' laat de sessie doorlopen na het uitschakelen van de kachel totdat de temperatuur onder het doel zakt — handig bij kachels met veel steenmassa."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Uitgeschakeld",
+        "panel_to_ha": "Alleen paneel → HA",
+        "bidirectional": "Bidirectioneel (paneel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Bij uitschakelen van de kachel (klassiek)",
+        "cooldown": "Wanneer de temperatuur onder het doel zakt (afkoeling)"
       }
     }
   }

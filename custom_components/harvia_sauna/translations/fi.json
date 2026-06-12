@@ -3,16 +3,16 @@
     "step": {
       "user": {
         "title": "Harvia Sauna",
-        "description": "Valitse ohjaintyyppi ja syÃ¶tÃ¤ kirjautumistietosi.",
+        "description": "Valitse ohjaintyyppi ja syötä kirjautumistietosi.",
         "data": {
-          "username": "SÃ¤hkÃ¶posti",
+          "username": "Sähköposti",
           "password": "Salasana",
           "api_provider": "API-palveluntarjoaja"
         }
       },
       "heater": {
         "title": "Kiukaan asetukset",
-        "description": "Valitse saunakiukaasi malli ja teho. TÃ¤mÃ¤ auttaa nÃ¤yttÃ¤mÃ¤Ã¤n oikeat laitetiedot ja sitÃ¤ voi muuttaa myÃ¶hemmin.",
+        "description": "Valitse saunakiukaasi malli ja teho. Tämä auttaa näyttämään oikeat laitetiedot ja sitä voi muuttaa myöhemmin.",
         "data": {
           "heater_model": "Kiuasmalli",
           "heater_power": "Kiukaan teho (kW)"
@@ -20,33 +20,33 @@
       },
       "reauth_confirm": {
         "title": "Harvia Sauna -uudelleentodennus",
-        "description": "SyÃ¶tÃ¤ pÃ¤ivitetyt MyHarvia-kirjautumistietosi.",
+        "description": "Syötä päivitetyt MyHarvia-kirjautumistietosi.",
         "data": {
-          "username": "SÃ¤hkÃ¶posti",
+          "username": "Sähköposti",
           "password": "Salasana"
         }
       },
       "reconfigure": {
         "title": "Harvia Saunan uudelleenasetukset",
-        "description": "PÃ¤ivitÃ¤ kiuasmalli ja teho.",
+        "description": "Päivitä kiuasmalli ja teho.",
         "data": {
           "heater_model": "Kiuasmalli",
           "heater_power": "Kiukaan teho (kW)",
-          "password": "Uusi salasana (jÃ¤tÃ¤ tyhjÃ¤ksi jos ei muutu)",
-          "username": "SÃ¤hkÃ¶posti"
+          "password": "Uusi salasana (jätä tyhjäksi jos ei muutu)",
+          "username": "Sähköposti"
         }
       }
     },
     "error": {
       "invalid_auth": "Virheelliset kirjautumistiedot. Tarkista MyHarvia-sovelluksen kirjautumistiedot.",
-      "cannot_connect": "YhteyttÃ¤ MyHarvia-pilvipalveluun ei saada. YritÃ¤ myÃ¶hemmin uudelleen.",
+      "cannot_connect": "Yhteyttä MyHarvia-pilvipalveluun ei saada. Yritä myöhemmin uudelleen.",
       "unknown": "Odottamaton virhe.",
-      "password_required": "Salasana vaaditaan kun kÃ¤yttÃ¤jÃ¤nimi vaihdetaan."
+      "password_required": "Salasana vaaditaan kun käyttäjänimi vaihdetaan."
     },
     "abort": {
-      "already_configured": "TÃ¤mÃ¤ tili on jo mÃ¤Ã¤ritetty.",
+      "already_configured": "Tämä tili on jo määritetty.",
       "reauth_successful": "Uudelleentodennus onnistui.",
-      "reconfigure_successful": "UudelleenmÃ¤Ã¤ritys onnistui."
+      "reconfigure_successful": "Uudelleenmääritys onnistui."
     }
   },
   "entity": {
@@ -66,7 +66,7 @@
         "name": "Puhallin"
       },
       "steamer": {
-        "name": "HÃ¶yrystin"
+        "name": "Höyrystin"
       },
       "aroma": {
         "name": "Tuoksu"
@@ -83,19 +83,19 @@
     },
     "sensor": {
       "current_temperature": {
-        "name": "LÃ¤mpÃ¶tila"
+        "name": "Lämpötila"
       },
       "humidity": {
         "name": "Kosteus"
       },
       "target_temperature": {
-        "name": "TavoitelÃ¤mpÃ¶tila"
+        "name": "Tavoitelämpötila"
       },
       "remaining_time": {
-        "name": "JÃ¤ljellÃ¤ oleva aika"
+        "name": "Jäljellä oleva aika"
       },
       "heat_up_time": {
-        "name": "LÃ¤mpenemisaika"
+        "name": "Lämpenemisaika"
       },
       "wifi_rssi": {
         "name": "WiFi-signaali"
@@ -116,10 +116,10 @@
         "name": "Vaihe 3 relekierrokset"
       },
       "heat_on_counter": {
-        "name": "LÃ¤mmityskierrokset"
+        "name": "Lämmityskierrokset"
       },
       "steam_on_counter": {
-        "name": "HÃ¶yrykierrokset"
+        "name": "Höyrykierrokset"
       },
       "power": {
         "name": "Teho (arvioitu)"
@@ -131,34 +131,34 @@
         "name": "Viimeisen saunomisen kesto"
       },
       "last_session_max_temp": {
-        "name": "Viimeisen saunomisen enimmÃ¤islÃ¤mpÃ¶tila"
+        "name": "Viimeisen saunomisen enimmäislämpötila"
       },
       "sessions_today": {
-        "name": "Saunomiskerrat tÃ¤nÃ¤Ã¤n"
+        "name": "Saunomiskerrat tänään"
       },
       "temp_trend": {
-        "name": "LÃ¤mpÃ¶tilatrendi"
+        "name": "Lämpötilatrendi"
       },
       "heater_power_actual": {
         "name": "Kiukaan todellinen teho"
       },
       "main_sensor_temp": {
-        "name": "PÃ¤Ã¤asensorin lÃ¤mpÃ¶tila"
+        "name": "Pääasensorin lämpötila"
       },
       "ext_sensor_temp": {
-        "name": "Ulkoisen anturin lÃ¤mpÃ¶tila"
+        "name": "Ulkoisen anturin lämpötila"
       },
       "panel_temp": {
-        "name": "Paneelin lÃ¤mpÃ¶tila"
+        "name": "Paneelin lämpötila"
       },
       "total_sessions": {
-        "name": "YhteensÃ¤ istunnot"
+        "name": "Yhteensä istunnot"
       },
       "total_bathing_hours": {
-        "name": "YhteensÃ¤ saunomatuntit"
+        "name": "Yhteensä saunomatuntit"
       },
       "total_hours": {
-        "name": "YhteensÃ¤ kÃ¤yttÃ¶tunnit"
+        "name": "Yhteensä käyttötunnit"
       },
       "active_profile": {
         "name": "Aktiivinen profiili"
@@ -169,19 +169,19 @@
         "name": "Ovi"
       },
       "heat_on": {
-        "name": "LÃ¤mmitys pÃ¤Ã¤llÃ¤"
+        "name": "Lämmitys päällä"
       },
       "steam_on": {
-        "name": "HÃ¶yry pÃ¤Ã¤llÃ¤"
+        "name": "Höyry päällä"
       },
       "safety_relay": {
         "name": "Turvarele"
       },
       "screen_lock": {
-        "name": "NÃ¤ytÃ¶n lukitus"
+        "name": "Näytön lukitus"
       },
       "remote_allowed": {
-        "name": "EtÃ¤hallinta sallittu"
+        "name": "Etähallinta sallittu"
       }
     },
     "number": {
@@ -193,6 +193,41 @@
       },
       "on_time": {
         "name": "Istunnon kesto"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna -asetukset",
+        "data": {
+          "linked_lights": "Linkitetyt HA-valot (ohjataan paneelin valopainikkeella)",
+          "light_sync_mode": "Valosynkronoinnin suunta",
+          "session_end_mode": "Istunnon päättymistapa",
+          "cooldown_temp_sensor": "Jäähtymisvaiheen vertailulämpötila-anturi (valinnainen, oletuksena Harvian sisäinen anturi)",
+          "cooldown_hysteresis": "Hystereesi tavoitelämpötilan alapuolella",
+          "cooldown_max_minutes": "Jäähtymisen enimmäiskesto (turvaverkko)",
+          "use_ext_sensor_for_max_temp": "Käytä ulkoista anturia myös istunnon maksimilämpötilaan"
+        },
+        "data_description": {
+          "linked_lights": "Valitse HA-valot (esim. Hue-nauhat), jotka seuraavat Harvia-paneelin valopainiketta — vaikka ohjausyksikköön ei olisi fyysisesti kytketty valoa.",
+          "session_end_mode": "”Jäähtyminen” pitää istunnon käynnissä kiukaan sammuttamisen jälkeen, kunnes lämpötila laskee tavoitteen alle — hyödyllinen suuren kivimassan kiukailla."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Pois käytöstä",
+        "panel_to_ha": "Vain paneeli → HA",
+        "bidirectional": "Kaksisuuntainen (paneeli ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Kun kiuas sammuu (klassinen)",
+        "cooldown": "Kun lämpötila laskee tavoitteen alle (jäähtyminen)"
       }
     }
   }

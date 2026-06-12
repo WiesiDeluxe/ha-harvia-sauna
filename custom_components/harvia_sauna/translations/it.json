@@ -12,7 +12,7 @@
       },
       "heater": {
         "title": "Configurazione stufa",
-        "description": "Seleziona il modello e la potenza della stufa per sauna. Questo aiuta a visualizzare le informazioni corrette e puÃ² essere modificato in seguito.",
+        "description": "Seleziona il modello e la potenza della stufa per sauna. Questo aiuta a visualizzare le informazioni corrette e può essere modificato in seguito.",
         "data": {
           "heater_model": "Modello stufa",
           "heater_power": "Potenza stufa (kW)"
@@ -39,12 +39,12 @@
     },
     "error": {
       "invalid_auth": "Credenziali non valide. Controlla i dati di accesso dell'app MyHarvia.",
-      "cannot_connect": "Impossibile connettersi al cloud MyHarvia. Riprova piÃ¹ tardi.",
-      "unknown": "Si Ã¨ verificato un errore imprevisto.",
-      "password_required": "La password Ã¨ obbligatoria quando si cambia il nome utente."
+      "cannot_connect": "Impossibile connettersi al cloud MyHarvia. Riprova più tardi.",
+      "unknown": "Si è verificato un errore imprevisto.",
+      "password_required": "La password è obbligatoria quando si cambia il nome utente."
     },
     "abort": {
-      "already_configured": "Questo account Ã¨ giÃ  configurato.",
+      "already_configured": "Questo account è già configurato.",
       "reauth_successful": "Riautenticazione riuscita.",
       "reconfigure_successful": "Riconfigurazione riuscita."
     }
@@ -86,7 +86,7 @@
         "name": "Temperatura"
       },
       "humidity": {
-        "name": "UmiditÃ "
+        "name": "Umidità"
       },
       "target_temperature": {
         "name": "Temperatura target"
@@ -107,13 +107,13 @@
         "name": "Livello aroma"
       },
       "ph1_relay_counter": {
-        "name": "Cicli relÃ¨ fase 1"
+        "name": "Cicli relè fase 1"
       },
       "ph2_relay_counter": {
-        "name": "Cicli relÃ¨ fase 2"
+        "name": "Cicli relè fase 2"
       },
       "ph3_relay_counter": {
-        "name": "Cicli relÃ¨ fase 3"
+        "name": "Cicli relè fase 3"
       },
       "heat_on_counter": {
         "name": "Cicli di riscaldamento"
@@ -175,7 +175,7 @@
         "name": "Vapore attivo"
       },
       "safety_relay": {
-        "name": "RelÃ¨ di sicurezza"
+        "name": "Relè di sicurezza"
       },
       "screen_lock": {
         "name": "Blocco schermo"
@@ -186,13 +186,48 @@
     },
     "number": {
       "target_humidity": {
-        "name": "UmiditÃ  target"
+        "name": "Umidità target"
       },
       "aroma_level_set": {
         "name": "Livello aroma"
       },
       "on_time": {
         "name": "Durata sessione"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni Harvia Sauna",
+        "data": {
+          "linked_lights": "Luci HA collegate (controllate dal pulsante luce del pannello)",
+          "light_sync_mode": "Direzione sincronizzazione luce",
+          "session_end_mode": "Comportamento fine sessione",
+          "cooldown_temp_sensor": "Sensore di temperatura di riferimento per il raffreddamento (opzionale, predefinito: sensore interno Harvia)",
+          "cooldown_hysteresis": "Isteresi sotto la temperatura target",
+          "cooldown_max_minutes": "Durata massima del raffreddamento (rete di sicurezza)",
+          "use_ext_sensor_for_max_temp": "Usa il sensore esterno per la temperatura max della sessione"
+        },
+        "data_description": {
+          "linked_lights": "Scegli entità luce HA (es. strisce Hue) che seguiranno il pulsante luce del pannello Harvia — anche se nessuna luce è collegata fisicamente alla centralina.",
+          "session_end_mode": "La modalità «raffreddamento» mantiene attiva la sessione dopo lo spegnimento della stufa finché la temperatura non scende sotto il target — utile per stufe con grande massa di pietre."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Disattivato",
+        "panel_to_ha": "Solo pannello → HA",
+        "bidirectional": "Bidirezionale (pannello ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Allo spegnimento della stufa (classico)",
+        "cooldown": "Quando la temperatura scende sotto il target (raffreddamento)"
       }
     }
   }

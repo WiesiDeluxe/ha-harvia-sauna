@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Harvia Saun",
-        "description": "Valige kontrolleri tÃ¼Ã¼p ja sisestage oma mandaadid.",
+        "description": "Valige kontrolleri tüüp ja sisestage oma mandaadid.",
         "data": {
           "username": "E-post",
           "password": "Parool",
@@ -12,10 +12,10 @@
       },
       "heater": {
         "title": "Kerise seadistamine",
-        "description": "Vali oma saunakerise mudel ja vÃµimsus. See aitab kuvada Ãµiget seadmeteavet ja seda saab hiljem muuta.",
+        "description": "Vali oma saunakerise mudel ja võimsus. See aitab kuvada õiget seadmeteavet ja seda saab hiljem muuta.",
         "data": {
           "heater_model": "Kerise mudel",
-          "heater_power": "Kerise vÃµimsus (kW)"
+          "heater_power": "Kerise võimsus (kW)"
         }
       },
       "reauth_confirm": {
@@ -27,26 +27,26 @@
         }
       },
       "reconfigure": {
-        "title": "Harvia sauna Ã¼mberkonfigureerimine",
-        "description": "Uuenda kerise mudelit ja vÃµimsust.",
+        "title": "Harvia sauna ümberkonfigureerimine",
+        "description": "Uuenda kerise mudelit ja võimsust.",
         "data": {
           "heater_model": "Kerise mudel",
-          "heater_power": "Kerise vÃµimsus (kW)",
-          "password": "Uus parool (jÃ¤ta tÃ¼hjaks kui ei muutu)",
+          "heater_power": "Kerise võimsus (kW)",
+          "password": "Uus parool (jäta tühjaks kui ei muutu)",
           "username": "E-post"
         }
       }
     },
     "error": {
       "invalid_auth": "Vigased sisselogimisandmed. Kontrolli oma MyHarvia rakenduse sisselogimist.",
-      "cannot_connect": "MyHarvia pilvega ei saa Ã¼hendust. Proovi hiljem uuesti.",
+      "cannot_connect": "MyHarvia pilvega ei saa ühendust. Proovi hiljem uuesti.",
       "unknown": "Ilmnes ootamatu viga.",
-      "password_required": "Parool on nÃµutav kasutajanime muutmisel."
+      "password_required": "Parool on nõutav kasutajanime muutmisel."
     },
     "abort": {
       "already_configured": "See konto on juba seadistatud.",
-      "reauth_successful": "Uuesti autentimine Ãµnnestus.",
-      "reconfigure_successful": "Ãmberkonfigureerimine Ãµnnestus."
+      "reauth_successful": "Uuesti autentimine õnnestus.",
+      "reconfigure_successful": "Ümberkonfigureerimine õnnestus."
     }
   },
   "entity": {
@@ -78,7 +78,7 @@
         "name": "Automaatne ventilaator"
       },
       "dehumidifier": {
-        "name": "Ãhukuivati"
+        "name": "Õhukuivati"
       }
     },
     "sensor": {
@@ -86,13 +86,13 @@
         "name": "Temperatuur"
       },
       "humidity": {
-        "name": "Ãhuniiskus"
+        "name": "Õhuniiskus"
       },
       "target_temperature": {
         "name": "Sihttemperatuur"
       },
       "remaining_time": {
-        "name": "JÃ¤relejÃ¤Ã¤nud aeg"
+        "name": "Järelejäänud aeg"
       },
       "heat_up_time": {
         "name": "Kuumenemisaeg"
@@ -107,19 +107,19 @@
         "name": "Aroomi tase"
       },
       "ph1_relay_counter": {
-        "name": "Faas 1 relee tsÃ¼klid"
+        "name": "Faas 1 relee tsüklid"
       },
       "ph2_relay_counter": {
-        "name": "Faas 2 relee tsÃ¼klid"
+        "name": "Faas 2 relee tsüklid"
       },
       "ph3_relay_counter": {
-        "name": "Faas 3 relee tsÃ¼klid"
+        "name": "Faas 3 relee tsüklid"
       },
       "heat_on_counter": {
-        "name": "KÃ¼tmistsÃ¼klid"
+        "name": "Kütmistsüklid"
       },
       "steam_on_counter": {
-        "name": "AurutsÃ¼klid"
+        "name": "Aurutsüklid"
       },
       "power": {
         "name": "Võimsus (hinnanguline)"
@@ -134,19 +134,19 @@
         "name": "Viimase seansi maksimaalne temperatuur"
       },
       "sessions_today": {
-        "name": "TÃ¤nased seansid"
+        "name": "Tänased seansid"
       },
       "temp_trend": {
         "name": "Temperatuuritrend"
       },
       "heater_power_actual": {
-        "name": "Aktiivne kÃ¼ttevÃµimsus"
+        "name": "Aktiivne küttevõimsus"
       },
       "main_sensor_temp": {
         "name": "Peamise anduri temperatuur"
       },
       "ext_sensor_temp": {
-        "name": "VÃ¤lise anduri temperatuur"
+        "name": "Välise anduri temperatuur"
       },
       "panel_temp": {
         "name": "Paneeli temperatuur"
@@ -158,7 +158,7 @@
         "name": "Kokku saunamise tunde"
       },
       "total_hours": {
-        "name": "Kokku tÃ¶Ã¶tunde"
+        "name": "Kokku töötunde"
       },
       "active_profile": {
         "name": "Aktiivne profil"
@@ -169,7 +169,7 @@
         "name": "Uks"
       },
       "heat_on": {
-        "name": "KÃ¼tmine aktiivne"
+        "name": "Kütmine aktiivne"
       },
       "steam_on": {
         "name": "Aur aktiivne"
@@ -186,13 +186,48 @@
     },
     "number": {
       "target_humidity": {
-        "name": "Siht-Ãµhuniiskus"
+        "name": "Siht-õhuniiskus"
       },
       "aroma_level_set": {
         "name": "Aroomi tase"
       },
       "on_time": {
         "name": "Seansi kestus"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Harvia Sauna valikud",
+        "data": {
+          "linked_lights": "Seotud HA valgustid (juhitavad paneeli valgusnupuga)",
+          "light_sync_mode": "Valguse sünkroonimise suund",
+          "session_end_mode": "Seansi lõpetamise käitumine",
+          "cooldown_temp_sensor": "Jahtumisfaasi referentstemperatuuri andur (valikuline, vaikimisi Harvia sisemine andur)",
+          "cooldown_hysteresis": "Hüsterees alla sihttemperatuuri",
+          "cooldown_max_minutes": "Maksimaalne jahtumisaeg (turvavõrk)",
+          "use_ext_sensor_for_max_temp": "Kasuta välist andurit ka seansi max temperatuuri jaoks"
+        },
+        "data_description": {
+          "linked_lights": "Vali HA valgustid (nt Hue ribad), mis järgivad Harvia paneeli valgusnuppu — isegi kui juhtplokiga pole füüsiliselt ühtegi valgustit ühendatud.",
+          "session_end_mode": "„Jahtumine” laseb seansil pärast kerise väljalülitamist jätkuda, kuni temperatuur langeb alla sihtväärtuse — kasulik suure kivimassiga keriste puhul."
+        }
+      }
+    }
+  },
+  "selector": {
+    "light_sync_mode": {
+      "options": {
+        "off": "Keelatud",
+        "panel_to_ha": "Ainult paneel → HA",
+        "bidirectional": "Kahesuunaline (paneel ↔ HA)"
+      }
+    },
+    "session_end_mode": {
+      "options": {
+        "heater_off": "Kerise väljalülitamisel (klassikaline)",
+        "cooldown": "Kui temperatuur langeb alla sihi (jahtumine)"
       }
     }
   }
