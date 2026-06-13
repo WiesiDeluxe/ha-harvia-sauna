@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Lista a las"
+      },
+      "planned_start": {
+        "name": "Inicio planificado"
+      },
+      "last_session_energy": {
+        "name": "Energía última sesión"
+      },
+      "sessions_week": {
+        "name": "Sesiones esta semana"
+      },
+      "records": {
+        "name": "Récords"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Lista"
+      },
+      "cloud_connection": {
+        "name": "Conexión a la nube"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Duración de sesión"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Próxima sesión"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zona 2: curva de color",
           "ambi_zone2_offset": "Ambilight zona 2: desfase de temperatura",
           "ambi_standard_kelvin": "Luz cotidiana: temperatura de color",
-          "ambi_standard_brightness": "Luz cotidiana: brillo"
+          "ambi_standard_brightness": "Luz cotidiana: brillo",
+          "preheat_buffer_min": "Margen de seguridad de precalentamiento",
+          "preset1_name": "Nombre del preajuste 1",
+          "preset1_temp": "Temperatura del preajuste 1",
+          "preset1_duration": "Duración del preajuste 1",
+          "preset2_name": "Nombre del preajuste 2",
+          "preset2_temp": "Temperatura del preajuste 2",
+          "preset2_duration": "Duración del preajuste 2",
+          "preset3_name": "Nombre del preajuste 3",
+          "preset3_temp": "Temperatura del preajuste 3",
+          "preset3_duration": "Duración del preajuste 3"
         },
         "data_description": {
           "linked_lights": "Elija entidades de luz de HA (p. ej., tiras Hue) que sigan el botón de luz del panel Harvia, aunque no haya ninguna luz conectada físicamente a la unidad de control.",

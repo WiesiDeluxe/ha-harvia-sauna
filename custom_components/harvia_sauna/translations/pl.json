@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Gotowa o"
+      },
+      "planned_start": {
+        "name": "Planowany start"
+      },
+      "last_session_energy": {
+        "name": "Energia ostatniej sesji"
+      },
+      "sessions_week": {
+        "name": "Sesje w tym tygodniu"
+      },
+      "records": {
+        "name": "Rekordy"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Gotowa"
+      },
+      "cloud_connection": {
+        "name": "Połączenie z chmurą"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Czas sesji"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Następna sesja"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight strefa 2: krzywa kolorów",
           "ambi_zone2_offset": "Ambilight strefa 2: przesunięcie temperatury",
           "ambi_standard_kelvin": "Światło codzienne: temperatura barwowa",
-          "ambi_standard_brightness": "Światło codzienne: jasność"
+          "ambi_standard_brightness": "Światło codzienne: jasność",
+          "preheat_buffer_min": "Margines bezpieczeństwa nagrzewania",
+          "preset1_name": "Nazwa ustawienia 1",
+          "preset1_temp": "Temperatura ustawienia 1",
+          "preset1_duration": "Czas ustawienia 1",
+          "preset2_name": "Nazwa ustawienia 2",
+          "preset2_temp": "Temperatura ustawienia 2",
+          "preset2_duration": "Czas ustawienia 2",
+          "preset3_name": "Nazwa ustawienia 3",
+          "preset3_temp": "Temperatura ustawienia 3",
+          "preset3_duration": "Czas ustawienia 3"
         },
         "data_description": {
           "linked_lights": "Wybierz encje świateł HA (np. taśmy Hue), które będą podążać za przyciskiem światła na panelu Harvia — nawet jeśli do sterownika nie podłączono fizycznie żadnego światła.",

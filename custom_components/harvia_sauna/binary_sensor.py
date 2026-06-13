@@ -111,6 +111,8 @@ async def async_setup_entry(
             entities.append(
                 HarviaBinarySensor(coordinator, device_id, description)
             )
+        # v2.8.0: cloud connectivity (coordinator-level, diagnostic)
+        entities.append(HarviaConnectivitySensor(coordinator, device_id))
 
     async_add_entities(entities)
 
@@ -137,3 +139,32 @@ class HarviaBinarySensor(HarviaBaseEntity, BinarySensorEntity):
         if device is None:
             return None
         return self.entity_description.value_fn(device)
+
+
+class HarviaConnectivitySensor(HarviaBaseEntity, BinarySensorEntity):
+    """Cloud/WebSocket connectivity of the integration (diagnostic).
+
+    Reports the coordinator's push-connection status rather than a
+    per-device value, so automations can stay quiet during a cloud outage
+    instead of reacting to `unavailable` states.
+    """
+
+    _attr_translation_key = "cloud_connection"
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self, coordinator: HarviaSaunaCoordinator, device_id: str
+    ) -> None:
+        """Initialize the connectivity sensor."""
+        super().__init__(coordinator, device_id, "cloud_connection")
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True if a push connection is active."""
+        return bool(self.coordinator.websocket_connected)
+
+    @property
+    def available(self) -> bool:
+        """Connectivity is observable even when device data is stale."""
+        return self.coordinator.last_update_success

@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Bereit um"
+      },
+      "planned_start": {
+        "name": "Geplanter Start"
+      },
+      "last_session_energy": {
+        "name": "Energie letzte Sitzung"
+      },
+      "sessions_week": {
+        "name": "Sitzungen diese Woche"
+      },
+      "records": {
+        "name": "Rekorde"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Bereit"
+      },
+      "cloud_connection": {
+        "name": "Cloud-Verbindung"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Sitzungsdauer"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Nächster Saunagang"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight Zone 2: Farbkurve",
           "ambi_zone2_offset": "Ambilight Zone 2: Temperatur-Offset",
           "ambi_standard_kelvin": "Alltagslicht: Farbtemperatur",
-          "ambi_standard_brightness": "Alltagslicht: Helligkeit"
+          "ambi_standard_brightness": "Alltagslicht: Helligkeit",
+          "preheat_buffer_min": "Vorheiz-Sicherheitspuffer",
+          "preset1_name": "Preset 1 Name",
+          "preset1_temp": "Preset 1 Temperatur",
+          "preset1_duration": "Preset 1 Dauer",
+          "preset2_name": "Preset 2 Name",
+          "preset2_temp": "Preset 2 Temperatur",
+          "preset2_duration": "Preset 2 Dauer",
+          "preset3_name": "Preset 3 Name",
+          "preset3_temp": "Preset 3 Temperatur",
+          "preset3_duration": "Preset 3 Dauer"
         },
         "data_description": {
           "linked_lights": "HA-Licht-Entitäten (z.B. Hue-Stripes) wählen, die der Licht-Taste am Harvia-Panel folgen sollen — auch wenn kein Licht physisch am Steuergerät angeschlossen ist.",

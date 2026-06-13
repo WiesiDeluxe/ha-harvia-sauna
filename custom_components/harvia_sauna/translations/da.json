@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Klar kl."
+      },
+      "planned_start": {
+        "name": "Planlagt start"
+      },
+      "last_session_energy": {
+        "name": "Energi sidste session"
+      },
+      "sessions_week": {
+        "name": "Sessioner denne uge"
+      },
+      "records": {
+        "name": "Rekorder"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Klar"
+      },
+      "cloud_connection": {
+        "name": "Cloud-forbindelse"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Sessionstid"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Næste session"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zone 2: farvekurve",
           "ambi_zone2_offset": "Ambilight zone 2: temperaturforskydning",
           "ambi_standard_kelvin": "Hverdagslys: farvetemperatur",
-          "ambi_standard_brightness": "Hverdagslys: lysstyrke"
+          "ambi_standard_brightness": "Hverdagslys: lysstyrke",
+          "preheat_buffer_min": "Forvarmnings-sikkerhedsbuffer",
+          "preset1_name": "Forudindstilling 1 navn",
+          "preset1_temp": "Forudindstilling 1 temperatur",
+          "preset1_duration": "Forudindstilling 1 varighed",
+          "preset2_name": "Forudindstilling 2 navn",
+          "preset2_temp": "Forudindstilling 2 temperatur",
+          "preset2_duration": "Forudindstilling 2 varighed",
+          "preset3_name": "Forudindstilling 3 navn",
+          "preset3_temp": "Forudindstilling 3 temperatur",
+          "preset3_duration": "Forudindstilling 3 varighed"
         },
         "data_description": {
           "linked_lights": "Vælg HA-lysenheder (f.eks. Hue-strips), der skal følge lysknappen på Harvia-panelet — selv hvis intet lys er fysisk tilsluttet styreenheden.",

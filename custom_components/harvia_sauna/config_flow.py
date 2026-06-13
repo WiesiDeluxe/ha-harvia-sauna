@@ -25,6 +25,7 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TextSelector,
 )
 
 from .api_base import HarviaApiClientBase
@@ -35,6 +36,17 @@ from .const import (
     AMBI_CURVE_WARM,
     API_PROVIDER_MYHARVIA,
     API_PROVIDERS,
+    CONF_PREHEAT_BUFFER_MIN,
+    CONF_PRESET1_DURATION,
+    CONF_PRESET1_NAME,
+    CONF_PRESET1_TEMP,
+    CONF_PRESET2_DURATION,
+    CONF_PRESET2_NAME,
+    CONF_PRESET2_TEMP,
+    CONF_PRESET3_DURATION,
+    CONF_PRESET3_NAME,
+    CONF_PRESET3_TEMP,
+    DEFAULT_PREHEAT_BUFFER_MIN,
     CONF_AMBI_STANDARD_BRIGHTNESS,
     CONF_AMBI_STANDARD_KELVIN,
     CONF_AMBI_ZONE1_CURVE,
@@ -600,6 +612,94 @@ class HarviaOptionsFlow(OptionsFlow):
                         max=100,
                         step=1,
                         unit_of_measurement="%",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                # ── Smart Preheat (v2.8.0) ────────────────────────────
+                vol.Optional(
+                    CONF_PREHEAT_BUFFER_MIN,
+                    default=options.get(
+                        CONF_PREHEAT_BUFFER_MIN, DEFAULT_PREHEAT_BUFFER_MIN
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0,
+                        max=60,
+                        step=1,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                # ── Climate presets (3 slots) ─────────────────────────
+                vol.Optional(
+                    CONF_PRESET1_NAME,
+                    default=options.get(CONF_PRESET1_NAME, ""),
+                ): TextSelector(),
+                vol.Optional(
+                    CONF_PRESET1_TEMP,
+                    default=options.get(CONF_PRESET1_TEMP, 75),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=40, max=110, step=1,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_PRESET1_DURATION,
+                    default=options.get(CONF_PRESET1_DURATION, 0),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=720, step=10,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_PRESET2_NAME,
+                    default=options.get(CONF_PRESET2_NAME, ""),
+                ): TextSelector(),
+                vol.Optional(
+                    CONF_PRESET2_TEMP,
+                    default=options.get(CONF_PRESET2_TEMP, 70),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=40, max=110, step=1,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_PRESET2_DURATION,
+                    default=options.get(CONF_PRESET2_DURATION, 0),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=720, step=10,
+                        unit_of_measurement="min",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_PRESET3_NAME,
+                    default=options.get(CONF_PRESET3_NAME, ""),
+                ): TextSelector(),
+                vol.Optional(
+                    CONF_PRESET3_TEMP,
+                    default=options.get(CONF_PRESET3_TEMP, 80),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=40, max=110, step=1,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_PRESET3_DURATION,
+                    default=options.get(CONF_PRESET3_DURATION, 0),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=720, step=10,
+                        unit_of_measurement="min",
                         mode=NumberSelectorMode.BOX,
                     )
                 ),

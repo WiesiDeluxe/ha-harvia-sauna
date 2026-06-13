@@ -36,3 +36,47 @@ set_session:
       example: true
       selector:
         boolean:
+
+ready_at:
+  name: Schedule preheat (ready at)
+  description: >
+    Switch the heater on automatically in time to reach the target
+    temperature by the given moment. The start time is computed from the
+    learned heating model and the configured safety buffer.
+  fields:
+    ready_at:
+      name: Ready at
+      description: When the sauna should be ready.
+      required: true
+      example: "2026-06-13T18:00:00"
+      selector:
+        datetime:
+    target_temp:
+      name: Target temperature
+      description: Target temperature in °C (40-110). Defaults to the current target.
+      required: false
+      example: 75
+      selector:
+        number:
+          min: 40
+          max: 110
+          unit_of_measurement: "°C"
+    device_id:
+      name: Device ID
+      description: Optional Harvia device ID. Defaults to the first device.
+      required: false
+      example: "abc123def456"
+      selector:
+        text:
+
+cancel_preheat:
+  name: Cancel preheat
+  description: Cancel an active smart-preheat schedule.
+  fields:
+    device_id:
+      name: Device ID
+      description: Optional Harvia device ID. Defaults to the first device.
+      required: false
+      example: "abc123def456"
+      selector:
+        text:

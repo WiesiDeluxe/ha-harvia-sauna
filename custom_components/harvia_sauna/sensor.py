@@ -68,6 +68,37 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         icon="mdi:clock-check-outline",
         value_fn=lambda d: d.ready_at,
     ),
+    # ── Smart Preheat & Statistics (v2.8.0) ──────────────────────
+    HarviaSensorDescription(
+        key="planned_start",
+        translation_key="planned_start",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:clock-start",
+        value_fn=lambda d: None,  # filled by coordinator-level sensor below
+    ),
+    HarviaSensorDescription(
+        key="last_session_energy",
+        translation_key="last_session_energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        state_class=SensorStateClass.TOTAL,
+        icon="mdi:lightning-bolt",
+        value_fn=lambda d: d.last_session_kwh,
+    ),
+    HarviaSensorDescription(
+        key="sessions_week",
+        translation_key="sessions_week",
+        state_class=SensorStateClass.TOTAL,
+        icon="mdi:calendar-week",
+        value_fn=lambda d: d.sessions_week,
+    ),
+    HarviaSensorDescription(
+        key="records",
+        translation_key="records",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        icon="mdi:trophy",
+        value_fn=lambda d: d.total_sessions_local,
+    ),
     HarviaSensorDescription(
         key="humidity",
         translation_key="humidity",
@@ -336,6 +367,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
 
 
 RESTORABLE_SESSION_KEYS = {"last_session_duration", "last_session_max_temp", "sessions_today"}
+RESTORABLE_STATS_KEYS = {"last_session_energy", "sessions_week", "records"}
 
 
 async def async_setup_entry(
@@ -358,9 +390,17 @@ async def async_setup_entry(
                 entities.append(
                     HarviaEnergySensor(coordinator, device_id, description)
                 )
+            elif description.key == "planned_start":
+                entities.append(
+                    HarviaPlannedStartSensor(coordinator, device_id, description)
+                )
             elif description.key in RESTORABLE_SESSION_KEYS:
                 entities.append(
                     HarviaSessionSensor(coordinator, device_id, description)
+                )
+            elif description.key in RESTORABLE_STATS_KEYS:
+                entities.append(
+                    HarviaStatsSensor(coordinator, device_id, description)
                 )
             else:
                 entities.append(
@@ -457,3 +497,108 @@ class HarviaSessionSensor(HarviaSensor, RestoreEntity):
                 device.sessions_today = int(restored_value)
                 device._sessions_today_date = today
                 _LOGGER.debug("Restored sessions_today: %d", int(restored_value))
+
+
+class HarviaPlannedStartSensor(HarviaSensor):
+    """Computed heater start time for the active preheat schedule.
+
+    Coordinator-level value (the scheduler lives on the coordinator, not on
+    device data), so the value is read from coordinator.preheat. Attributes
+    expose the scheduled ready-at time and the heating-model calibration
+    state for transparency.
+    """
+
+    @property
+    def native_value(self):
+        """Return the planned start time, or None when nothing scheduled."""
+        scheduler = getattr(self.coordinator, "preheat", None)
+        if scheduler is None:
+            return None
+        return scheduler.planned_start
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Expose schedule and model details."""
+        scheduler = getattr(self.coordinator, "preheat", None)
+        model = getattr(self.coordinator, "heating_model", None)
+        attrs: dict = {}
+        if scheduler is not None:
+            ready_at = scheduler.ready_at
+            attrs["ready_at"] = ready_at.isoformat() if ready_at else None
+            attrs["buffer_min"] = scheduler.buffer_min
+        if model is not None:
+            attrs["model_calibrated"] = model.calibrated
+            attrs["model_samples"] = model.samples_total
+        return attrs or None
+
+
+class HarviaStatsSensor(HarviaSensor, RestoreEntity):
+    """Statistics sensor with state + attribute restoration.
+
+    Restores last_session_energy, sessions_week (with its ISO-week anchor)
+    and records (with hottest/longest attributes) so the values survive
+    restarts and reloads.
+    """
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the persisted statistic value and attributes."""
+        await super().async_added_to_hass()
+
+        last_state = await self.async_get_last_state()
+        if last_state is None or last_state.state in ("unknown", "unavailable"):
+            return
+
+        device = self._get_device_data()
+        if device is None:
+            return
+
+        key = self.entity_description.key
+        attrs = last_state.attributes
+
+        try:
+            value = float(last_state.state)
+        except (ValueError, TypeError):
+            value = None
+
+        if key == "last_session_energy" and device.last_session_kwh is None:
+            if value is not None:
+                device.last_session_kwh = value
+
+        elif key == "sessions_week" and device.sessions_week == 0:
+            # Only restore within the same ISO week
+            import datetime as dt
+            iso = dt.datetime.now().isocalendar()
+            week_anchor = f"{iso[0]}-{iso[1]:02d}"
+            restored_anchor = attrs.get("week_anchor")
+            if restored_anchor == week_anchor and value is not None:
+                device.sessions_week = int(value)
+                device._sessions_week_anchor = week_anchor
+
+        elif key == "records":
+            if value is not None and device.total_sessions_local == 0:
+                device.total_sessions_local = int(value)
+            if device.record_max_temp is None:
+                rec_t = attrs.get("hottest_session_c")
+                if rec_t is not None:
+                    device.record_max_temp = float(rec_t)
+            if device.record_duration_min is None:
+                rec_d = attrs.get("longest_session_min")
+                if rec_d is not None:
+                    device.record_duration_min = float(rec_d)
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Expose record details and the week anchor for restoration."""
+        device = self._get_device_data()
+        if device is None:
+            return None
+        key = self.entity_description.key
+        if key == "records":
+            return {
+                "hottest_session_c": device.record_max_temp,
+                "longest_session_min": device.record_duration_min,
+                "total_sessions": device.total_sessions_local,
+            }
+        if key == "sessions_week":
+            return {"week_anchor": device._sessions_week_anchor or None}
+        return None

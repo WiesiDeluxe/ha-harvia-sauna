@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Klar kl."
+      },
+      "planned_start": {
+        "name": "Planerad start"
+      },
+      "last_session_energy": {
+        "name": "Energi senaste passet"
+      },
+      "sessions_week": {
+        "name": "Pass denna vecka"
+      },
+      "records": {
+        "name": "Rekord"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Klar"
+      },
+      "cloud_connection": {
+        "name": "Molnanslutning"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Sessionslängd"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Nästa pass"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zon 2: färgkurva",
           "ambi_zone2_offset": "Ambilight zon 2: temperaturförskjutning",
           "ambi_standard_kelvin": "Vardagsljus: färgtemperatur",
-          "ambi_standard_brightness": "Vardagsljus: ljusstyrka"
+          "ambi_standard_brightness": "Vardagsljus: ljusstyrka",
+          "preheat_buffer_min": "Förvärmnings-säkerhetsmarginal",
+          "preset1_name": "Förinställning 1 namn",
+          "preset1_temp": "Förinställning 1 temperatur",
+          "preset1_duration": "Förinställning 1 varaktighet",
+          "preset2_name": "Förinställning 2 namn",
+          "preset2_temp": "Förinställning 2 temperatur",
+          "preset2_duration": "Förinställning 2 varaktighet",
+          "preset3_name": "Förinställning 3 namn",
+          "preset3_temp": "Förinställning 3 temperatur",
+          "preset3_duration": "Förinställning 3 varaktighet"
         },
         "data_description": {
           "linked_lights": "Välj HA-ljusentiteter (t.ex. Hue-strips) som ska följa ljusknappen på Harvia-panelen — även om ingen lampa är fysiskt ansluten till styrenheten.",

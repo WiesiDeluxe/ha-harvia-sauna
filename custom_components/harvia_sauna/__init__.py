@@ -12,24 +12,31 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
+from homeassistant.util import dt as dt_util
 
 from .api_factory import create_api_client, get_provider_from_entry_data
 from .const import (
+    CONF_HEATER_MODEL,
     CONF_HEATER_POWER,
     DEFAULT_HEATER_POWER_W,
     DOMAIN,
+    SERVICE_CANCEL_PREHEAT,
+    SERVICE_READY_AT,
     SERVICE_SET_SESSION,
 )
 from .coordinator import HarviaSaunaCoordinator
 from .errors import HarviaAuthError, HarviaConnectionError
 from .ambilight import HarviaAmbilight
+from .learning import HeatingModel, heater_class_for_model
 from .light_sync import HarviaLightSync
+from .preheat import PreheatScheduler
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.CLIMATE,
+    Platform.DATETIME,
     Platform.NUMBER,
     Platform.SENSOR,
     Platform.SWITCH,
@@ -45,6 +52,22 @@ SERVICE_SET_SESSION_SCHEMA = vol.Schema(
             vol.Coerce(int), vol.Range(min=1, max=720)
         ),
         vol.Optional("active"): cv.boolean,
+    }
+)
+
+SERVICE_READY_AT_SCHEMA = vol.Schema(
+    {
+        vol.Required("ready_at"): cv.datetime,
+        vol.Optional("target_temp"): vol.All(
+            vol.Coerce(int), vol.Range(min=40, max=110)
+        ),
+        vol.Optional("device_id"): cv.string,
+    }
+)
+
+SERVICE_CANCEL_PREHEAT_SCHEMA = vol.Schema(
+    {
+        vol.Optional("device_id"): cv.string,
     }
 )
 
@@ -87,6 +110,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ambilight = HarviaAmbilight(hass, coordinator, entry)
     coordinator.ambilight = ambilight
 
+    # v2.8.0: heating model (learned) + preheat scheduler
+    heater_class = heater_class_for_model(entry.data.get(CONF_HEATER_MODEL))
+    heating_model = HeatingModel(hass, entry.entry_id, heater_class)
+    await heating_model.async_load()
+    coordinator.heating_model = heating_model
+
+    scheduler = PreheatScheduler(hass, coordinator, entry)
+    coordinator.preheat = scheduler
+
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -97,6 +129,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await ambilight.async_setup()
     entry.async_on_unload(ambilight.async_teardown)
+
+    # Re-arm a persisted preheat schedule (after restart)
+    await scheduler.async_load()
+    entry.async_on_unload(scheduler.async_teardown)
 
     # Register services (once)
     _async_register_services(hass)
@@ -180,10 +216,63 @@ def _async_register_services(hass: HomeAssistant) -> None:
 
         _LOGGER.error("Device %s not found in any coordinator", device_id)
 
+    def _find_coordinator(device_id: str | None):
+        """Return (coordinator, device_id) for a device, or first coordinator."""
+        coordinators = list(hass.data.get(DOMAIN, {}).values())
+        if device_id:
+            for coord in coordinators:
+                if coord.data and device_id in coord.data.devices:
+                    return coord, device_id
+            return None, device_id
+        # No device given: use the first coordinator and its first device
+        if coordinators:
+            coord = coordinators[0]
+            dev = next(iter(coord.data.devices)) if coord.data and coord.data.devices else None
+            return coord, dev
+        return None, None
+
+    async def async_handle_ready_at(call: ServiceCall) -> None:
+        """Schedule a smart preheat to be ready at a given time."""
+        device_id = call.data.get("device_id")
+        coordinator, resolved = _find_coordinator(device_id)
+        if coordinator is None or coordinator.preheat is None:
+            _LOGGER.error("ready_at: no coordinator for device %s", device_id)
+            return
+        ready_at = call.data["ready_at"]
+        if ready_at.tzinfo is None:
+            ready_at = dt_util.as_local(ready_at)
+        await coordinator.preheat.async_set_schedule(
+            dt_util.as_utc(ready_at),
+            call.data.get("target_temp"),
+            resolved,
+        )
+
+    async def async_handle_cancel_preheat(call: ServiceCall) -> None:
+        """Cancel an active preheat schedule."""
+        device_id = call.data.get("device_id")
+        coordinator, _ = _find_coordinator(device_id)
+        if coordinator is None or coordinator.preheat is None:
+            return
+        await coordinator.preheat.async_cancel()
+
     if not hass.services.has_service(DOMAIN, SERVICE_SET_SESSION):
         hass.services.async_register(
             DOMAIN,
             SERVICE_SET_SESSION,
             async_handle_set_session,
             schema=SERVICE_SET_SESSION_SCHEMA,
+        )
+    if not hass.services.has_service(DOMAIN, SERVICE_READY_AT):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_READY_AT,
+            async_handle_ready_at,
+            schema=SERVICE_READY_AT_SCHEMA,
+        )
+    if not hass.services.has_service(DOMAIN, SERVICE_CANCEL_PREHEAT):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_CANCEL_PREHEAT,
+            async_handle_cancel_preheat,
+            schema=SERVICE_CANCEL_PREHEAT_SCHEMA,
         )

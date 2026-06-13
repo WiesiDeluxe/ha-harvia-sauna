@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "準備完了時刻"
+      },
+      "planned_start": {
+        "name": "予定開始時刻"
+      },
+      "last_session_energy": {
+        "name": "前回セッションのエネルギー"
+      },
+      "sessions_week": {
+        "name": "今週のセッション数"
+      },
+      "records": {
+        "name": "記録"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "準備完了"
+      },
+      "cloud_connection": {
+        "name": "クラウド接続"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "セッション時間"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "次回のセッション"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "アンビライト ゾーン2: カラーカーブ",
           "ambi_zone2_offset": "アンビライト ゾーン2: 温度オフセット",
           "ambi_standard_kelvin": "通常時の照明: 色温度",
-          "ambi_standard_brightness": "通常時の照明: 明るさ"
+          "ambi_standard_brightness": "通常時の照明: 明るさ",
+          "preheat_buffer_min": "予熱の安全マージン",
+          "preset1_name": "プリセット1 名前",
+          "preset1_temp": "プリセット1 温度",
+          "preset1_duration": "プリセット1 時間",
+          "preset2_name": "プリセット2 名前",
+          "preset2_temp": "プリセット2 温度",
+          "preset2_duration": "プリセット2 時間",
+          "preset3_name": "プリセット3 名前",
+          "preset3_temp": "プリセット3 温度",
+          "preset3_duration": "プリセット3 時間"
         },
         "data_description": {
           "linked_lights": "Harviaパネルのライトボタンに連動させるHAライト（例：Hueストリップ）を選択します。制御ユニットに照明が物理的に接続されていなくても機能します。",

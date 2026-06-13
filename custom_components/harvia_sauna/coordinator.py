@@ -151,6 +151,15 @@ class HarviaDeviceData:
     sessions_today: int = 0
     _sessions_today_date: str = ""  # ISO date string for reset
 
+    # Statistics (v2.8.0) — restored via RestoreEntity in sensor.py
+    last_session_kwh: float | None = None      # energy delta of last session
+    _session_start_kwh: float | None = None    # energy_kwh snapshot at start
+    sessions_week: int = 0                      # reset Monday (ISO week)
+    _sessions_week_anchor: str = ""             # ISO "year-week" string
+    record_max_temp: float | None = None        # hottest session ever (°C)
+    record_duration_min: float | None = None    # longest session ever (min)
+    total_sessions_local: int = 0               # sessions counted locally
+
     # Usage statistics (lifetime totals) - Fenix-specific
     total_sessions: int = 0  # From telemetry["totalSessions"]
     total_bathing_hours: int = 0  # From telemetry["totalBathingHours"]
@@ -228,6 +237,11 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     polling interval for resilience.
     """
 
+    # Optional sub-controllers, attached in __init__.py during setup
+    ambilight: Any = None
+    heating_model: Any = None
+    preheat: Any = None
+
     config_entry: ConfigEntry
 
     def __init__(
@@ -278,9 +292,29 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     def _run_session_tracking(self, device: HarviaDeviceData) -> None:
         """Run session tracking with current options and external sensor."""
         ext_temp = self._get_external_temp_c(device)
+        was_active = device._session_active
         _update_session_tracking(self.hass, device, self.session_options, ext_temp)
         _update_ready_state(self.hass, device, self.session_options, ext_temp)
         _update_ref_trend_and_eta(device, self.session_options, ext_temp)
+
+        # Feed the heating model (v2.8.0). Learn only while the session is
+        # active (not during cooldown — heater is off there).
+        model = getattr(self, "heating_model", None)
+        if model is not None:
+            if device._session_active and not was_active:
+                model.reset_recording()  # fresh heat-up
+            ref_temp = ext_temp if ext_temp is not None else device.current_temp
+            if device._session_active and ref_temp is not None:
+                model.add_sample(
+                    float(ref_temp),
+                    heating=bool(device.active),
+                    door_open=device.door_open,
+                    target_temp=device.target_temp,
+                )
+            elif was_active and not device._session_active:
+                # Session just ended — persist what was learned
+                if model.finish_recording():
+                    self.hass.async_create_task(model.async_save())
 
     def _get_external_temp_c(self, device: HarviaDeviceData) -> float | None:
         """Read the configured external temp sensor, normalized to °C.
@@ -705,6 +739,7 @@ def _update_session_tracking(
         device._cooldown_started = None
         device._frozen_target_temp = None
         device.ready = False  # re-arm ready detection for the new session
+        device._session_start_kwh = device.energy_kwh  # for last_session_kwh
 
         hass.bus.async_fire(EVENT_SESSION_START, {
             "device_id": device.device_id,
@@ -818,6 +853,29 @@ def _end_session(
             device.last_session_duration = round(duration_min, 1)
             device.last_session_max_temp = device._session_max_temp
             device.sessions_today += 1
+
+            # ── Statistics (v2.8.0) ──────────────────────────────────
+            if device._session_start_kwh is not None:
+                delta = device.energy_kwh - device._session_start_kwh
+                device.last_session_kwh = round(max(0.0, delta), 2)
+            import datetime as _dt
+            iso = _dt.datetime.now().isocalendar()
+            week_anchor = f"{iso[0]}-{iso[1]:02d}"
+            if device._sessions_week_anchor != week_anchor:
+                device._sessions_week_anchor = week_anchor
+                device.sessions_week = 0
+            device.sessions_week += 1
+            device.total_sessions_local += 1
+            if (
+                device.record_max_temp is None
+                or device.last_session_max_temp > device.record_max_temp
+            ):
+                device.record_max_temp = device.last_session_max_temp
+            if (
+                device.record_duration_min is None
+                or device.last_session_duration > device.record_duration_min
+            ):
+                device.record_duration_min = device.last_session_duration
 
             hass.bus.async_fire(EVENT_SESSION_END, {
                 "device_id": device.device_id,

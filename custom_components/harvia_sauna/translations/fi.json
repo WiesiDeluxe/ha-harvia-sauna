@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Valmis klo"
+      },
+      "planned_start": {
+        "name": "Suunniteltu aloitus"
+      },
+      "last_session_energy": {
+        "name": "Edellisen kerran energia"
+      },
+      "sessions_week": {
+        "name": "Kertoja tällä viikolla"
+      },
+      "records": {
+        "name": "Ennätykset"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Valmis"
+      },
+      "cloud_connection": {
+        "name": "Pilviyhteys"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Istunnon kesto"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Seuraava saunomiskerta"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight-vyöhyke 2: värikäyrä",
           "ambi_zone2_offset": "Ambilight-vyöhyke 2: lämpötilapoikkeama",
           "ambi_standard_kelvin": "Arkivalo: värilämpötila",
-          "ambi_standard_brightness": "Arkivalo: kirkkaus"
+          "ambi_standard_brightness": "Arkivalo: kirkkaus",
+          "preheat_buffer_min": "Esilämmityksen turvamarginaali",
+          "preset1_name": "Esiasetus 1 nimi",
+          "preset1_temp": "Esiasetus 1 lämpötila",
+          "preset1_duration": "Esiasetus 1 kesto",
+          "preset2_name": "Esiasetus 2 nimi",
+          "preset2_temp": "Esiasetus 2 lämpötila",
+          "preset2_duration": "Esiasetus 2 kesto",
+          "preset3_name": "Esiasetus 3 nimi",
+          "preset3_temp": "Esiasetus 3 lämpötila",
+          "preset3_duration": "Esiasetus 3 kesto"
         },
         "data_description": {
           "linked_lights": "Valitse HA-valot (esim. Hue-nauhat), jotka seuraavat Harvia-paneelin valopainiketta — vaikka ohjausyksikköön ei olisi fyysisesti kytketty valoa.",

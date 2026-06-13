@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "就绪时间"
+      },
+      "planned_start": {
+        "name": "计划开始"
+      },
+      "last_session_energy": {
+        "name": "上次会话能耗"
+      },
+      "sessions_week": {
+        "name": "本周会话数"
+      },
+      "records": {
+        "name": "记录"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "就绪"
+      },
+      "cloud_connection": {
+        "name": "云连接"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "ä½¿ç¨æ¶é´"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "下次会话"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "流光溢彩区域2：色彩曲线",
           "ambi_zone2_offset": "流光溢彩区域2：温度偏移",
           "ambi_standard_kelvin": "日常灯光：色温",
-          "ambi_standard_brightness": "日常灯光：亮度"
+          "ambi_standard_brightness": "日常灯光：亮度",
+          "preheat_buffer_min": "预热安全余量",
+          "preset1_name": "预设1 名称",
+          "preset1_temp": "预设1 温度",
+          "preset1_duration": "预设1 时长",
+          "preset2_name": "预设2 名称",
+          "preset2_temp": "预设2 温度",
+          "preset2_duration": "预设2 时长",
+          "preset3_name": "预设3 名称",
+          "preset3_temp": "预设3 温度",
+          "preset3_duration": "预设3 时长"
         },
         "data_description": {
           "linked_lights": "选择跟随 Harvia 面板灯光按钮的 HA 灯实体（如 Hue 灯带）——即使控制单元未实际连接任何灯也可使用。",

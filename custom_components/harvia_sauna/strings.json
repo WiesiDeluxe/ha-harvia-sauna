@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Ready at"
+      },
+      "planned_start": {
+        "name": "Planned start"
+      },
+      "last_session_energy": {
+        "name": "Last session energy"
+      },
+      "sessions_week": {
+        "name": "Sessions this week"
+      },
+      "records": {
+        "name": "Records"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Ready"
+      },
+      "cloud_connection": {
+        "name": "Cloud connection"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Session time"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Next session"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zone 2: color curve",
           "ambi_zone2_offset": "Ambilight zone 2: temperature offset",
           "ambi_standard_kelvin": "Everyday light: color temperature",
-          "ambi_standard_brightness": "Everyday light: brightness"
+          "ambi_standard_brightness": "Everyday light: brightness",
+          "preheat_buffer_min": "Preheat safety buffer",
+          "preset1_name": "Preset 1 name",
+          "preset1_temp": "Preset 1 temperature",
+          "preset1_duration": "Preset 1 duration",
+          "preset2_name": "Preset 2 name",
+          "preset2_temp": "Preset 2 temperature",
+          "preset2_duration": "Preset 2 duration",
+          "preset3_name": "Preset 3 name",
+          "preset3_temp": "Preset 3 temperature",
+          "preset3_duration": "Preset 3 duration"
         },
         "data_description": {
           "linked_lights": "Choose HA light entities (e.g. Hue strips) that should follow the light button on the Harvia panel even if no light is physically wired to the power unit.",

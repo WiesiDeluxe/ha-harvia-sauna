@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Gereed om"
+      },
+      "planned_start": {
+        "name": "Geplande start"
+      },
+      "last_session_energy": {
+        "name": "Energie laatste sessie"
+      },
+      "sessions_week": {
+        "name": "Sessies deze week"
+      },
+      "records": {
+        "name": "Records"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Gereed"
+      },
+      "cloud_connection": {
+        "name": "Cloudverbinding"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Sessietijd"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Volgende sessie"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zone 2: kleurcurve",
           "ambi_zone2_offset": "Ambilight zone 2: temperatuuroffset",
           "ambi_standard_kelvin": "Dagelijks licht: kleurtemperatuur",
-          "ambi_standard_brightness": "Dagelijks licht: helderheid"
+          "ambi_standard_brightness": "Dagelijks licht: helderheid",
+          "preheat_buffer_min": "Voorverwarmings-veiligheidsmarge",
+          "preset1_name": "Preset 1 naam",
+          "preset1_temp": "Preset 1 temperatuur",
+          "preset1_duration": "Preset 1 duur",
+          "preset2_name": "Preset 2 naam",
+          "preset2_temp": "Preset 2 temperatuur",
+          "preset2_duration": "Preset 2 duur",
+          "preset3_name": "Preset 3 naam",
+          "preset3_temp": "Preset 3 temperatuur",
+          "preset3_duration": "Preset 3 duur"
         },
         "data_description": {
           "linked_lights": "Kies HA-lichtentiteiten (bijv. Hue-strips) die de lichtknop op het Harvia-paneel volgen — ook als er fysiek geen lamp op de regelunit is aangesloten.",

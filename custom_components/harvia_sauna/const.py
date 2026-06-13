@@ -152,3 +152,56 @@ REF_TREND_HISTORY_MAX = 10
 # Combi safety: the MyHarvia app enforces targetTemp + targetRh <= 140,
 # the API does not — we clamp to protect combi heaters
 COMBI_TEMP_RH_LIMIT = 140
+
+# ── Smart Preheat & Statistics (v2.8.0) ──────────────────────────
+# Heating model: 5 °C buckets, exponentially weighted moving average
+HEATING_BUCKET_SIZE_C = 5
+HEATING_EWMA_ALPHA = 0.3           # weight of the newest observation
+HEATING_RATE_MIN = 0.05            # °C/min sanity bounds for learning
+HEATING_RATE_MAX = 5.0
+HEATING_BUCKET_MIN_C = 10          # learn from this cabin temp upwards
+HEATING_BUCKET_MAX_C = 110
+HEATING_LEARN_CEILING_BELOW_TARGET_C = 3.0  # exclude thermostat zone
+HEATING_EXTRAPOLATION_DECAY = 0.9  # rate multiplier per unknown bucket
+HEATING_DIP_TOLERANCE_C = 0.5      # in-bucket dip > this discards bucket
+
+# Seed profiles by heater stone-mass class (validated against measured
+# Legend 10.8 kW / ~100 kg data: launch ~0.3, mid ~0.82, top ~0.7 °C/min)
+HEATER_CLASS_HIGH_MASS = "high"     # Legend, Cilindro (~90–120 kg)
+HEATER_CLASS_MEDIUM_MASS = "medium"  # Virta, Senator, Club, ... (~40–60 kg)
+HEATER_CLASS_LOW_MASS = "low"       # KIP, Spirit (~20–30 kg)
+HEATER_MODEL_CLASSES: dict[str, str] = {
+    "legend": HEATER_CLASS_HIGH_MASS,
+    "cilindro": HEATER_CLASS_HIGH_MASS,
+    "kip": HEATER_CLASS_LOW_MASS,
+    "spirit": HEATER_CLASS_LOW_MASS,
+    # everything else (virta*, club, senator, forte, pro, other) -> medium
+}
+DEFAULT_HEATER_CLASS = HEATER_CLASS_MEDIUM_MASS
+
+# Preheat scheduling
+CONF_PREHEAT_BUFFER_MIN = "preheat_buffer_min"
+DEFAULT_PREHEAT_BUFFER_MIN = 5
+PREHEAT_RECOMPUTE_INTERVAL_MIN = 15
+PREHEAT_START_VERIFY_DELAY_SEC = 60
+PREHEAT_START_MAX_RETRIES = 3
+
+SERVICE_READY_AT = "ready_at"
+SERVICE_CANCEL_PREHEAT = "cancel_preheat"
+EVENT_PREHEAT_FAILED = f"{DOMAIN}_preheat_failed"
+EVENT_PREHEAT_STARTED = f"{DOMAIN}_preheat_started"
+
+STORAGE_VERSION = 1
+STORAGE_KEY_HEATING_MODEL = f"{DOMAIN}.heating_model"
+STORAGE_KEY_PREHEAT = f"{DOMAIN}.preheat_schedule"
+
+# Climate presets (3 fixed slots configured via options)
+CONF_PRESET1_NAME = "preset1_name"
+CONF_PRESET1_TEMP = "preset1_temp"
+CONF_PRESET1_DURATION = "preset1_duration"
+CONF_PRESET2_NAME = "preset2_name"
+CONF_PRESET2_TEMP = "preset2_temp"
+CONF_PRESET2_DURATION = "preset2_duration"
+CONF_PRESET3_NAME = "preset3_name"
+CONF_PRESET3_TEMP = "preset3_temp"
+CONF_PRESET3_DURATION = "preset3_duration"

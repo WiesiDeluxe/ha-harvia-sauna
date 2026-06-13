@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "준비 완료 시각"
+      },
+      "planned_start": {
+        "name": "예정된 시작"
+      },
+      "last_session_energy": {
+        "name": "마지막 세션 에너지"
+      },
+      "sessions_week": {
+        "name": "이번 주 세션"
+      },
+      "records": {
+        "name": "기록"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "준비됨"
+      },
+      "cloud_connection": {
+        "name": "클라우드 연결"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "ì¸ì ìê°"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "다음 세션"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "앰비라이트 구역 2: 색상 곡선",
           "ambi_zone2_offset": "앰비라이트 구역 2: 온도 오프셋",
           "ambi_standard_kelvin": "일상 조명: 색온도",
-          "ambi_standard_brightness": "일상 조명: 밝기"
+          "ambi_standard_brightness": "일상 조명: 밝기",
+          "preheat_buffer_min": "예열 안전 여유",
+          "preset1_name": "프리셋 1 이름",
+          "preset1_temp": "프리셋 1 온도",
+          "preset1_duration": "프리셋 1 시간",
+          "preset2_name": "프리셋 2 이름",
+          "preset2_temp": "프리셋 2 온도",
+          "preset2_duration": "프리셋 2 시간",
+          "preset3_name": "프리셋 3 이름",
+          "preset3_temp": "프리셋 3 온도",
+          "preset3_duration": "프리셋 3 시간"
         },
         "data_description": {
           "linked_lights": "Harvia 패널의 조명 버튼을 따라갈 HA 조명(예: Hue 스트립)을 선택하세요. 제어 장치에 조명이 물리적으로 연결되어 있지 않아도 작동합니다.",

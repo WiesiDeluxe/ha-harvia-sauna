@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Valmis kell"
+      },
+      "planned_start": {
+        "name": "Planeeritud algus"
+      },
+      "last_session_energy": {
+        "name": "Viimase seansi energia"
+      },
+      "sessions_week": {
+        "name": "Seansse sel nädalal"
+      },
+      "records": {
+        "name": "Rekordid"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Valmis"
+      },
+      "cloud_connection": {
+        "name": "Pilveühendus"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Seansi kestus"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Järgmine seanss"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight tsoon 2: värvikõver",
           "ambi_zone2_offset": "Ambilight tsoon 2: temperatuurinihe",
           "ambi_standard_kelvin": "Igapäevavalgus: värvitemperatuur",
-          "ambi_standard_brightness": "Igapäevavalgus: heledus"
+          "ambi_standard_brightness": "Igapäevavalgus: heledus",
+          "preheat_buffer_min": "Eelsoojenduse ohutusvaru",
+          "preset1_name": "Eelseade 1 nimi",
+          "preset1_temp": "Eelseade 1 temperatuur",
+          "preset1_duration": "Eelseade 1 kestus",
+          "preset2_name": "Eelseade 2 nimi",
+          "preset2_temp": "Eelseade 2 temperatuur",
+          "preset2_duration": "Eelseade 2 kestus",
+          "preset3_name": "Eelseade 3 nimi",
+          "preset3_temp": "Eelseade 3 temperatuur",
+          "preset3_duration": "Eelseade 3 kestus"
         },
         "data_description": {
           "linked_lights": "Vali HA valgustid (nt Hue ribad), mis järgivad Harvia paneeli valgusnuppu — isegi kui juhtplokiga pole füüsiliselt ühtegi valgustit ühendatud.",

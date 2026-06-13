@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Pronta alle"
+      },
+      "planned_start": {
+        "name": "Avvio pianificato"
+      },
+      "last_session_energy": {
+        "name": "Energia ultima sessione"
+      },
+      "sessions_week": {
+        "name": "Sessioni questa settimana"
+      },
+      "records": {
+        "name": "Record"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Pronta"
+      },
+      "cloud_connection": {
+        "name": "Connessione cloud"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Durata sessione"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Prossima sessione"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zona 2: curva colore",
           "ambi_zone2_offset": "Ambilight zona 2: offset temperatura",
           "ambi_standard_kelvin": "Luce quotidiana: temperatura colore",
-          "ambi_standard_brightness": "Luce quotidiana: luminosità"
+          "ambi_standard_brightness": "Luce quotidiana: luminosità",
+          "preheat_buffer_min": "Margine di sicurezza preriscaldamento",
+          "preset1_name": "Nome preset 1",
+          "preset1_temp": "Temperatura preset 1",
+          "preset1_duration": "Durata preset 1",
+          "preset2_name": "Nome preset 2",
+          "preset2_temp": "Temperatura preset 2",
+          "preset2_duration": "Durata preset 2",
+          "preset3_name": "Nome preset 3",
+          "preset3_temp": "Temperatura preset 3",
+          "preset3_duration": "Durata preset 3"
         },
         "data_description": {
           "linked_lights": "Scegli entità luce HA (es. strisce Hue) che seguiranno il pulsante luce del pannello Harvia — anche se nessuna luce è collegata fisicamente alla centralina.",

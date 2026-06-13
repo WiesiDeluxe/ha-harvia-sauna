@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Prête à"
+      },
+      "planned_start": {
+        "name": "Démarrage planifié"
+      },
+      "last_session_energy": {
+        "name": "Énergie dernière séance"
+      },
+      "sessions_week": {
+        "name": "Séances cette semaine"
+      },
+      "records": {
+        "name": "Records"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Prête"
+      },
+      "cloud_connection": {
+        "name": "Connexion cloud"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Durée de session"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Prochaine séance"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zone 2 : courbe de couleur",
           "ambi_zone2_offset": "Ambilight zone 2 : décalage de température",
           "ambi_standard_kelvin": "Lumière quotidienne : température de couleur",
-          "ambi_standard_brightness": "Lumière quotidienne : luminosité"
+          "ambi_standard_brightness": "Lumière quotidienne : luminosité",
+          "preheat_buffer_min": "Marge de sécurité de préchauffage",
+          "preset1_name": "Nom du préréglage 1",
+          "preset1_temp": "Température du préréglage 1",
+          "preset1_duration": "Durée du préréglage 1",
+          "preset2_name": "Nom du préréglage 2",
+          "preset2_temp": "Température du préréglage 2",
+          "preset2_duration": "Durée du préréglage 2",
+          "preset3_name": "Nom du préréglage 3",
+          "preset3_temp": "Température du préréglage 3",
+          "preset3_duration": "Durée du préréglage 3"
         },
         "data_description": {
           "linked_lights": "Choisissez des entités lumière HA (p. ex. rubans Hue) qui suivront le bouton lumière du panneau Harvia — même si aucune lumière n'est physiquement raccordée au boîtier.",

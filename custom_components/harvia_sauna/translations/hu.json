@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Kész ekkor"
+      },
+      "planned_start": {
+        "name": "Tervezett indítás"
+      },
+      "last_session_energy": {
+        "name": "Utolsó alkalom energia"
+      },
+      "sessions_week": {
+        "name": "Alkalmak ezen a héten"
+      },
+      "records": {
+        "name": "Rekordok"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Kész"
+      },
+      "cloud_connection": {
+        "name": "Felhőkapcsolat"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Ülés idő"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Következő szauna"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight 2. zóna: színgörbe",
           "ambi_zone2_offset": "Ambilight 2. zóna: hőmérséklet-eltolás",
           "ambi_standard_kelvin": "Hétköznapi fény: színhőmérséklet",
-          "ambi_standard_brightness": "Hétköznapi fény: fényerő"
+          "ambi_standard_brightness": "Hétköznapi fény: fényerő",
+          "preheat_buffer_min": "Előfűtés biztonsági ráhagyás",
+          "preset1_name": "1. előbeállítás neve",
+          "preset1_temp": "1. előbeállítás hőmérséklet",
+          "preset1_duration": "1. előbeállítás időtartam",
+          "preset2_name": "2. előbeállítás neve",
+          "preset2_temp": "2. előbeállítás hőmérséklet",
+          "preset2_duration": "2. előbeállítás időtartam",
+          "preset3_name": "3. előbeállítás neve",
+          "preset3_temp": "3. előbeállítás hőmérséklet",
+          "preset3_duration": "3. előbeállítás időtartam"
         },
         "data_description": {
           "linked_lights": "Válasszon HA lámpákat (pl. Hue szalagok), amelyek a Harvia panel fénygombját követik — akkor is, ha fizikailag nincs lámpa a vezérlőhöz kötve.",

@@ -171,6 +171,18 @@
       },
       "ready_at": {
         "name": "Připraveno v"
+      },
+      "planned_start": {
+        "name": "Plánovaný start"
+      },
+      "last_session_energy": {
+        "name": "Energie poslední relace"
+      },
+      "sessions_week": {
+        "name": "Relace tento týden"
+      },
+      "records": {
+        "name": "Rekordy"
       }
     },
     "binary_sensor": {
@@ -194,6 +206,9 @@
       },
       "ready": {
         "name": "Připraveno"
+      },
+      "cloud_connection": {
+        "name": "Cloudové připojení"
       }
     },
     "number": {
@@ -205,6 +220,11 @@
       },
       "on_time": {
         "name": "Doba sezení"
+      }
+    },
+    "datetime": {
+      "next_session": {
+        "name": "Příští návštěva"
       }
     }
   },
@@ -229,7 +249,17 @@
           "ambi_zone2_curve": "Ambilight zóna 2: barevná křivka",
           "ambi_zone2_offset": "Ambilight zóna 2: teplotní posun",
           "ambi_standard_kelvin": "Běžné světlo: teplota barvy",
-          "ambi_standard_brightness": "Běžné světlo: jas"
+          "ambi_standard_brightness": "Běžné světlo: jas",
+          "preheat_buffer_min": "Bezpečnostní rezerva předehřevu",
+          "preset1_name": "Název předvolby 1",
+          "preset1_temp": "Teplota předvolby 1",
+          "preset1_duration": "Doba předvolby 1",
+          "preset2_name": "Název předvolby 2",
+          "preset2_temp": "Teplota předvolby 2",
+          "preset2_duration": "Doba předvolby 2",
+          "preset3_name": "Název předvolby 3",
+          "preset3_temp": "Teplota předvolby 3",
+          "preset3_duration": "Doba předvolby 3"
         },
         "data_description": {
           "linked_lights": "Vyberte HA světla (např. Hue pásky), která mají následovat tlačítko světla na panelu Harvia — i když ke řídicí jednotce není fyzicky připojeno žádné světlo.",
