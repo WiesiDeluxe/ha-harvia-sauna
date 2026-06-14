@@ -259,7 +259,9 @@
           "preset2_duration": "Forudindstilling 2 varighed",
           "preset3_name": "Forudindstilling 3 navn",
           "preset3_temp": "Forudindstilling 3 temperatur",
-          "preset3_duration": "Forudindstilling 3 varighed"
+          "preset3_duration": "Forudindstilling 3 varighed",
+          "cooldown_end_mode": "Afkølings-sluttilstand",
+          "cooldown_end_temp": "Afkølings-sluttemperatur"
         },
         "data_description": {
           "linked_lights": "Vælg HA-lysenheder (f.eks. Hue-strips), der skal følge lysknappen på Harvia-panelet — selv hvis intet lys er fysisk tilsluttet styreenheden.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Måltemperatur nået",
         "fixed": "Fast temperatur"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hysterese under mål",
+        "fixed_temp": "Fast temperatur"
       }
     }
   }

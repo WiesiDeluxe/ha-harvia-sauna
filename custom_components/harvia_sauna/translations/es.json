@@ -259,7 +259,9 @@
           "preset2_duration": "Duración del preajuste 2",
           "preset3_name": "Nombre del preajuste 3",
           "preset3_temp": "Temperatura del preajuste 3",
-          "preset3_duration": "Duración del preajuste 3"
+          "preset3_duration": "Duración del preajuste 3",
+          "cooldown_end_mode": "Modo de fin de enfriamiento",
+          "cooldown_end_temp": "Temperatura de fin de enfriamiento"
         },
         "data_description": {
           "linked_lights": "Elija entidades de luz de HA (p. ej., tiras Hue) que sigan el botón de luz del panel Harvia, aunque no haya ninguna luz conectada físicamente a la unidad de control.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Temperatura objetivo alcanzada",
         "fixed": "Temperatura fija"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Histéresis bajo el objetivo",
+        "fixed_temp": "Temperatura fija"
       }
     }
   }

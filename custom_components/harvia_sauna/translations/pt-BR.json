@@ -259,7 +259,9 @@
           "preset2_duration": "Duração da predefinição 2",
           "preset3_name": "Nome da predefinição 3",
           "preset3_temp": "Temperatura da predefinição 3",
-          "preset3_duration": "Duração da predefinição 3"
+          "preset3_duration": "Duração da predefinição 3",
+          "cooldown_end_mode": "Modo de fim de resfriamento",
+          "cooldown_end_temp": "Temperatura de fim de resfriamento"
         },
         "data_description": {
           "linked_lights": "Escolha entidades de luz do HA (ex.: fitas Hue) que seguirão o botão de luz do painel Harvia — mesmo sem nenhuma luz fisicamente conectada à central.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Temperatura alvo atingida",
         "fixed": "Temperatura fixa"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Histerese abaixo do alvo",
+        "fixed_temp": "Temperatura fixa"
       }
     }
   }

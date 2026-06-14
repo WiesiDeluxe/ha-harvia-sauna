@@ -259,7 +259,9 @@
           "preset2_duration": "プリセット2 時間",
           "preset3_name": "プリセット3 名前",
           "preset3_temp": "プリセット3 温度",
-          "preset3_duration": "プリセット3 時間"
+          "preset3_duration": "プリセット3 時間",
+          "cooldown_end_mode": "クールダウン終了モード",
+          "cooldown_end_temp": "クールダウン終了温度"
         },
         "data_description": {
           "linked_lights": "Harviaパネルのライトボタンに連動させるHAライト（例：Hueストリップ）を選択します。制御ユニットに照明が物理的に接続されていなくても機能します。",
@@ -293,6 +295,12 @@
       "options": {
         "target": "目標温度に到達",
         "fixed": "固定温度"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "目標温度下のヒステリシス",
+        "fixed_temp": "固定温度"
       }
     }
   }

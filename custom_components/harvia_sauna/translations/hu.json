@@ -259,7 +259,9 @@
           "preset2_duration": "2. előbeállítás időtartam",
           "preset3_name": "3. előbeállítás neve",
           "preset3_temp": "3. előbeállítás hőmérséklet",
-          "preset3_duration": "3. előbeállítás időtartam"
+          "preset3_duration": "3. előbeállítás időtartam",
+          "cooldown_end_mode": "Hűlés befejezési mód",
+          "cooldown_end_temp": "Hűlés befejezési hőmérséklet"
         },
         "data_description": {
           "linked_lights": "Válasszon HA lámpákat (pl. Hue szalagok), amelyek a Harvia panel fénygombját követik — akkor is, ha fizikailag nincs lámpa a vezérlőhöz kötve.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Célhőmérséklet elérve",
         "fixed": "Rögzített hőmérséklet"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hiszterézis a cél alatt",
+        "fixed_temp": "Rögzített hőmérséklet"
       }
     }
   }

@@ -259,7 +259,9 @@
           "preset2_duration": "Esiasetus 2 kesto",
           "preset3_name": "Esiasetus 3 nimi",
           "preset3_temp": "Esiasetus 3 lämpötila",
-          "preset3_duration": "Esiasetus 3 kesto"
+          "preset3_duration": "Esiasetus 3 kesto",
+          "cooldown_end_mode": "Jäähdytyksen lopetustila",
+          "cooldown_end_temp": "Jäähdytyksen lopetuslämpötila"
         },
         "data_description": {
           "linked_lights": "Valitse HA-valot (esim. Hue-nauhat), jotka seuraavat Harvia-paneelin valopainiketta — vaikka ohjausyksikköön ei olisi fyysisesti kytketty valoa.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Tavoitelämpötila saavutettu",
         "fixed": "Kiinteä lämpötila"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hystereesi tavoitteen alle",
+        "fixed_temp": "Kiinteä lämpötila"
       }
     }
   }

@@ -259,7 +259,9 @@
           "preset2_duration": "Doba předvolby 2",
           "preset3_name": "Název předvolby 3",
           "preset3_temp": "Teplota předvolby 3",
-          "preset3_duration": "Doba předvolby 3"
+          "preset3_duration": "Doba předvolby 3",
+          "cooldown_end_mode": "Režim ukončení chladnutí",
+          "cooldown_end_temp": "Teplota ukončení chladnutí"
         },
         "data_description": {
           "linked_lights": "Vyberte HA světla (např. Hue pásky), která mají následovat tlačítko světla na panelu Harvia — i když ke řídicí jednotce není fyzicky připojeno žádné světlo.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Dosažena cílová teplota",
         "fixed": "Pevná teplota"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hystereze pod cílem",
+        "fixed_temp": "Pevná teplota"
       }
     }
   }

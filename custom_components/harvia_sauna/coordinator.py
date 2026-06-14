@@ -19,6 +19,10 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .api_base import HarviaApiClientBase
 from .const import (
     COMBI_TEMP_RH_LIMIT,
+    COOLDOWN_END_CONFIRM_COUNT,
+    COOLDOWN_END_FIXED_TEMP,
+    CONF_COOLDOWN_END_MODE,
+    CONF_COOLDOWN_END_TEMP,
     CONF_COOLDOWN_HYSTERESIS,
     CONF_COOLDOWN_MAX_MINUTES,
     CONF_COOLDOWN_TEMP_SENSOR,
@@ -28,6 +32,8 @@ from .const import (
     CONF_SESSION_END_MODE,
     COOLDOWN_EXT_SENSOR_GRACE_SEC,
     DEFAULT_COOLDOWN_HYSTERESIS,
+    DEFAULT_COOLDOWN_END_MODE,
+    DEFAULT_COOLDOWN_END_TEMP,
     DEFAULT_COOLDOWN_MAX_MINUTES,
     DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
     DEFAULT_READY_FIXED_TEMP,
@@ -145,6 +151,7 @@ class HarviaDeviceData:
     _cooldown_active: bool = False
     _cooldown_started: float | None = None
     _frozen_target_temp: float | None = None
+    _cooldown_below_count: int = 0  # consecutive readings below end threshold
     _ext_sensor_last_valid: float | None = None  # monotonic ts of last valid ext reading
     last_session_duration: float = 0.0  # Minuten
     last_session_max_temp: float = 0.0  # °C
@@ -192,6 +199,8 @@ class SessionOptions:
     end_mode: str = DEFAULT_SESSION_END_MODE
     ext_sensor: str | None = None
     hysteresis_c: float = DEFAULT_COOLDOWN_HYSTERESIS
+    cooldown_end_mode: str = DEFAULT_COOLDOWN_END_MODE
+    cooldown_end_temp: float = DEFAULT_COOLDOWN_END_TEMP
     max_cooldown_sec: float = DEFAULT_COOLDOWN_MAX_MINUTES * 60
     ext_sensor_for_max_temp: bool = DEFAULT_EXT_SENSOR_FOR_MAX_TEMP
     ready_mode: str = DEFAULT_READY_MODE
@@ -205,6 +214,12 @@ def parse_session_options(options: dict[str, Any]) -> SessionOptions:
         ext_sensor=options.get(CONF_COOLDOWN_TEMP_SENSOR) or None,
         hysteresis_c=float(
             options.get(CONF_COOLDOWN_HYSTERESIS, DEFAULT_COOLDOWN_HYSTERESIS)
+        ),
+        cooldown_end_mode=options.get(
+            CONF_COOLDOWN_END_MODE, DEFAULT_COOLDOWN_END_MODE
+        ),
+        cooldown_end_temp=float(
+            options.get(CONF_COOLDOWN_END_TEMP, DEFAULT_COOLDOWN_END_TEMP)
         ),
         max_cooldown_sec=float(
             options.get(CONF_COOLDOWN_MAX_MINUTES, DEFAULT_COOLDOWN_MAX_MINUTES)
@@ -781,6 +796,7 @@ def _update_session_tracking(
             return
         device._cooldown_active = True
         device._cooldown_started = now
+        device._cooldown_below_count = 0
         device._frozen_target_temp = float(frozen)
         _LOGGER.debug(
             "Heater off — cooldown phase started (device %s, frozen target "
@@ -808,20 +824,55 @@ def _update_session_tracking(
             _end_session(hass, device, now)
             return
 
-        # No usable reference temperature right now → hold state, decide later
-        if ref_temp is None or device._frozen_target_temp is None:
+        # No usable reference temperature right now → hold state, decide
+        # later. The confirm-counter is deliberately NOT reset here: a brief
+        # BLE "unavailable" gap (e.g. Shelly BLU H&T) must not restart the
+        # confirmation, otherwise the session would never end while the
+        # sensor flickers.
+        if ref_temp is None:
             return
 
-        threshold = device._frozen_target_temp - opts.hysteresis_c
+        # End threshold per configured cooldown end mode. "fixed_temp":
+        # absolute reference temperature (this value also drives the
+        # Ambilight standard-restore, so session end and lights end at the
+        # same point). "hysteresis": original behavior (frozen target minus
+        # hysteresis).
+        if opts.cooldown_end_mode == COOLDOWN_END_FIXED_TEMP:
+            threshold = opts.cooldown_end_temp
+        elif device._frozen_target_temp is not None:
+            threshold = device._frozen_target_temp - opts.hysteresis_c
+        else:
+            return  # hysteresis mode needs a frozen target
+
+        # Flicker guard: require COOLDOWN_END_CONFIRM_COUNT consecutive
+        # readings below the threshold before ending, so a single outlier
+        # right after an "unavailable" gap cannot end the session early.
         if float(ref_temp) < threshold:
+            device._cooldown_below_count += 1
+            if device._cooldown_below_count < COOLDOWN_END_CONFIRM_COUNT:
+                _LOGGER.debug(
+                    "Reference temp %.1f°C below threshold %.1f°C "
+                    "(%d/%d confirmations, device %s)",
+                    float(ref_temp),
+                    threshold,
+                    device._cooldown_below_count,
+                    COOLDOWN_END_CONFIRM_COUNT,
+                    device.device_id,
+                )
+                return
             _LOGGER.debug(
-                "Reference temp %.1f°C below threshold %.1f°C — ending "
-                "session (device %s)",
+                "Reference temp %.1f°C below threshold %.1f°C confirmed "
+                "(%d readings) — ending session (device %s)",
                 float(ref_temp),
                 threshold,
+                device._cooldown_below_count,
                 device.device_id,
             )
             _end_session(hass, device, now)
+        else:
+            # Back above the threshold (re-heat or sensor recovered high)
+            # → reset the confirmation streak
+            device._cooldown_below_count = 0
 
 
 def _track_max_temp(
@@ -843,6 +894,7 @@ def _end_session(
     device._cooldown_active = False
     device._cooldown_started = None
     device._frozen_target_temp = None
+    device._cooldown_below_count = 0
 
     if device._session_start_time is not None:
         duration_sec = now - device._session_start_time

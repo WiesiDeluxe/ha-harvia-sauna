@@ -56,6 +56,10 @@ from .const import (
     CONF_AMBI_ZONE2_LIGHTS,
     CONF_AMBI_ZONE2_OFFSET,
     CONF_API_PROVIDER,
+    COOLDOWN_END_FIXED_TEMP,
+    COOLDOWN_END_HYSTERESIS,
+    CONF_COOLDOWN_END_MODE,
+    CONF_COOLDOWN_END_TEMP,
     CONF_COOLDOWN_HYSTERESIS,
     CONF_COOLDOWN_MAX_MINUTES,
     CONF_COOLDOWN_TEMP_SENSOR,
@@ -71,6 +75,8 @@ from .const import (
     DEFAULT_AMBI_OFFSET,
     DEFAULT_AMBI_STANDARD_BRIGHTNESS,
     DEFAULT_AMBI_STANDARD_KELVIN,
+    DEFAULT_COOLDOWN_END_MODE,
+    DEFAULT_COOLDOWN_END_TEMP,
     DEFAULT_COOLDOWN_HYSTERESIS,
     DEFAULT_COOLDOWN_MAX_MINUTES,
     DEFAULT_EXT_SENSOR_FOR_MAX_TEMP,
@@ -462,6 +468,36 @@ class HarviaOptionsFlow(OptionsFlow):
                         min=0,
                         max=10,
                         step=0.5,
+                        unit_of_measurement="°C",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+                # ── Cooldown end mode (v2.8.1) ────────────────────────
+                vol.Optional(
+                    CONF_COOLDOWN_END_MODE,
+                    default=options.get(
+                        CONF_COOLDOWN_END_MODE, DEFAULT_COOLDOWN_END_MODE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            COOLDOWN_END_HYSTERESIS,
+                            COOLDOWN_END_FIXED_TEMP,
+                        ],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key="cooldown_end_mode",
+                    )
+                ),
+                vol.Optional(
+                    CONF_COOLDOWN_END_TEMP,
+                    default=options.get(
+                        CONF_COOLDOWN_END_TEMP, DEFAULT_COOLDOWN_END_TEMP
+                    ),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=30,
+                        max=90,
+                        step=1,
                         unit_of_measurement="°C",
                         mode=NumberSelectorMode.BOX,
                     )

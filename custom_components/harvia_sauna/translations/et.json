@@ -259,7 +259,9 @@
           "preset2_duration": "Eelseade 2 kestus",
           "preset3_name": "Eelseade 3 nimi",
           "preset3_temp": "Eelseade 3 temperatuur",
-          "preset3_duration": "Eelseade 3 kestus"
+          "preset3_duration": "Eelseade 3 kestus",
+          "cooldown_end_mode": "Jahtumise lõpurežiim",
+          "cooldown_end_temp": "Jahtumise lõputemperatuur"
         },
         "data_description": {
           "linked_lights": "Vali HA valgustid (nt Hue ribad), mis järgivad Harvia paneeli valgusnuppu — isegi kui juhtplokiga pole füüsiliselt ühtegi valgustit ühendatud.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Sihttemperatuur saavutatud",
         "fixed": "Fikseeritud temperatuur"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hüsterees alla sihtmärgi",
+        "fixed_temp": "Fikseeritud temperatuur"
       }
     }
   }

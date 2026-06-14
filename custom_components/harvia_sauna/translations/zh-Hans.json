@@ -259,7 +259,9 @@
           "preset2_duration": "预设2 时长",
           "preset3_name": "预设3 名称",
           "preset3_temp": "预设3 温度",
-          "preset3_duration": "预设3 时长"
+          "preset3_duration": "预设3 时长",
+          "cooldown_end_mode": "冷却结束模式",
+          "cooldown_end_temp": "冷却结束温度"
         },
         "data_description": {
           "linked_lights": "选择跟随 Harvia 面板灯光按钮的 HA 灯实体（如 Hue 灯带）——即使控制单元未实际连接任何灯也可使用。",
@@ -293,6 +295,12 @@
       "options": {
         "target": "达到目标温度",
         "fixed": "固定温度"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "低于目标的滞后",
+        "fixed_temp": "固定温度"
       }
     }
   }

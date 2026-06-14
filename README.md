@@ -124,6 +124,19 @@ heating trend) and **Ready at** (timestamp) for notifications like
 **Combi safety** — `target temperature + target humidity` is clamped to
 140 (the MyHarvia app enforces this limit, the raw API does not).
 
+## Cooldown End Mode (v2.8.1+)
+
+The cooldown phase can now end either by **hysteresis** below the frozen
+target (original behavior) or at a **fixed reference temperature**
+(`cooldown_end_mode` option). In fixed-temperature mode the session ends
+when the reference sensor drops below the configured value — and this is
+the same point at which Ambilight restores the everyday standard, so the
+session and the lights end together.
+
+A **flicker guard** requires several consecutive readings below the
+threshold before ending, so a BLE reference sensor (e.g. Shelly BLU H&T)
+briefly dropping to `unavailable` can no longer end the session early.
+
 ## Custom Service
 
 ```yaml

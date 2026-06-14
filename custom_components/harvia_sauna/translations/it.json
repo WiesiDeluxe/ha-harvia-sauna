@@ -259,7 +259,9 @@
           "preset2_duration": "Durata preset 2",
           "preset3_name": "Nome preset 3",
           "preset3_temp": "Temperatura preset 3",
-          "preset3_duration": "Durata preset 3"
+          "preset3_duration": "Durata preset 3",
+          "cooldown_end_mode": "Modalità fine raffreddamento",
+          "cooldown_end_temp": "Temperatura fine raffreddamento"
         },
         "data_description": {
           "linked_lights": "Scegli entità luce HA (es. strisce Hue) che seguiranno il pulsante luce del pannello Harvia — anche se nessuna luce è collegata fisicamente alla centralina.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Temperatura target raggiunta",
         "fixed": "Temperatura fissa"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Isteresi sotto l'obiettivo",
+        "fixed_temp": "Temperatura fissa"
       }
     }
   }

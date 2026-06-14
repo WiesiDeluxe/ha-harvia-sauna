@@ -259,7 +259,9 @@
           "preset2_duration": "Preset 2 duration",
           "preset3_name": "Preset 3 name",
           "preset3_temp": "Preset 3 temperature",
-          "preset3_duration": "Preset 3 duration"
+          "preset3_duration": "Preset 3 duration",
+          "cooldown_end_mode": "Cooldown end mode",
+          "cooldown_end_temp": "Cooldown end temperature"
         },
         "data_description": {
           "linked_lights": "Choose HA light entities (e.g. Hue strips) that should follow the light button on the Harvia panel even if no light is physically wired to the power unit.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Target temperature reached",
         "fixed": "Fixed temperature"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hysteresis below target",
+        "fixed_temp": "Fixed temperature"
       }
     }
   }

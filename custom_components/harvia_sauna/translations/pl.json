@@ -259,7 +259,9 @@
           "preset2_duration": "Czas ustawienia 2",
           "preset3_name": "Nazwa ustawienia 3",
           "preset3_temp": "Temperatura ustawienia 3",
-          "preset3_duration": "Czas ustawienia 3"
+          "preset3_duration": "Czas ustawienia 3",
+          "cooldown_end_mode": "Tryb zakończenia stygnięcia",
+          "cooldown_end_temp": "Temperatura zakończenia stygnięcia"
         },
         "data_description": {
           "linked_lights": "Wybierz encje świateł HA (np. taśmy Hue), które będą podążać za przyciskiem światła na panelu Harvia — nawet jeśli do sterownika nie podłączono fizycznie żadnego światła.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Osiągnięto temperaturę docelową",
         "fixed": "Stała temperatura"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Histereza poniżej celu",
+        "fixed_temp": "Stała temperatura"
       }
     }
   }

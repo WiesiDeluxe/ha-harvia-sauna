@@ -259,7 +259,9 @@
           "preset2_duration": "Preset 2 Dauer",
           "preset3_name": "Preset 3 Name",
           "preset3_temp": "Preset 3 Temperatur",
-          "preset3_duration": "Preset 3 Dauer"
+          "preset3_duration": "Preset 3 Dauer",
+          "cooldown_end_mode": "Abkühl-Ende-Modus",
+          "cooldown_end_temp": "Abkühl-Ende-Temperatur"
         },
         "data_description": {
           "linked_lights": "HA-Licht-Entitäten (z.B. Hue-Stripes) wählen, die der Licht-Taste am Harvia-Panel folgen sollen — auch wenn kein Licht physisch am Steuergerät angeschlossen ist.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Zieltemperatur erreicht",
         "fixed": "Fester Schwellwert"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hysterese unter Ziel",
+        "fixed_temp": "Feste Temperatur"
       }
     }
   }

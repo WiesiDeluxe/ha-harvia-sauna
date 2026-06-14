@@ -259,7 +259,9 @@
           "preset2_duration": "Preset 2 duur",
           "preset3_name": "Preset 3 naam",
           "preset3_temp": "Preset 3 temperatuur",
-          "preset3_duration": "Preset 3 duur"
+          "preset3_duration": "Preset 3 duur",
+          "cooldown_end_mode": "Afkoel-eindmodus",
+          "cooldown_end_temp": "Afkoel-eindtemperatuur"
         },
         "data_description": {
           "linked_lights": "Kies HA-lichtentiteiten (bijv. Hue-strips) die de lichtknop op het Harvia-paneel volgen — ook als er fysiek geen lamp op de regelunit is aangesloten.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Doeltemperatuur bereikt",
         "fixed": "Vaste temperatuur"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hysterese onder doel",
+        "fixed_temp": "Vaste temperatuur"
       }
     }
   }

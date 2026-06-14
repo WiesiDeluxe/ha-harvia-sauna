@@ -259,7 +259,9 @@
           "preset2_duration": "Durée du préréglage 2",
           "preset3_name": "Nom du préréglage 3",
           "preset3_temp": "Température du préréglage 3",
-          "preset3_duration": "Durée du préréglage 3"
+          "preset3_duration": "Durée du préréglage 3",
+          "cooldown_end_mode": "Mode de fin de refroidissement",
+          "cooldown_end_temp": "Température de fin de refroidissement"
         },
         "data_description": {
           "linked_lights": "Choisissez des entités lumière HA (p. ex. rubans Hue) qui suivront le bouton lumière du panneau Harvia — même si aucune lumière n'est physiquement raccordée au boîtier.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Température cible atteinte",
         "fixed": "Température fixe"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hystérésis sous la cible",
+        "fixed_temp": "Température fixe"
       }
     }
   }

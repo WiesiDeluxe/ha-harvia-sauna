@@ -259,7 +259,9 @@
           "preset2_duration": "Förinställning 2 varaktighet",
           "preset3_name": "Förinställning 3 namn",
           "preset3_temp": "Förinställning 3 temperatur",
-          "preset3_duration": "Förinställning 3 varaktighet"
+          "preset3_duration": "Förinställning 3 varaktighet",
+          "cooldown_end_mode": "Nedkylnings-slutläge",
+          "cooldown_end_temp": "Nedkylnings-sluttemperatur"
         },
         "data_description": {
           "linked_lights": "Välj HA-ljusentiteter (t.ex. Hue-strips) som ska följa ljusknappen på Harvia-panelen — även om ingen lampa är fysiskt ansluten till styrenheten.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "Måltemperatur uppnådd",
         "fixed": "Fast temperatur"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "Hysteres under mål",
+        "fixed_temp": "Fast temperatur"
       }
     }
   }

@@ -102,6 +102,23 @@ CONF_COOLDOWN_HYSTERESIS = "cooldown_hysteresis"
 DEFAULT_COOLDOWN_HYSTERESIS = 2.0  # °C below frozen target temp
 CONF_COOLDOWN_MAX_MINUTES = "cooldown_max_minutes"
 DEFAULT_COOLDOWN_MAX_MINUTES = 180
+
+# Cooldown end mode (v2.8.1): end the session either a hysteresis below the
+# frozen target ("hysteresis", original behavior) or at a fixed reference
+# temperature ("fixed_temp"). The fixed temperature also drives the
+# Ambilight standard-restore, so session end and lights end at the same point.
+CONF_COOLDOWN_END_MODE = "cooldown_end_mode"
+COOLDOWN_END_HYSTERESIS = "hysteresis"
+COOLDOWN_END_FIXED_TEMP = "fixed_temp"
+DEFAULT_COOLDOWN_END_MODE = COOLDOWN_END_HYSTERESIS
+CONF_COOLDOWN_END_TEMP = "cooldown_end_temp"
+DEFAULT_COOLDOWN_END_TEMP = 60.0  # °C — below this the session ends
+
+# Flicker guard: a BLE reference sensor (e.g. Shelly BLU H&T) can drop to
+# "unavailable" briefly. To avoid ending the session on a single reading
+# right after such a gap, the reference must stay below the threshold for
+# this many consecutive evaluations before the session ends.
+COOLDOWN_END_CONFIRM_COUNT = 3
 CONF_EXT_SENSOR_FOR_MAX_TEMP = "use_ext_sensor_for_max_temp"
 DEFAULT_EXT_SENSOR_FOR_MAX_TEMP = True
 

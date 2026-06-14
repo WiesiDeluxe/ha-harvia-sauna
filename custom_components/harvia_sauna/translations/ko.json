@@ -259,7 +259,9 @@
           "preset2_duration": "프리셋 2 시간",
           "preset3_name": "프리셋 3 이름",
           "preset3_temp": "프리셋 3 온도",
-          "preset3_duration": "프리셋 3 시간"
+          "preset3_duration": "프리셋 3 시간",
+          "cooldown_end_mode": "쿨다운 종료 모드",
+          "cooldown_end_temp": "쿨다운 종료 온도"
         },
         "data_description": {
           "linked_lights": "Harvia 패널의 조명 버튼을 따라갈 HA 조명(예: Hue 스트립)을 선택하세요. 제어 장치에 조명이 물리적으로 연결되어 있지 않아도 작동합니다.",
@@ -293,6 +295,12 @@
       "options": {
         "target": "목표 온도 도달",
         "fixed": "고정 온도"
+      }
+    },
+    "cooldown_end_mode": {
+      "options": {
+        "hysteresis": "목표 아래 히스테리시스",
+        "fixed_temp": "고정 온도"
       }
     }
   }
