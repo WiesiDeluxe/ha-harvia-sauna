@@ -754,7 +754,16 @@ def _update_session_tracking(
         device._cooldown_started = None
         device._frozen_target_temp = None
         device.ready = False  # re-arm ready detection for the new session
-        device._session_start_kwh = device.energy_kwh  # for last_session_kwh
+        # Snapshot energy for the last_session_kwh delta — but only if the
+        # cumulative value is already populated. Right after a restart (or
+        # if the integration updated mid-session) energy_kwh can still be
+        # the 0.0 default, which would make the end-of-session delta equal
+        # the entire meter reading. In that case leave the snapshot None so
+        # no (misleading) energy value is computed for this session.
+        device._session_start_kwh = (
+            device.energy_kwh if device.energy_kwh and device.energy_kwh > 0
+            else None
+        )
 
         hass.bus.async_fire(EVENT_SESSION_START, {
             "device_id": device.device_id,
@@ -907,9 +916,15 @@ def _end_session(
             device.sessions_today += 1
 
             # ── Statistics (v2.8.0) ──────────────────────────────────
-            if device._session_start_kwh is not None:
+            if (
+                device._session_start_kwh is not None
+                and device._session_start_kwh > 0
+            ):
                 delta = device.energy_kwh - device._session_start_kwh
-                device.last_session_kwh = round(max(0.0, delta), 2)
+                # Sanity: a single session is realistically < 50 kWh. A delta
+                # that large means the start snapshot was unreliable — skip.
+                if 0.0 <= delta < 50.0:
+                    device.last_session_kwh = round(delta, 2)
             import datetime as _dt
             iso = _dt.datetime.now().isocalendar()
             week_anchor = f"{iso[0]}-{iso[1]:02d}"

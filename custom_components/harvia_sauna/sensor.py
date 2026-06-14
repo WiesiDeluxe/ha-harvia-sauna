@@ -561,7 +561,10 @@ class HarviaStatsSensor(HarviaSensor, RestoreEntity):
             value = None
 
         if key == "last_session_energy" and device.last_session_kwh is None:
-            if value is not None:
+            # Sanity bound: a single session is realistically < 50 kWh. A
+            # larger restored value stems from an unreliable start snapshot
+            # (e.g. a cold start where the meter read 0) — don't restore it.
+            if value is not None and 0.0 <= value < 50.0:
                 device.last_session_kwh = value
 
         elif key == "sessions_week" and device.sessions_week == 0:
