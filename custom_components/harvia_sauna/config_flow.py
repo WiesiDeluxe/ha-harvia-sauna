@@ -405,10 +405,25 @@ class HarviaOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Manage the options."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self.async_create_entry(data=user_input)
+            # Validate: preset names must be unique (a duplicate would
+            # silently overwrite the earlier slot in the preset map).
+            names = [
+                (user_input.get(key) or "").strip()
+                for key in (
+                    CONF_PRESET1_NAME, CONF_PRESET2_NAME, CONF_PRESET3_NAME
+                )
+            ]
+            non_empty = [n for n in names if n]
+            if len(non_empty) != len(set(non_empty)):
+                errors["base"] = "duplicate_preset_name"
+            else:
+                return self.async_create_entry(data=user_input)
 
-        options = self.config_entry.options
+        options = (
+            user_input if user_input is not None else self.config_entry.options
+        )
 
         schema = vol.Schema(
             {
@@ -742,4 +757,6 @@ class HarviaOptionsFlow(OptionsFlow):
             }
         )
 
-        return self.async_show_form(step_id="init", data_schema=schema)
+        return self.async_show_form(
+            step_id="init", data_schema=schema, errors=errors
+        )

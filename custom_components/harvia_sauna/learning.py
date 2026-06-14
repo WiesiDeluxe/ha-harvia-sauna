@@ -228,9 +228,35 @@ class HeatingModel:
         rec["min_temp"] = min(rec["min_temp"], temp_c)
         rec["max_temp"] = max(rec["max_temp"], temp_c)
 
-        # Bucket transition upwards: score the bucket we just left
+        # Bucket transition upwards: score the bucket we just left.
         if self._last_bucket is not None and bucket > self._last_bucket:
-            self._score_bucket(self._last_bucket, exit_ts=now, exit_temp=temp_c)
+            # Single-step transition (the normal case): the reading that
+            # crosses the boundary is a good exit point for the left bucket.
+            if bucket - self._last_bucket == HEATING_BUCKET_SIZE_C:
+                self._score_bucket(
+                    self._last_bucket, exit_ts=now, exit_temp=temp_c
+                )
+            else:
+                # Multi-bucket jump (e.g. the first reading after a sensor
+                # gap): we don't know how long each skipped bucket took, so
+                # scoring the left bucket with this far-away temperature
+                # would fabricate a rate. Discard the left bucket and every
+                # skipped one — they'll be re-learned on a later, gap-free
+                # heat-up. The newly entered bucket starts fresh below.
+                skipped = list(range(
+                    self._last_bucket,
+                    bucket,
+                    HEATING_BUCKET_SIZE_C,
+                ))
+                for b in skipped:
+                    self._recording.pop(b, None)
+                _LOGGER.debug(
+                    "Heating model: multi-bucket jump %d->%d (skipped %s) "
+                    "— discarded, not learning across the gap",
+                    self._last_bucket,
+                    bucket,
+                    skipped,
+                )
         self._last_bucket = bucket
         self._last_temp = temp_c
 

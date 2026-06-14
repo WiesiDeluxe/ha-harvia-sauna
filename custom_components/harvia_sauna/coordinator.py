@@ -329,7 +329,9 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             elif was_active and not device._session_active:
                 # Session just ended — persist what was learned
                 if model.finish_recording():
-                    self.hass.async_create_task(model.async_save())
+                    self.hass.async_create_background_task(
+                        model.async_save(), "harvia_heating_model_save"
+                    )
 
     def _get_external_temp_c(self, device: HarviaDeviceData) -> float | None:
         """Read the configured external temp sensor, normalized to °C.

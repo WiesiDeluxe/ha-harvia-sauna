@@ -153,7 +153,9 @@ class HarviaLightSync:
                 device_id,
                 len(self._linked_lights),
             )
-            self._hass.async_create_task(self._async_set_ha_lights(current))
+            self._hass.async_create_background_task(
+                self._async_set_ha_lights(current), "harvia_lightsync_set"
+            )
 
     async def _async_set_ha_lights(self, turn_on: bool) -> None:
         """Switch all linked HA lights, remembering our own context."""
@@ -221,7 +223,9 @@ class HarviaLightSync:
             self._debounce_handle.cancel()
         self._debounce_handle = self._hass.loop.call_later(
             LIGHT_SYNC_DEBOUNCE_SEC,
-            lambda: self._hass.async_create_task(self._async_flush_panel_update()),
+            lambda: self._hass.async_create_background_task(
+                self._async_flush_panel_update(), "harvia_lightsync_flush"
+            ),
         )
 
     async def _async_flush_panel_update(self) -> None:

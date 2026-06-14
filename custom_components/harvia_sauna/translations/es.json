@@ -268,6 +268,9 @@
           "session_end_mode": "El modo «enfriamiento» mantiene la sesión activa tras apagar el calefactor hasta que la temperatura baje del objetivo — útil con calefactores de gran masa de piedras."
         }
       }
+    },
+    "error": {
+      "duplicate_preset_name": "Los nombres de preajustes deben ser únicos."
     }
   },
   "selector": {

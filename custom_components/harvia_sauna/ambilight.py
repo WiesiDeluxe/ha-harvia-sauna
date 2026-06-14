@@ -278,15 +278,21 @@ class HarviaAmbilight:
                 continue  # hold current color, decide on next reading
 
             now = time.monotonic()
+            # Throttle only small changes that are also recent. A jump of
+            # at least AMBI_MIN_TEMP_DELTA_C always passes (so the color
+            # never lags behind after a sensor gap), and any change passes
+            # once AMBI_MIN_INTERVAL_SEC has elapsed.
             if (
                 self._last_ref_temp is not None
                 and abs(ref - self._last_ref_temp) < AMBI_MIN_TEMP_DELTA_C
                 and now - self._last_apply_ts < AMBI_MIN_INTERVAL_SEC
             ):
-                continue  # throttled
+                continue  # throttled (small change, recent update)
             self._last_ref_temp = ref
             self._last_apply_ts = now
-            self._hass.async_create_task(self._async_apply_zones(ref))
+            self._hass.async_create_background_task(
+                self._async_apply_zones(ref), "harvia_ambilight_apply"
+            )
             break  # one sauna device drives the zones
 
     async def _async_apply_zones(self, ref_temp: float) -> None:

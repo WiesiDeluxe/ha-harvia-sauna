@@ -223,7 +223,9 @@ class PreheatScheduler:
         # Already heating? Absorb the schedule.
         if device.active:
             _LOGGER.info("Preheat: sauna already heating — schedule fulfilled")
-            self._hass.async_create_task(self.async_cancel())
+            self._hass.async_create_background_task(
+                self.async_cancel(), "harvia_preheat_absorb_cancel"
+            )
             return
 
         model = getattr(self._coordinator, "heating_model", None)
@@ -330,7 +332,7 @@ class PreheatScheduler:
                 "reason": "heater_not_running_after_retries",
             },
         )
-        self._hass.async_create_task(
+        self._hass.async_create_background_task(
             self._hass.services.async_call(
                 "persistent_notification",
                 "create",
@@ -345,6 +347,7 @@ class PreheatScheduler:
                     "notification_id": f"{DOMAIN}_preheat_failed_{device_id}",
                 },
                 blocking=False,
-            )
+            ),
+            "harvia_preheat_failed_notification",
         )
         await self.async_cancel()

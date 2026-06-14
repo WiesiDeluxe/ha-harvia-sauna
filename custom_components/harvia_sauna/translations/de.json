@@ -268,6 +268,9 @@
           "session_end_mode": "'Abkühlphase' lässt die Sitzung nach Ofen-Aus weiterlaufen, bis die Temperatur unter den Sollwert fällt — sinnvoll bei Öfen mit großer Steinmasse, die lange nachheizen."
         }
       }
+    },
+    "error": {
+      "duplicate_preset_name": "Preset-Namen müssen eindeutig sein."
     }
   },
   "selector": {

@@ -268,6 +268,9 @@
           "session_end_mode": "“冷却”模式在加热器关闭后继续会话，直到温度降至目标以下——适用于石量大的加热器。"
         }
       }
+    },
+    "error": {
+      "duplicate_preset_name": "预设名称必须唯一。"
     }
   },
   "selector": {

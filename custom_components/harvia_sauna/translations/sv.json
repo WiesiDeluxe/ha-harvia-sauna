@@ -268,6 +268,9 @@
           "session_end_mode": "”Avsvalning” låter sessionen fortsätta efter att aggregatet stängts av tills temperaturen sjunker under målet — användbart för aggregat med stor stenmassa."
         }
       }
+    },
+    "error": {
+      "duplicate_preset_name": "Förinställningsnamn måste vara unika."
     }
   },
   "selector": {

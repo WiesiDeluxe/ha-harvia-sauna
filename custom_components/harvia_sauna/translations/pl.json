@@ -268,6 +268,9 @@
           "session_end_mode": "Tryb „stygnięcie” utrzymuje sesję po wyłączeniu pieca, dopóki temperatura nie spadnie poniżej celu — przydatne przy piecach z dużą masą kamieni."
         }
       }
+    },
+    "error": {
+      "duplicate_preset_name": "Nazwy ustawień muszą być unikalne."
     }
   },
   "selector": {
