@@ -598,6 +598,29 @@ def _map_door_field(data: dict[str, Any], normalized: dict[str, Any]) -> None:
                 )
                 return
 
+    # Last-resort fallback for Fenix panels (e.g. SW90S Combi, issue #3):
+    # on some Fenix units none of the dedicated door/safety fields track the
+    # door — safetyRelay, doorSafetyState and cutOffRelay stay pinned at 0.
+    # The only telemetry field that toggles with the door is remoteAllowed
+    # in the state feed (verified by a full off/on x open/close matrix):
+    #     door closed -> remoteAllowed = 1
+    #     door open   -> remoteAllowed = 0
+    # This is a safety-circuit / remote-gating proxy, NOT a pure door
+    # contact: it may also drop for other remote-gating reasons. It is used
+    # only when no dedicated door field is present, so devices that DO report
+    # a real door field are unaffected.
+    if "remoteAllowed" in data:
+        value = data["remoteAllowed"]
+        if value is not None:
+            normalized["doorOpen"] = not bool(value)
+            _LOGGER.debug(
+                "Door derived from remoteAllowed proxy (inverted): "
+                "remoteAllowed = %s -> doorOpen = %s",
+                value,
+                not bool(value),
+            )
+            return
+
 
 def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Normalize telemetry payload to legacy coordinator shape."""
