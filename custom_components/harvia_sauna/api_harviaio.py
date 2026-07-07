@@ -574,8 +574,18 @@ DOOR_FIELD_CANDIDATES = ("doorOpen", "door", "doorState", "doorSensor")
 DOOR_SAFETY_CANDIDATES = ("doorSafetyState", "safetyState")
 
 
-def _map_door_field(data: dict[str, Any], normalized: dict[str, Any]) -> None:
-    """Map door status from candidate fields into normalized['doorOpen']."""
+def _map_door_field(
+    data: dict[str, Any],
+    normalized: dict[str, Any],
+    allow_proxies: bool = True,
+) -> None:
+    """Map door status from candidate fields into normalized['doorOpen'].
+
+    allow_proxies controls whether indirect derivations (inverted safety
+    fields, remoteAllowed) may be used. They are only reliable on the STATE
+    feed; the MEASUREMENT feed carries frozen safety fields on some Fenix
+    units (issue #3: doorSafetyState pinned at 0 emitted doorOpen=True on
+    every telemetry message, clobbering the correct state-feed value)."""
     for candidate in DOOR_FIELD_CANDIDATES:
         if candidate in data:
             value = data[candidate]
@@ -585,6 +595,10 @@ def _map_door_field(data: dict[str, Any], normalized: dict[str, Any]) -> None:
                 normalized["doorOpen"] = value
                 _LOGGER.debug("Door field matched: %s = %s", candidate, value)
                 return
+
+    if not allow_proxies:
+        return
+
     for candidate in DOOR_SAFETY_CANDIDATES:
         if candidate in data:
             value = data[candidate]
@@ -656,8 +670,11 @@ def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
         if source in data:
             normalized[target] = data[source]
 
-    # Door status may arrive via telemetry instead of state on Fenix
-    _map_door_field(data, normalized)
+    # Door status may arrive via telemetry instead of state on Fenix.
+    # Only DIRECT door fields are accepted here: the measurement feed's
+    # safety fields are frozen on some units and must not derive doorOpen
+    # (issue #3 — last-writer-wins would clobber the state feed).
+    _map_door_field(data, normalized, allow_proxies=False)
 
     if "timestamp" in payload:
         normalized["timestamp"] = payload["timestamp"]
