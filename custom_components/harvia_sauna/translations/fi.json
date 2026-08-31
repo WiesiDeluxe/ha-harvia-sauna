@@ -84,7 +84,7 @@
         "name": "Ambilight"
       },
       "scheduled_start": {
-        "name": "Ajastettu käynnistys käytössä"
+        "name": "Laitteen ajastus käytössä"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "Ennätykset"
       },
       "scheduled_start": {
-        "name": "Ajastettu käynnistys"
+        "name": "Laitteen ajastus"
       }
     },
     "binary_sensor": {

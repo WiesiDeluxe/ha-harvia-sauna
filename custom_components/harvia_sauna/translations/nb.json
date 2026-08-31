@@ -84,7 +84,7 @@
         "name": "Ambilight"
       },
       "scheduled_start": {
-        "name": "Planlagt start aktiv"
+        "name": "Enhetsplan aktiv"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "Rekorder"
       },
       "scheduled_start": {
-        "name": "Planlagt start"
+        "name": "Enhetsplan"
       }
     },
     "binary_sensor": {

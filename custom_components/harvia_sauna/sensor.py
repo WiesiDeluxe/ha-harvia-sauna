@@ -75,7 +75,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         translation_key="scheduled_start",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-clock",
-        providers=("xenio",),
+        providers=(API_PROVIDER_MYHARVIA,),
         value_fn=lambda d: schedule_state(d)[0],
         attrs_fn=lambda d: schedule_state(d)[1],
     ),

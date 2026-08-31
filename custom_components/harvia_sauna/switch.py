@@ -111,6 +111,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Harvia switch entities."""
     coordinator: HarviaSaunaCoordinator = hass.data[DOMAIN][entry.entry_id]
+    provider = entry.data.get(CONF_API_PROVIDER, API_PROVIDER_MYHARVIA)
 
     entities: list = []
     for device_id in coordinator.data.devices:
@@ -121,7 +122,7 @@ async def async_setup_entry(
         # v2.7.0: integration-level Ambilight enable switch (local, no API)
         entities.append(HarviaAmbilightSwitch(coordinator, device_id))
         # v2.9.0: device-held schedule arm switch (Xenio timedStart byte 0)
-        if getattr(coordinator, "provider", "xenio") != "fenix":
+        if provider == API_PROVIDER_MYHARVIA:
             entities.append(HarviaScheduleSwitch(coordinator, device_id))
 
     async_add_entities(entities)

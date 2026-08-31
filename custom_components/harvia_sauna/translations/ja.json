@@ -84,7 +84,7 @@
         "name": "アンビライト"
       },
       "scheduled_start": {
-        "name": "予約開始 有効"
+        "name": "本体スケジュール 有効"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "記録"
       },
       "scheduled_start": {
-        "name": "予約開始"
+        "name": "本体スケジュール"
       }
     },
     "binary_sensor": {

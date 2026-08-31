@@ -84,7 +84,7 @@
         "name": "流光溢彩"
       },
       "scheduled_start": {
-        "name": "预约启动已启用"
+        "name": "设备计划已启用"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "记录"
       },
       "scheduled_start": {
-        "name": "预约启动"
+        "name": "设备计划"
       }
     },
     "binary_sensor": {

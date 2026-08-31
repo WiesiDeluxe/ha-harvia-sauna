@@ -84,7 +84,7 @@
         "name": "Ambilight"
       },
       "scheduled_start": {
-        "name": "Planeeritud käivitus aktiivne"
+        "name": "Seadme ajakava aktiivne"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "Rekordid"
       },
       "scheduled_start": {
-        "name": "Planeeritud käivitus"
+        "name": "Seadme ajakava"
       }
     },
     "binary_sensor": {

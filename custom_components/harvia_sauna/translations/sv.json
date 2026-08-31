@@ -84,7 +84,7 @@
         "name": "Ambilight"
       },
       "scheduled_start": {
-        "name": "Schemalagd start aktiv"
+        "name": "Enhetsschema aktivt"
       }
     },
     "sensor": {
@@ -188,7 +188,7 @@
         "name": "Rekord"
       },
       "scheduled_start": {
-        "name": "Schemalagd start"
+        "name": "Enhetsschema"
       }
     },
     "binary_sensor": {
