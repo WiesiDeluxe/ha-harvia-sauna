@@ -8,6 +8,7 @@ from homeassistant.components.climate import (
     PRESET_NONE,
     ClimateEntity,
     ClimateEntityFeature,
+    HVACAction,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -16,6 +17,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
+    STATUS_BIT_HEAT_DEMAND,
+    STATUS_BIT_TARGET_REACHED,
     CONF_PRESET1_DURATION,
     CONF_PRESET1_NAME,
     CONF_PRESET1_TEMP,
@@ -118,6 +121,32 @@ class HarviaThermostat(HarviaBaseEntity, ClimateEntity):
             return HVACMode.HEAT
         return HVACMode.OFF
 
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Return the current action (measured Xenio bit semantics, issue #6).
+
+        Xenio: bit 8 = heating demand, bit 5 = target reached. Bit 8 alone
+        means the heater is in its heat-up phase; bit 5 means the thermostat
+        is holding. Fenix (no statusCodes): fall back to heatOn.
+        """
+        device = self._get_device_data()
+        if device is None:
+            return None
+        if not device.active:
+            return HVACAction.OFF
+        if device.status_codes is not None:
+            try:
+                v = int(device.status_codes)
+            except (TypeError, ValueError):
+                v = None
+            if v is not None:
+                if v & STATUS_BIT_TARGET_REACHED:
+                    return HVACAction.IDLE
+                if v & STATUS_BIT_HEAT_DEMAND:
+                    return HVACAction.HEATING
+                return HVACAction.IDLE
+        return HVACAction.HEATING if device.heat_on else HVACAction.IDLE
+
     async def async_set_temperature(self, **kwargs) -> None:
         """Set new target temperature."""
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
@@ -174,7 +203,9 @@ class HarviaThermostat(HarviaBaseEntity, ClimateEntity):
         cfg = self._presets[preset_mode]
         payload: dict = {"targetTemp": cfg["temp"]}
         if cfg["duration"] is not None:
-            payload["onTime"] = cfg["duration"]
+            # Round to whole hours (min 60): the heater normalises onTime to
+            # full hours anyway and odd values break the MyHarvia app editor.
+            payload["onTime"] = max(60, (int(cfg["duration"]) // 60) * 60)
         await self.coordinator.async_request_state_change(
             self._device_id, payload
         )

@@ -61,7 +61,10 @@ NUMBER_DESCRIPTIONS: list[HarviaNumberDescription] = [
         native_unit_of_measurement="min",
         native_min_value=0,
         native_max_value=720,
-        native_step=1,
+        # Xenio firmware normalises onTime to whole hours (90 -> 60, measured
+        # on two devices); non-hour values also break the MyHarvia app's
+        # editor (NaN). Expose the granularity the device actually honours.
+        native_step=60,
         icon="mdi:timer-cog",
         api_key="onTime",
         state_attr="on_time",

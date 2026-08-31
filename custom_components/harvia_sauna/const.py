@@ -148,6 +148,18 @@ DEFAULT_AMBI_STANDARD_BRIGHTNESS = 100  # percent
 
 # Ambilight engine tuning
 AMBI_MIN_TEMP_DELTA_C = 1.0      # recompute only on >= 1 °C change
+
+# Xenio statusCodes bit field (issue #6, verified across three devices)
+STATUS_BIT_DOOR = 1 << 1          # safety circuit / door contact open
+STATUS_BIT_TARGET_REACHED = 1 << 5  # target temperature reached (maintaining)
+STATUS_BIT_HEAT_DEMAND = 1 << 8   # heating demand (NOT element duty-cycle)
+STATUS_BIT_LIGHT = 1 << 11        # cabin light on
+STATUS_BIT_READY_AUX = 1 << 16    # rises with bit 5, persists until reconnect
+STATUS_BIT_SESSION_ACTIVE = 1 << 17
+STATUS_BIT_STOPPED = 1 << 18      # session stopped / interrupted; persists until reconnect
+STATUS_BITS_KNOWN = {1: "door_open", 5: "target_reached", 8: "heat_demand",
+                     11: "light", 16: "ready_aux", 17: "session_active",
+                     18: "stopped"}
 AMBI_MIN_INTERVAL_SEC = 30.0     # ... or at most every 30 s
 AMBI_TRANSITION_SEC = 2          # smooth fade
 AMBI_CCT_SAT_THRESHOLD = 35.0    # below this saturation prefer CCT mode

@@ -7,7 +7,9 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import timedelta
+import base64
+import binascii
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -47,6 +49,8 @@ from .const import (
     READY_TREND_MIN_C_PER_MIN,
     REF_TREND_HISTORY_MAX,
     SCAN_INTERVAL_FALLBACK,
+    STATUS_BIT_DOOR,
+    STATUS_BITS_KNOWN,
     SESSION_END_COOLDOWN,
     SESSION_MIN_DURATION_SEC,
 )
@@ -59,6 +63,41 @@ DEVICE_STALE_TIMEOUT = 600  # 10 minutes
 
 # Temperature trend: keep last N readings for rate calculation
 TEMP_HISTORY_MAX = 10
+
+
+def decode_status_bits(value: str | int | None) -> dict[str, Any]:
+    """Decode a Xenio statusCodes bit field into named flags (issue #6)."""
+    try:
+        v = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return {}
+    out: dict[str, Any] = {name: bool(v >> bit & 1) for bit, name in STATUS_BITS_KNOWN.items()}
+    out["unknown_bits"] = [b for b in range(32) if v >> b & 1 and b not in STATUS_BITS_KNOWN]
+    out["raw_hex"] = hex(v)
+    return out
+
+
+def decode_timed_start(b64: str | None) -> dict[str, Any] | None:
+    """Decode the Xenio timedStart schedule (community-verified byte map).
+
+    8 bytes: 0x01 | duration/15min | target °C | 0x00 | uint32 LE unix epoch
+    of the READY time (the heater subtracts its own heatUpTime to ignite).
+    All-zero = no schedule.
+    """
+    if not b64:
+        return None
+    try:
+        raw = base64.b64decode(b64)
+    except (ValueError, binascii.Error):
+        return None
+    if len(raw) != 8 or not any(raw):
+        return None
+    epoch = int.from_bytes(raw[4:8], "little")
+    return {
+        "ready_at": datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat(),
+        "duration_min": raw[1] * 15,
+        "target_temp": raw[2],
+    }
 
 
 @dataclass
@@ -99,6 +138,7 @@ class HarviaDeviceData:
 
     # Status
     status_codes: str | None = None
+    timed_start: str | None = None   # raw base64 Xenio schedule (8 bytes)
     # None = no door data ever received (entity shows "unknown" instead of
     # a misleading "closed" on providers that don't deliver door status yet)
     door_open: bool | None = None
@@ -599,12 +639,19 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
         device.aroma_level = data["aromaLevel"]
     if "statusCodes" in data:
         device.status_codes = str(data["statusCodes"])
-        # Parse door status from status codes (2nd digit = 9 means door open)
-        # — Xenio only; Fenix delivers a normalized "doorOpen" key instead
+        # Xenio only (Fenix delivers a normalized "doorOpen" key instead).
+        # statusCodes is a bit field. Bit 1 (0x2) = safety circuit / door
+        # contact open — verified on two devices (issue #6). The inherited
+        # "2nd decimal digit == 9" rule was a coincidental artefact of that
+        # bit on some baselines and misses the event on others (5xxxxx
+        # class). Bit 18 also rises on door events but ALSO on every normal
+        # session stop, so it must not be part of the door mask.
         try:
-            device.door_open = int(str(data["statusCodes"])[1]) == 9
-        except (IndexError, ValueError):
+            device.door_open = bool(int(data["statusCodes"]) & STATUS_BIT_DOOR)
+        except (TypeError, ValueError):
             pass
+    if "timedStart" in data:
+        device.timed_start = data["timedStart"] or None
     if "doorOpen" in data:
         device.door_open = _to_bool(data["doorOpen"])
     if "fwVersion" in data:
@@ -645,7 +692,17 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         now = time.monotonic()
         if was_heating and device._last_heat_on_timestamp is not None:
             elapsed_hours = (now - device._last_heat_on_timestamp) / 3600.0
-            device.energy_kwh += (device.heater_power / 1000.0) * elapsed_hours
+            # Prefer the heater's own reported power when the device sends
+            # it; otherwise fall back to the configured rated power. NOTE:
+            # heatOn is a heating *demand* flag (Xenio bit 8 stays set through
+            # thermostat pauses — measured), so without real telemetry this
+            # remains an upper-bound estimate.
+            power_w = (
+                device.heater_power_actual
+                if device.heater_power_actual and device.heater_power_actual > 0
+                else device.heater_power
+            )
+            device.energy_kwh += (power_w / 1000.0) * elapsed_hours
 
         if device.heat_on:
             device._last_heat_on_timestamp = now
@@ -762,9 +819,13 @@ def _update_session_tracking(
         # the 0.0 default, which would make the end-of-session delta equal
         # the entire meter reading. In that case leave the snapshot None so
         # no (misleading) energy value is computed for this session.
+        # energy_kwh is a RAM accumulator that restarts at 0.0 after a reload
+        # (measured: a config-entry reload minutes before a session start left
+        # last_session_kwh unknown). A 0.0 snapshot is a valid start value —
+        # the < 50 kWh sanity window at session end still rejects absurd
+        # deltas from a large, non-session meter value.
         device._session_start_kwh = (
-            device.energy_kwh if device.energy_kwh and device.energy_kwh > 0
-            else None
+            device.energy_kwh if device.energy_kwh is not None else None
         )
 
         hass.bus.async_fire(EVENT_SESSION_START, {
@@ -918,10 +979,7 @@ def _end_session(
             device.sessions_today += 1
 
             # ── Statistics (v2.8.0) ──────────────────────────────────
-            if (
-                device._session_start_kwh is not None
-                and device._session_start_kwh > 0
-            ):
+            if device._session_start_kwh is not None:
                 delta = device.energy_kwh - device._session_start_kwh
                 # Sanity: a single session is realistically < 50 kWh. A delta
                 # that large means the start snapshot was unreliable — skip.

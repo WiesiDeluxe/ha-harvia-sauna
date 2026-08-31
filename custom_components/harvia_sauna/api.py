@@ -12,7 +12,10 @@ import botocore.exceptions
 from pycognito import Cognito
 
 from homeassistant.core import HomeAssistant
+from aiohttp import ClientTimeout
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+HTTP_TIMEOUT = ClientTimeout(total=30)
 
 from .api_base import HarviaApiClientBase
 from .const import ENDPOINTS, MYHARVIA_BASE_URL, MYHARVIA_REGION
@@ -103,7 +106,7 @@ class HarviaApiClient(HarviaApiClientBase):
         for endpoint in ENDPOINTS:
             url = f"{MYHARVIA_BASE_URL}/{endpoint}/endpoint"
             try:
-                async with session.get(url) as response:
+                async with session.get(url, timeout=HTTP_TIMEOUT) as response:
                     self._endpoints[endpoint] = await response.json()
             except Exception as err:
                 _LOGGER.error("Failed to fetch endpoint %s: %s", endpoint, err)
@@ -125,7 +128,9 @@ class HarviaApiClient(HarviaApiClientBase):
         url = endpoints[endpoint]["endpoint"]
 
         try:
-            async with session.post(url, json=query, headers=headers) as response:
+            async with session.post(
+                url, json=query, headers=headers, timeout=HTTP_TIMEOUT
+            ) as response:
                 if response.status in (401, 403):
                     # Force token reset for next attempt
                     self._token_data = None

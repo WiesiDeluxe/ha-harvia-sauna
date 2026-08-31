@@ -27,7 +27,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import API_PROVIDER_HARVIAIO, API_PROVIDER_MYHARVIA, CONF_API_PROVIDER, DOMAIN
-from .coordinator import HarviaDeviceData, HarviaSaunaCoordinator
+from .coordinator import decode_status_bits, decode_timed_start, HarviaDeviceData, HarviaSaunaCoordinator
 from .entity import HarviaBaseEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ class HarviaSensorDescription(SensorEntityDescription):
 
     value_fn: Callable[[HarviaDeviceData], int | float | str | None]
     providers: tuple[str, ...] | None = None  # None = all providers
+    attrs_fn: Callable[[HarviaDeviceData], dict | None] | None = None
 
 
 SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
@@ -152,6 +153,11 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         icon="mdi:information-outline",
         entity_registry_enabled_default=False,
         value_fn=lambda d: d.status_codes,
+        # Decoded bit map + device-held schedule (issue #6 community research)
+        attrs_fn=lambda d: {
+            **decode_status_bits(d.status_codes),
+            "timed_start": decode_timed_start(d.timed_start),
+        },
     ),
     HarviaSensorDescription(
         key="aroma_level",
@@ -432,6 +438,15 @@ class HarviaSensor(HarviaBaseEntity, SensorEntity):
         if device is None:
             return None
         return self.entity_description.value_fn(device)
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Return description-provided attributes, if any."""
+        fn = getattr(self.entity_description, "attrs_fn", None)
+        if fn is None:
+            return None
+        device = self._get_device_data()
+        return fn(device) if device else None
 
 
 class HarviaEnergySensor(HarviaSensor, RestoreEntity):

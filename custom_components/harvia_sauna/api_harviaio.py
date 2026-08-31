@@ -10,7 +10,10 @@ from typing import Any
 from urllib.parse import quote, urlencode
 
 from homeassistant.core import HomeAssistant
+from aiohttp import ClientTimeout
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+HTTP_TIMEOUT = ClientTimeout(total=30)
 
 from .api_base import HarviaApiClientBase
 from .errors import HarviaAuthError, HarviaConnectionError
@@ -281,7 +284,7 @@ class HarviaIoApiClient(HarviaApiClientBase):
 
         session = async_get_clientsession(self._hass)
         try:
-            async with session.get(HARVIA_ENDPOINTS_URL) as response:
+            async with session.get(HARVIA_ENDPOINTS_URL, timeout=HTTP_TIMEOUT) as response:
                 if response.status >= 400:
                     raise HarviaConnectionError(
                         f"Endpoints discovery failed: HTTP {response.status}"
@@ -480,7 +483,9 @@ class HarviaIoApiClient(HarviaApiClientBase):
         _LOGGER.debug("GraphQL %s request: query=%s variables=%s", service, query[:100], variables)
 
         try:
-            async with session.post(graphql_url, json=payload, headers=headers) as response:
+            async with session.post(
+                graphql_url, json=payload, headers=headers, timeout=HTTP_TIMEOUT
+            ) as response:
                 body_text = await response.text()
                 _LOGGER.debug("GraphQL %s response: status=%s body=%s", service, response.status, body_text[:500] if body_text else "(empty)")
                 if response.status in (401, 403):
