@@ -94,9 +94,13 @@ def decode_timed_start(b64: str | None) -> dict[str, Any] | None:
         return None
     epoch = int.from_bytes(raw[4:8], "little")
     return {
+        # Byte 0: app writes 0x01 when arming; disabling in the app keeps the
+        # schedule bytes and (hypothesis under test) only clears this flag.
+        "enabled": bool(raw[0]),
         "ready_at": datetime.fromtimestamp(epoch, tz=timezone.utc).isoformat(),
         "duration_min": raw[1] * 15,
         "target_temp": raw[2],
+        "raw": raw.hex(),
     }
 
 

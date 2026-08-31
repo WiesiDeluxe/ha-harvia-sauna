@@ -265,7 +265,10 @@ class HarviaApiClient(HarviaApiClientBase):
             ),
         }
         data = await self.async_graphql_request("device", query)
-        return json.loads(data["data"]["getDeviceState"]["reported"])
+        reported = json.loads(data["data"]["getDeviceState"]["reported"])
+        # Keep the last raw shadow for diagnostics (no credentials inside).
+        self.last_raw_state = reported
+        return reported
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
         """Get latest telemetry data for a device."""

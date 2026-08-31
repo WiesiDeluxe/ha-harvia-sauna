@@ -10,6 +10,7 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 
 from .api_factory import get_provider_from_entry_data
+from .coordinator import decode_status_bits, decode_timed_start
 from .const import DOMAIN
 from .coordinator import HarviaSaunaCoordinator
 
@@ -50,6 +51,9 @@ async def async_get_config_entry_diagnostics(
                 "dehumidifier_enabled": device.dehumidifier_enabled,
                 "wifi_rssi": device.wifi_rssi,
                 "status_codes": device.status_codes,
+                "status_bits": decode_status_bits(device.status_codes),
+                "timed_start_raw": device.timed_start,
+                "timed_start": decode_timed_start(device.timed_start),
                 "temp_unit": device.temp_unit,
                 "heater_power": device.heater_power,
                 "energy_kwh": round(device.energy_kwh, 3),
