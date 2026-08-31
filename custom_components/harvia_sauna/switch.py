@@ -14,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN
+from .const import API_PROVIDER_MYHARVIA, CONF_API_PROVIDER, DOMAIN
 from .coordinator import decode_timed_start, encode_timed_start, schedule_state, HarviaDeviceData, HarviaSaunaCoordinator
 from .entity import HarviaBaseEntity
 
