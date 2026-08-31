@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Scheduled start armed"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Records"
+      },
+      "scheduled_start": {
+        "name": "Scheduled start"
       }
     },
     "binary_sensor": {

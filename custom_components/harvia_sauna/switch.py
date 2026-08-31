@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
@@ -14,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN
-from .coordinator import HarviaDeviceData, HarviaSaunaCoordinator
+from .coordinator import decode_timed_start, encode_timed_start, schedule_state, HarviaDeviceData, HarviaSaunaCoordinator
 from .entity import HarviaBaseEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -119,6 +120,9 @@ async def async_setup_entry(
             )
         # v2.7.0: integration-level Ambilight enable switch (local, no API)
         entities.append(HarviaAmbilightSwitch(coordinator, device_id))
+        # v2.9.0: device-held schedule arm switch (Xenio timedStart byte 0)
+        if getattr(coordinator, "provider", "xenio") != "fenix":
+            entities.append(HarviaScheduleSwitch(coordinator, device_id))
 
     async_add_entities(entities)
 
@@ -237,3 +241,53 @@ class HarviaAmbilightSwitch(HarviaBaseEntity, SwitchEntity, RestoreEntity):
         if ambilight is not None:
             await ambilight.async_restore_standard()
         self.async_write_ha_state()
+
+
+class HarviaScheduleSwitch(HarviaBaseEntity, SwitchEntity):
+    """Arm/disarm the heater's one-shot schedule without touching the plan.
+
+    Mirrors the MyHarvia app toggle: disabling keeps ready time, duration and
+    temperature (byte 0 only). A consumed schedule (ready_at in the past) is
+    reported off. Turning on without a stored plan is refused with a warning
+    — use the set_schedule service to create one.
+    """
+
+    _attr_translation_key = "scheduled_start"
+    _attr_icon = "mdi:calendar-clock"
+
+    def __init__(self, coordinator, device_id: str) -> None:
+        super().__init__(coordinator, device_id)
+        self._attr_unique_id = f"{device_id}_scheduled_start"
+
+    @property
+    def is_on(self) -> bool | None:
+        device = self._get_device_data()
+        if device is None:
+            return None
+        return schedule_state(device)[0] is not None
+
+    async def _write_enabled(self, enabled: bool) -> None:
+        device = self._get_device_data()
+        dec = decode_timed_start(device.timed_start) if device else None
+        if not dec:
+            _LOGGER.warning(
+                "No stored schedule on %s — use harvia_sauna.set_schedule first",
+                self._device_id,
+            )
+            return
+        b64 = encode_timed_start(
+            enabled,
+            datetime.fromisoformat(dec["ready_at"]),
+            dec["duration_min"],
+            dec["target_temp"],
+        )
+        await self.coordinator.api.async_request_state_change(
+            self._device_id, {"timedStart": b64}
+        )
+        await self.coordinator.async_request_refresh()
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self._write_enabled(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self._write_enabled(False)

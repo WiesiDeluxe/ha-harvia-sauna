@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Амбилайт"
+      },
+      "scheduled_start": {
+        "name": "Запланированный запуск активен"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Рекорды"
+      },
+      "scheduled_start": {
+        "name": "Запланированный запуск"
       }
     },
     "binary_sensor": {

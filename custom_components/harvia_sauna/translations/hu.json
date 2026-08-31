@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Ütemezett indítás aktív"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Rekordok"
+      },
+      "scheduled_start": {
+        "name": "Ütemezett indítás"
       }
     },
     "binary_sensor": {

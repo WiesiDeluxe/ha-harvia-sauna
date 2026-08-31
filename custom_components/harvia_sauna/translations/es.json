@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Inicio programado activado"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Récords"
+      },
+      "scheduled_start": {
+        "name": "Inicio programado"
       }
     },
     "binary_sensor": {

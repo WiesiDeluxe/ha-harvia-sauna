@@ -35,6 +35,8 @@ EVENT_SESSION_END = f"{DOMAIN}_session_end"
 
 # Services
 SERVICE_SET_SESSION = "set_session"
+SERVICE_SET_SCHEDULE = "set_schedule"
+SERVICE_CLEAR_SCHEDULE = "clear_schedule"
 
 # API Providers
 API_PROVIDER_MYHARVIA = "myharvia_graphql"

@@ -16,6 +16,8 @@ from homeassistant.util import dt as dt_util
 
 from .api_factory import create_api_client, get_provider_from_entry_data
 from .const import (
+    SERVICE_SET_SCHEDULE,
+    SERVICE_CLEAR_SCHEDULE,
     CONF_HEATER_MODEL,
     CONF_HEATER_POWER,
     DEFAULT_HEATER_POWER_W,
@@ -24,7 +26,7 @@ from .const import (
     SERVICE_READY_AT,
     SERVICE_SET_SESSION,
 )
-from .coordinator import HarviaSaunaCoordinator
+from .coordinator import TIMED_START_CLEAR, HarviaSaunaCoordinator, encode_timed_start
 from .errors import HarviaAuthError, HarviaConnectionError
 from .ambilight import HarviaAmbilight
 from .learning import HeatingModel, heater_class_for_model
@@ -65,6 +67,16 @@ SERVICE_READY_AT_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_SET_SCHEDULE_SCHEMA = vol.Schema(
+    {
+        vol.Required("device_id"): cv.string,
+        vol.Required("ready_at"): cv.datetime,
+        vol.Required("duration"): vol.All(vol.Coerce(int), vol.Range(min=15, max=720)),
+        vol.Required("target_temp"): vol.All(vol.Coerce(int), vol.Range(min=40, max=110)),
+        vol.Optional("enabled", default=True): cv.boolean,
+    }
+)
+SERVICE_CLEAR_SCHEDULE_SCHEMA = vol.Schema({vol.Required("device_id"): cv.string})
 SERVICE_CANCEL_PREHEAT_SCHEMA = vol.Schema(
     {
         vol.Optional("device_id"): cv.string,
@@ -186,6 +198,58 @@ def _apply_heater_power(
 def _async_register_services(hass: HomeAssistant) -> None:
     """Register custom services for Harvia Sauna."""
 
+    def _find_coordinator(device_id: str):
+        for entry_data in hass.data.get(DOMAIN, {}).values():
+            if entry_data.data and device_id in entry_data.data.devices:
+                return entry_data
+        return None
+
+    async def async_handle_set_schedule(call: ServiceCall) -> None:
+        """Program the heater's one-shot schedule (Xenio timedStart)."""
+        device_id = call.data["device_id"]
+        coordinator = _find_coordinator(device_id)
+        if coordinator is None:
+            _LOGGER.warning("set_schedule: device %s not found", device_id)
+            return
+        ready_at = dt_util.as_utc(call.data["ready_at"])
+        b64 = encode_timed_start(
+            call.data["enabled"], ready_at, call.data["duration"], call.data["target_temp"]
+        )
+        # Conflict guard: HA smart preheat and the device-held schedule are
+        # independent paths — warn when both are planned for this device.
+        try:
+            preheat = getattr(coordinator, "preheat", None)
+            planned = getattr(preheat, "planned_start", None)
+            planned = planned(device_id) if callable(planned) else (
+                planned.get(device_id) if isinstance(planned, dict) else planned
+            )
+            if planned:
+                _LOGGER.warning(
+                    "Device schedule set while HA smart preheat is also planned for %s "
+                    "— both will start the heater; cancel one of them", device_id
+                )
+                await hass.services.async_call(
+                    "persistent_notification", "create",
+                    {"title": "Harvia: two schedules active",
+                     "message": "A device schedule was set while the smart preheat is also planned. Both will start the heater — cancel one of them.",
+                     "notification_id": f"{DOMAIN}_schedule_conflict_{device_id}"},
+                    blocking=False,
+                )
+        except Exception:  # never let the guard break the service
+            _LOGGER.debug("schedule conflict guard skipped", exc_info=True)
+        await coordinator.api.async_request_state_change(device_id, {"timedStart": b64})
+        await coordinator.async_request_refresh()
+
+    async def async_handle_clear_schedule(call: ServiceCall) -> None:
+        """Remove the heater's one-shot schedule (all-zero timedStart)."""
+        device_id = call.data["device_id"]
+        coordinator = _find_coordinator(device_id)
+        if coordinator is None:
+            _LOGGER.warning("clear_schedule: device %s not found", device_id)
+            return
+        await coordinator.api.async_request_state_change(device_id, {"timedStart": TIMED_START_CLEAR})
+        await coordinator.async_request_refresh()
+
     async def async_handle_set_session(call: ServiceCall) -> None:
         """Handle the set_session service call."""
         device_id = call.data["device_id"]
@@ -256,6 +320,12 @@ def _async_register_services(hass: HomeAssistant) -> None:
         await coordinator.preheat.async_cancel()
 
     if not hass.services.has_service(DOMAIN, SERVICE_SET_SESSION):
+        hass.services.async_register(
+            DOMAIN, SERVICE_SET_SCHEDULE, async_handle_set_schedule, schema=SERVICE_SET_SCHEDULE_SCHEMA
+        )
+        hass.services.async_register(
+            DOMAIN, SERVICE_CLEAR_SCHEDULE, async_handle_clear_schedule, schema=SERVICE_CLEAR_SCHEDULE_SCHEMA
+        )
         hass.services.async_register(
             DOMAIN,
             SERVICE_SET_SESSION,

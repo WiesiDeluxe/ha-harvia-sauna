@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "앰비라이트"
+      },
+      "scheduled_start": {
+        "name": "예약 시작 활성"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "기록"
+      },
+      "scheduled_start": {
+        "name": "예약 시작"
       }
     },
     "binary_sensor": {

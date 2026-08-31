@@ -104,6 +104,50 @@ def decode_timed_start(b64: str | None) -> dict[str, Any] | None:
     }
 
 
+TIMED_START_CLEAR = "AAAAAAAAAAA="  # all-zero: no schedule
+
+
+def encode_timed_start(
+    enabled: bool, ready_at: datetime, duration_min: int, target_temp: int
+) -> str:
+    """Encode a Xenio timedStart schedule (inverse of decode_timed_start).
+
+    duration is stored in 15-minute units (1..255), so odd durations like
+    90 min are representable — unlike onTime, which the heater floors to
+    whole hours. ready_at is the READY time; the heater ignites at
+    ready_at - heatUpTime (verified to the second on a CX110).
+    """
+    if ready_at.tzinfo is None:
+        raise ValueError("ready_at must be timezone-aware")
+    units = max(1, min(255, int(round(duration_min / 15))))
+    temp = max(40, min(110, int(target_temp)))
+    epoch = int(ready_at.timestamp())
+    raw = bytes([1 if enabled else 0, units, temp, 0]) + epoch.to_bytes(4, "little")
+    return base64.b64encode(raw).decode()
+
+
+def schedule_state(device: "HarviaDeviceData") -> tuple[datetime | None, dict[str, Any]]:
+    """Return (ready_at if armed and in the future, attributes) for a device.
+
+    The heater does NOT clear a consumed one-shot schedule: after ignition
+    the bytes stay with enabled=1 and a past ready_at (measured). Treat a
+    past ready_at as expired, never as planned.
+    """
+    dec = decode_timed_start(device.timed_start)
+    if not dec:
+        return None, {"enabled": False, "expired": False}
+    ready = datetime.fromisoformat(dec["ready_at"])
+    expired = ready <= datetime.now(timezone.utc)
+    attrs = {
+        "enabled": dec["enabled"],
+        "expired": expired,
+        "ready_at": dec["ready_at"],
+        "duration_min": dec["duration_min"],
+        "target_temp": dec["target_temp"],
+    }
+    return (ready if dec["enabled"] and not expired else None), attrs
+
+
 @dataclass
 class HarviaDeviceData:
     """Parsed data for a single Harvia device."""

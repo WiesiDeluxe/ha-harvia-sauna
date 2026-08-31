@@ -80,3 +80,67 @@ cancel_preheat:
       example: "abc123def456"
       selector:
         text:
+
+set_schedule:
+  name: Set scheduled start
+  description: >-
+    Program the heater's own one-shot schedule (Xenio). The heater ignites at
+    ready_at minus its configured heat-up time and keeps the plan even if Home
+    Assistant is offline. Duration is stored in 15-minute steps, so 90 min is
+    possible here (unlike the session duration, which the heater rounds to
+    whole hours).
+  fields:
+    device_id:
+      name: Device ID
+      description: The Harvia device ID (e.g. from the device page).
+      required: true
+      example: "abc123def456"
+      selector:
+        text:
+    ready_at:
+      name: Ready at
+      description: When the sauna should be at temperature.
+      required: true
+      example: "2026-09-01 18:00:00"
+      selector:
+        datetime:
+    duration:
+      name: Duration (minutes)
+      description: Session length after ready_at, in 15-minute steps.
+      required: true
+      example: 90
+      selector:
+        number:
+          min: 15
+          max: 720
+          step: 15
+          unit_of_measurement: min
+    target_temp:
+      name: Target temperature
+      description: Target temperature for the scheduled session.
+      required: true
+      example: 75
+      selector:
+        number:
+          min: 40
+          max: 110
+          unit_of_measurement: "°C"
+    enabled:
+      name: Armed
+      description: Arm the schedule (true) or store it disarmed (false), like the app's toggle.
+      required: false
+      default: true
+      selector:
+        boolean:
+
+clear_schedule:
+  name: Clear scheduled start
+  description: Remove the heater's one-shot schedule completely (Xenio).
+  fields:
+    device_id:
+      name: Device ID
+      description: The Harvia device ID (e.g. from the device page).
+      required: true
+      example: "abc123def456"
+      selector:
+        text:

@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "流光溢彩"
+      },
+      "scheduled_start": {
+        "name": "预约启动已启用"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "记录"
+      },
+      "scheduled_start": {
+        "name": "预约启动"
       }
     },
     "binary_sensor": {

@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "アンビライト"
+      },
+      "scheduled_start": {
+        "name": "予約開始 有効"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "記録"
+      },
+      "scheduled_start": {
+        "name": "予約開始"
       }
     },
     "binary_sensor": {

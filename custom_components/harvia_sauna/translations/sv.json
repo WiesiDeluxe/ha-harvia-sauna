@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Schemalagd start aktiv"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Rekord"
+      },
+      "scheduled_start": {
+        "name": "Schemalagd start"
       }
     },
     "binary_sensor": {

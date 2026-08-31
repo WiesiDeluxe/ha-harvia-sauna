@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Planlagt start aktiv"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Rekorder"
+      },
+      "scheduled_start": {
+        "name": "Planlagt start"
       }
     },
     "binary_sensor": {

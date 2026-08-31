@@ -27,7 +27,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import API_PROVIDER_HARVIAIO, API_PROVIDER_MYHARVIA, CONF_API_PROVIDER, DOMAIN
-from .coordinator import decode_status_bits, decode_timed_start, HarviaDeviceData, HarviaSaunaCoordinator
+from .coordinator import decode_status_bits, decode_timed_start, schedule_state, HarviaDeviceData, HarviaSaunaCoordinator
 from .entity import HarviaBaseEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -68,6 +68,16 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:clock-check-outline",
         value_fn=lambda d: d.ready_at,
+    ),
+    # ── Device-held schedule (v2.9.0, Xenio timedStart) ───────────
+    HarviaSensorDescription(
+        key="scheduled_start",
+        translation_key="scheduled_start",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:calendar-clock",
+        providers=("xenio",),
+        value_fn=lambda d: schedule_state(d)[0],
+        attrs_fn=lambda d: schedule_state(d)[1],
     ),
     # ── Smart Preheat & Statistics (v2.8.0) ──────────────────────
     HarviaSensorDescription(

@@ -82,6 +82,9 @@
       },
       "ambilight": {
         "name": "Ambilight"
+      },
+      "scheduled_start": {
+        "name": "Planeeritud käivitus aktiivne"
       }
     },
     "sensor": {
@@ -183,6 +186,9 @@
       },
       "records": {
         "name": "Rekordid"
+      },
+      "scheduled_start": {
+        "name": "Planeeritud käivitus"
       }
     },
     "binary_sensor": {
