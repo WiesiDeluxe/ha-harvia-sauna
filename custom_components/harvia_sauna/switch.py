@@ -255,9 +255,11 @@ class HarviaScheduleSwitch(HarviaBaseEntity, SwitchEntity):
     _attr_translation_key = "scheduled_start"
     _attr_icon = "mdi:calendar-clock"
 
-    def __init__(self, coordinator, device_id: str) -> None:
-        super().__init__(coordinator, device_id)
-        self._attr_unique_id = f"{device_id}_scheduled_start"
+    def __init__(
+        self, coordinator: HarviaSaunaCoordinator, device_id: str
+    ) -> None:
+        """Initialize the schedule arm switch."""
+        super().__init__(coordinator, device_id, "scheduled_start")
 
     @property
     def is_on(self) -> bool | None:
