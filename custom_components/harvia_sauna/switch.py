@@ -283,7 +283,7 @@ class HarviaScheduleSwitch(HarviaBaseEntity, SwitchEntity):
             dec["duration_min"],
             dec["target_temp"],
         )
-        await self.coordinator.api.async_request_state_change(
+        await self.coordinator.async_request_state_change(
             self._device_id, {"timedStart": b64}
         )
         await self.coordinator.async_request_refresh()

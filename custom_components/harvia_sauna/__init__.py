@@ -198,16 +198,9 @@ def _apply_heater_power(
 def _async_register_services(hass: HomeAssistant) -> None:
     """Register custom services for Harvia Sauna."""
 
-    def _find_coordinator(device_id: str):
-        for entry_data in hass.data.get(DOMAIN, {}).values():
-            if entry_data.data and device_id in entry_data.data.devices:
-                return entry_data
-        return None
-
     async def async_handle_set_schedule(call: ServiceCall) -> None:
         """Program the heater's one-shot schedule (Xenio timedStart)."""
-        device_id = call.data["device_id"]
-        coordinator = _find_coordinator(device_id)
+        coordinator, device_id = _find_coordinator(call.data["device_id"])
         if coordinator is None:
             _LOGGER.warning("set_schedule: device %s not found", device_id)
             return
@@ -237,17 +230,18 @@ def _async_register_services(hass: HomeAssistant) -> None:
                 )
         except Exception:  # never let the guard break the service
             _LOGGER.debug("schedule conflict guard skipped", exc_info=True)
-        await coordinator.api.async_request_state_change(device_id, {"timedStart": b64})
+        await coordinator.async_request_state_change(device_id, {"timedStart": b64})
         await coordinator.async_request_refresh()
 
     async def async_handle_clear_schedule(call: ServiceCall) -> None:
         """Remove the heater's one-shot schedule (all-zero timedStart)."""
-        device_id = call.data["device_id"]
-        coordinator = _find_coordinator(device_id)
+        coordinator, device_id = _find_coordinator(call.data["device_id"])
         if coordinator is None:
             _LOGGER.warning("clear_schedule: device %s not found", device_id)
             return
-        await coordinator.api.async_request_state_change(device_id, {"timedStart": TIMED_START_CLEAR})
+        await coordinator.async_request_state_change(
+            device_id, {"timedStart": TIMED_START_CLEAR}
+        )
         await coordinator.async_request_refresh()
 
     async def async_handle_set_session(call: ServiceCall) -> None:
