@@ -60,7 +60,7 @@ To change model/power later: **⋮** → **Reconfigure**
 | Thermostat | Set target temperature, operating mode |
 
 ### Switches
-Power, Light, Fan, Steamer, Aroma, Auto Light, Auto Fan, Dehumidifier
+Power, Light, Fan, Steamer, Aroma, Auto Light, Auto Fan, Dehumidifier, Device schedule armed *(Xenio, v2.9.0+)*
 
 ### Sensors
 | Entity | Description |
@@ -137,7 +137,9 @@ A **flicker guard** requires several consecutive readings below the
 threshold before ending, so a BLE reference sensor (e.g. Shelly BLU H&T)
 briefly dropping to `unavailable` can no longer end the session early.
 
-## Custom Service
+## Custom Services
+
+### `set_session`
 
 ```yaml
 action: harvia_sauna.set_session
@@ -147,6 +149,22 @@ data:
   duration: 60           # 1–720 minutes
   active: true           # start/stop
 ```
+
+### `set_schedule` / `clear_schedule` *(Xenio, v2.9.0+)*
+
+Program the heater's **own** one-shot schedule. The plan is stored in the panel — it survives Home Assistant restarts and network outages, and the heater ignites by itself.
+
+```yaml
+action: harvia_sauna.set_schedule
+data:
+  device_id: "your_device_id"
+  ready_at: "2026-09-01 18:00:00"   # when the sauna should be at temperature
+  duration: 90                      # minutes AFTER ready_at, in 15-minute steps
+  target_temp: 75                   # 40–110 °C
+  enabled: true                     # optional, arm (true) or store disarmed (false)
+```
+
+`harvia_sauna.clear_schedule` (only `device_id`) removes the plan completely. See [Device schedule](#device-schedule-xenio-v290) for the measured behaviour and limitations.
 
 ## Automation Events
 
@@ -171,6 +189,60 @@ The energy sensor uses `state_class: total_increasing` and works with the HA Ene
 > **⚠️ Xenio users:** Power and energy are **estimates**. The Xenio API does not expose the actual heater relay state — it only reports whether the session is active. So the power sensor shows the full rated power (e.g. 10800 W) for the whole session, even when the thermostat has cycled the element off (and the stones keep radiating heat). Real consumption is lower than reported. For accurate measurement, use an external energy meter (e.g. Shelly 3EM, CT clamp) on the heater circuit.
 >
 > **Fenix users:** The Fenix API provides a real measured `heaterPower` value, so the "Actual heater power" sensor reflects true consumption.
+
+## Device schedule (Xenio, v2.9.0+)
+
+Everything below was measured on a Xenio CX110 before the feature was implemented (see issue #6).
+
+- **Ignition** happens at `ready_at − heat-up time` (the *Vorwärmzeit* configured in the app), verified to the second. With a 60 min heat-up time and `ready_at` 18:00 the heater starts at 17:00.
+- **Duration counts from `ready_at`**, not from ignition. `remainingTime` at ignition = heat-up time + duration.
+- The sensor **Device schedule** shows the ready time only while the plan is armed and in the future. The switch **Device schedule armed** toggles byte 0 of the plan exactly like the app's *Aktivieren* toggle — the stored plan is kept.
+- **A consumed schedule is not cleared by the heater.** After ignition the plan stays armed with a past ready time; the sensor reports it as *not planned* (`expired: true`).
+- **Rest period:** the panel can silently refuse a scheduled start (the app shows *Ruhezeitraum*). This state is **not visible** in the cloud data, so the sensor may show a plan that will not fire. Observed once after a manual stop shortly before the scheduled ignition; a manual start always works.
+- Duration is stored in 15-minute units, so 90 min works here although the session-duration number is floored to whole hours by the heater (see below).
+
+## Xenio status codes (bit map)
+
+The `Status codes` sensor value is a bit field. Since v2.8.7 it is decoded into attributes (`door_open`, `heat_demand`, `light`, …, `unknown_bits`, `raw_hex`). Verified across three devices by the community in issue #6:
+
+| Bit | Meaning | Verified on |
+|---|---|---|
+| 1 | safety circuit / door contact open | 2 devices |
+| 5 | target temperature reached (maintaining) | 2 devices |
+| 8 | heating **demand** — stays set through thermostat pauses, *not* the element duty cycle | 3 devices |
+| 11 | cabin light | 3 devices |
+| 17 | session active (not present on every unit) | 2 devices |
+| 18 | heating stopped / interrupted (also on a normal stop) | 2 devices |
+| 2, 3, 12, 16, 19 | baseline / device-specific, meaning unknown | — |
+
+The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on some baselines; the integration uses the bit since v2.8.7. Captures of unexplained bits are welcome in issue #6.
+
+## Measured device behaviour (Xenio)
+
+- **Session duration is normalised to whole hours by the heater** (90 → 60, measured on two devices, firmware 2.3.4). Non-hour values also break the MyHarvia app's editor. The number entity therefore steps by 60 and preset durations are floored — use the device schedule for 15-minute granularity.
+- **Switching the heater off at the panel does not update `active` in the cloud data.** The climate entity may keep showing *heat* until a command is sent from HA; `hvac_action` (from the status bits) shows *idle* immediately. A fix that derives the state from the bits is planned.
+- The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
+
+## Controller support matrix
+
+| | Xenio (myHarvia) | Fenix (harvia.io) |
+|---|---|---|
+| Monitoring & control | ✅ verified (CX110, CX170 reported) | ✅ verified (SW90S Combi) |
+| Door sensor | ✅ status-code bit 1 | ⚠️ derived from `remoteAllowed` (safety-circuit proxy) |
+| Device schedule | ✅ | ❌ not yet — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
+| Status-code bit map | ✅ | n/a (Fenix delivers named fields) |
+| Real heater power | ❌ estimate | ✅ `heaterPower` telemetry |
+
+Fenix note: remote control on MyHarvia 2 is a paid *Control* tier after a trial. If reading works but starting does not, check the licence in the app before filing a bug.
+
+## Development
+
+```bash
+pip install -r requirements_test.txt
+pytest
+```
+
+The tests set the integration up against a fake cloud client and assert that every platform loads and every described entity is created for both providers — the failure modes that only show up at runtime. They run in CI on every push.
 
 ## Architecture
 
