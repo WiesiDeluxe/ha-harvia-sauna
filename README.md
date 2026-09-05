@@ -220,7 +220,8 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 ## Measured device behaviour (Xenio)
 
 - **Session duration is normalised to whole hours by the heater** (90 → 60, measured on two devices, firmware 2.3.4). Non-hour values also break the MyHarvia app's editor. The number entity therefore steps by 60 and preset durations are floored — use the device schedule for 15-minute granularity.
-- **Switching the heater off at the panel does not update `active` in the cloud data.** The climate entity may keep showing *heat* until a command is sent from HA; `hvac_action` (from the status bits) shows *idle* immediately. A fix that derives the state from the bits is planned.
+- **Switching the heater off at the panel is reflected within a second** (`active` → 0, status bits update). The cabin light is independent of the session state and stays on until switched off.
+- **Duration in the device schedule is honoured at 15-minute granularity** (90 min → `remainingTime` = heat-up + 90, measured), and the schedule's target temperature is applied at ignition and reverts to the previous setpoint when the session stops.
 - The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
 
 ## Controller support matrix
