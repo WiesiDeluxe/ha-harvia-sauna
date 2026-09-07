@@ -14,7 +14,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -48,6 +48,7 @@ from .const import (
     READY_MODE_FIXED,
     READY_TREND_MIN_C_PER_MIN,
     REF_TREND_HISTORY_MAX,
+    AUTH_FAILURES_BEFORE_REAUTH,
     SCAN_INTERVAL_FALLBACK,
     STATUS_BIT_DOOR,
     STATUS_BITS_KNOWN,
@@ -363,6 +364,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             update_interval=timedelta(seconds=SCAN_INTERVAL_FALLBACK),
         )
         self.api = api
+        self._auth_failures = 0  # consecutive auth failures (see _async_update_data)
         self.session_options = parse_session_options(dict(config_entry.options))
         self._ext_sensor_unsub = None
 
@@ -505,11 +507,22 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 data.devices[device_id] = device_data
 
             data.available = True
+            self._auth_failures = 0
             _LOGGER.debug("Polling: successfully updated %d devices", len(data.devices))
             return data
 
         except HarviaAuthError as err:
-            # Trigger reauth flow in HA UI
+            # A single rejection is not proof of wrong credentials (transient
+            # cloud/network problems at token-refresh time look identical).
+            # Only escalate to HA's reauth flow after several consecutive
+            # failures; until then retry on the next cycle (issue #8).
+            self._auth_failures += 1
+            if self._auth_failures < AUTH_FAILURES_BEFORE_REAUTH:
+                _LOGGER.warning(
+                    "Authentication problem (%d/%d), will retry: %s",
+                    self._auth_failures, AUTH_FAILURES_BEFORE_REAUTH, err,
+                )
+                raise UpdateFailed(f"Authentication problem (retrying): {err}") from err
             raise ConfigEntryAuthFailed(
                 f"Authentication error: {err}"
             ) from err
@@ -564,8 +577,10 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         try:
             await self.api.async_request_state_change(device_id, payload)
         except HarviaAuthError as err:
-            raise ConfigEntryAuthFailed(
-                f"Authentication error during command: {err}"
+            # Do not start the reauth flow from a single failed command; the
+            # polling path escalates if the problem persists.
+            raise HomeAssistantError(
+                f"Command rejected by the Harvia cloud (auth), please retry: {err}"
             ) from err
 
     def _apply_combi_limit(

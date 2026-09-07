@@ -434,7 +434,29 @@ class HarviaIoApiClient(HarviaApiClientBase):
         json_data: dict[str, Any] | None = None,
         include_auth: bool = True,
     ) -> dict[str, Any]:
-        """Perform HTTP request and return parsed JSON."""
+        """HTTP request, retried once with fresh tokens on 401/403.
+
+        A rejected token is not evidence of wrong credentials: it can simply
+        have expired between check and use. Only a second rejection after a
+        re-login is treated as an auth error.
+        """
+        try:
+            return await self._async_raw_request_once(method, url, json_data, include_auth)
+        except HarviaAuthError as err:
+            if not include_auth:
+                raise
+            _LOGGER.debug("Request rejected (%s) - re-authenticating and retrying once", err)
+            self._token_data = None
+            return await self._async_raw_request_once(method, url, json_data, include_auth)
+
+    async def _async_raw_request_once(
+        self,
+        method: str,
+        url: str,
+        json_data: dict[str, Any] | None = None,
+        include_auth: bool = True,
+    ) -> dict[str, Any]:
+        """Single HTTP attempt (see _async_raw_request)."""
         session = async_get_clientsession(self._hass)
         headers: dict[str, str] = {}
         if include_auth:
@@ -445,7 +467,7 @@ class HarviaIoApiClient(HarviaApiClientBase):
 
         try:
             async with session.request(
-                method, url, json=json_data, headers=headers
+                method, url, json=json_data, headers=headers, timeout=HTTP_TIMEOUT
             ) as response:
                 body_text = await response.text()
                 _LOGGER.debug("HTTP %s %s -> status %s, response=%s", method, url.split('/')[-1], response.status, body_text[:500] if body_text else "(empty)")
@@ -467,7 +489,18 @@ class HarviaIoApiClient(HarviaApiClientBase):
     async def _async_graphql_request(
         self, service: str, query: str, variables: dict[str, Any] | None = None
     ) -> dict[str, Any]:
-        """Run a GraphQL request against a service endpoint."""
+        """GraphQL request, retried once with fresh tokens on 401/403."""
+        try:
+            return await self._async_graphql_request_once(service, query, variables)
+        except HarviaAuthError as err:
+            _LOGGER.debug("GraphQL rejected (%s) - re-authenticating and retrying once", err)
+            self._token_data = None
+            return await self._async_graphql_request_once(service, query, variables)
+
+    async def _async_graphql_request_once(
+        self, service: str, query: str, variables: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        """Single GraphQL attempt (see _async_graphql_request)."""
         endpoints = await self._async_fetch_endpoints()
         graphql_url = endpoints.get("GraphQL", {}).get(service, {}).get("https")
         if not graphql_url:

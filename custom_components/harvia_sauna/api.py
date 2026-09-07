@@ -8,7 +8,10 @@ import logging
 import re
 from urllib.parse import quote
 
+import time
+
 import botocore.exceptions
+import jwt
 from pycognito import Cognito
 
 from homeassistant.core import HomeAssistant
@@ -18,6 +21,17 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 HTTP_TIMEOUT = ClientTimeout(total=30)
 
 from .api_base import HarviaApiClientBase
+from .const import TOKEN_RENEW_MARGIN_SEC
+
+# Cognito InitiateAuth error codes that mean the stored credentials are wrong.
+# Everything else (TooManyRequests, InternalError, Forbidden/WAF, ...) is a
+# transient service problem and must NOT trigger Home Assistant's reauth flow.
+CREDENTIAL_ERROR_CODES = frozenset({
+    "NotAuthorizedException",
+    "UserNotFoundException",
+    "UserNotConfirmedException",
+    "PasswordResetRequiredException",
+})
 from .const import ENDPOINTS, MYHARVIA_BASE_URL, MYHARVIA_REGION
 from .errors import HarviaAuthError, HarviaConnectionError
 
@@ -52,8 +66,14 @@ class HarviaApiClient(HarviaApiClientBase):
                 client.authenticate, self._password
             )
         except botocore.exceptions.ClientError as err:
-            _LOGGER.error("MyHarvia authentication failed: %s", err)
-            raise HarviaAuthError(f"Authentication failed: {err}") from err
+            code = err.response.get("Error", {}).get("Code", "")
+            if code in CREDENTIAL_ERROR_CODES:
+                _LOGGER.error("MyHarvia authentication failed: %s", err)
+                raise HarviaAuthError(f"Authentication failed: {err}") from err
+            _LOGGER.warning("MyHarvia login temporarily unavailable (%s): %s", code, err)
+            raise HarviaConnectionError(
+                f"Cognito temporarily unavailable ({code or 'unknown'}): {err}"
+            ) from err
         except Exception as err:
             _LOGGER.error("MyHarvia connection error: %s", err)
             raise HarviaConnectionError(f"Connection error: {err}") from err
@@ -72,10 +92,16 @@ class HarviaApiClient(HarviaApiClientBase):
         client = await self._async_get_cognito_client()
         await self.async_authenticate()
 
+        def _renew_if_needed() -> None:
+            # pycognito's check_token() renews only once the token has already
+            # expired — a token that expires seconds after the check is sent
+            # expired and gets a 401. Renew ahead of time instead.
+            claims = jwt.decode(client.access_token, options={"verify_signature": False})
+            if claims.get("exp", 0) - time.time() < TOKEN_RENEW_MARGIN_SEC:
+                client.renew_access_token()
+
         try:
-            await self._hass.async_add_executor_job(
-                lambda: client.check_token(renew=True)
-            )
+            await self._hass.async_add_executor_job(_renew_if_needed)
         except Exception as err:
             _LOGGER.debug("Token refresh failed, re-authenticating: %s", err)
             # Force full re-authentication
@@ -120,7 +146,22 @@ class HarviaApiClient(HarviaApiClientBase):
     async def async_graphql_request(
         self, endpoint: str, query: dict
     ) -> dict:
-        """Execute a GraphQL request against the MyHarvia API."""
+        """Execute a GraphQL request, retrying once with fresh tokens on 401/403.
+
+        A rejected token is not evidence of wrong credentials: it can simply
+        have expired between check and use. Only a second rejection after a
+        full re-authentication is treated as an auth error.
+        """
+        try:
+            return await self._async_graphql_once(endpoint, query)
+        except HarviaAuthError as err:
+            _LOGGER.debug("Request rejected (%s) - re-authenticating and retrying once", err)
+            self._token_data = None
+            self._cognito = None
+            return await self._async_graphql_once(endpoint, query)
+
+    async def _async_graphql_once(self, endpoint: str, query: dict) -> dict:
+        """Single GraphQL attempt (see async_graphql_request)."""
         id_token = await self.async_get_id_token()
         headers = {"authorization": id_token}
         session = async_get_clientsession(self._hass)
