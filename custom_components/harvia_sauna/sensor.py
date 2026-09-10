@@ -341,7 +341,10 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         key="active_profile",
         translation_key="active_profile",
         icon="mdi:tune",
-        entity_category=EntityCategory.CONFIG,
+        # Sensors may only be DIAGNOSTIC — HA raises on CONFIG when the entity
+        # is added (hidden here for years because the sensor is disabled by
+        # default). Reported in issue #9.
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         providers=(API_PROVIDER_HARVIAIO,),
         value_fn=lambda d: d.active_profile if d.active_profile >= 0 else None,

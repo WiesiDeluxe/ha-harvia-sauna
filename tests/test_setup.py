@@ -153,6 +153,35 @@ async def test_all_platforms_load_and_every_described_entity_exists(
     assert len(entries) >= 25
 
 
+@pytest.mark.parametrize("provider", [API_PROVIDER_MYHARVIA, API_PROVIDER_HARVIAIO])
+async def test_every_entity_can_be_enabled_and_gets_a_state(
+    hass: HomeAssistant, provider: str
+) -> None:
+    """Entities disabled by default must still be valid once a user enables them.
+
+    A registry entry alone proves nothing: HA validates an entity (e.g. the
+    sensor-with-config-category rule) only when it is actually added to the
+    state machine, which never happens for disabled-by-default entities in
+    the setup test above. Enable everything, reload, and require a state.
+    """
+    entry, api = await _setup(hass, provider)
+    registry = er.async_get(hass)
+    for e in er.async_entries_for_config_entry(registry, entry.entry_id):
+        if e.disabled:
+            registry.async_update_entity(e.entity_id, disabled_by=None)
+    with patch("custom_components.harvia_sauna.create_api_client", return_value=api):
+        await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.LOADED
+
+    missing = [
+        e.entity_id
+        for e in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if hass.states.get(e.entity_id) is None
+    ]
+    assert not missing, f"enabled entities without a state ({provider}): {missing}"
+
+
 async def test_schedule_entities_only_for_xenio(hass: HomeAssistant) -> None:
     """The device-schedule sensor and switch are Xenio-only."""
     entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
