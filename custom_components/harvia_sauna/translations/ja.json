@@ -232,6 +232,11 @@
       "next_session": {
         "name": "次回のセッション"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "加熱プログラム"
+      }
     }
   },
   "options": {

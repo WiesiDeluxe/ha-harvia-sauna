@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Volgende sessie"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Verwarmingsprogramma"
+      }
     }
   },
   "options": {

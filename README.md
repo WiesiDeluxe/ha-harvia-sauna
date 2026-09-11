@@ -224,12 +224,23 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 - **Duration in the device schedule is honoured at 15-minute granularity** (90 min → `remainingTime` = heat-up + 90, measured), and the schedule's target temperature is applied at ignition and reverts to the previous setpoint when the session stops.
 - The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
 
+## Heating profiles (Fenix, v2.10.0+)
+
+Fenix panels store four profiles of their own (name, target temperature, humidity, duration). The **Heating profile** select shows them under the names configured on the panel and switches between them; the active profile is mirrored back, so choosing one at the panel updates Home Assistant too.
+
+- The panel owns the profiles — Home Assistant can select one, but editing a profile (including whether its steamer is on) is only possible at the panel.
+- **Selecting a profile applies its target temperature**, so the climate setpoint follows it. This is why a setpoint written from HA can appear to be overwritten shortly afterwards (issue #9).
+- Changes take 10–15 s to be reflected; send one at a time.
+- The three climate presets are unrelated and unchanged — they are a Home Assistant convenience on both controllers.
+- Xenio panels have no device profiles, so the entity is not created there.
+
 ## Controller support matrix
 
 | | Xenio (myHarvia) | Fenix (harvia.io) |
 |---|---|---|
 | Monitoring & control | ✅ verified (CX110, CX170 reported) | ✅ verified (SW90S Combi) |
 | Door sensor | ✅ status-code bit 1 | ⚠️ derived from `remoteAllowed` (safety-circuit proxy) |
+| Heating profiles | n/a (no device profiles) | ✅ select entity |
 | Device schedule | ✅ | ❌ not yet — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
 | Status-code bit map | ✅ | n/a (Fenix delivers named fields) |
 | Real heater power | ❌ estimate | ✅ `heaterPower` telemetry |

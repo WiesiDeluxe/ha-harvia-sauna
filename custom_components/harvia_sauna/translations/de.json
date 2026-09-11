@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Nächster Saunagang"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Heizprofil"
+      }
     }
   },
   "options": {

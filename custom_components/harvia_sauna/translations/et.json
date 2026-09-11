@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Järgmine seanss"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Kütteprogramm"
+      }
     }
   },
   "options": {

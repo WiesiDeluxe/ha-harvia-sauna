@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Следующий сеанс"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Программа нагрева"
+      }
     }
   },
   "options": {

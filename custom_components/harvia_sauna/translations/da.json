@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Næste session"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Varmeprogram"
+      }
     }
   },
   "options": {

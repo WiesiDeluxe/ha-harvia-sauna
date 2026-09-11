@@ -269,6 +269,9 @@ class HarviaDeviceData:
     safety_relay: bool = False  # From telemetry["safetyRelay"]
     # door_safety_state: bool = False  # From telemetry["doorSafetyState"] - may duplicate door_open
     active_profile: int = 0  # From state["activeProfile"] (0-3)
+    # From state["profiles"]: {"0": {"name": ..., "targetTemp": ..., ...}, ...}
+    # Fenix only; the panel owns these, Home Assistant can only select one.
+    profiles: dict[str, Any] = field(default_factory=dict)
     sauna_status: int = 0  # From state["saunaStatus"]
     remote_allowed: bool = False  # From state["remoteAllowed"]
     demo_mode: bool = False  # From state["demoMode"]
@@ -569,6 +572,23 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         except Exception as err:
             _LOGGER.exception("Unexpected error handling WebSocket update: %s", err)
 
+    async def async_set_active_profile(self, device_id: str, index: int) -> None:
+        """Select one of the heater's own profiles (Fenix).
+
+        The panel owns the profile definitions; Home Assistant can only pick
+        which one is active. Selecting a profile also applies its target
+        temperature/duration, so the climate setpoint changes with it.
+        """
+        try:
+            await self.api.async_set_active_profile(device_id, index)
+        except HarviaAuthError as err:
+            raise HomeAssistantError(
+                f"Profile change rejected by the Harvia cloud (auth), please retry: {err}"
+            ) from err
+        except HarviaConnectionError as err:
+            raise HomeAssistantError(f"Profile change failed: {err}") from err
+        await self.async_request_refresh()
+
     async def async_request_state_change(
         self, device_id: str, payload: dict[str, Any]
     ) -> None:
@@ -725,6 +745,8 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     # New Fenix-specific state fields
     if "activeProfile" in data:
         device.active_profile = data["activeProfile"]
+    if "profiles" in data and isinstance(data["profiles"], dict):
+        device.profiles = data["profiles"]
     if "saunaStatus" in data:
         device.sauna_status = data["saunaStatus"]
     if "remoteAllowed" in data:

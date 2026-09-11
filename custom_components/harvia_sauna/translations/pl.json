@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Następna sesja"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Program grzania"
+      }
     }
   },
   "options": {

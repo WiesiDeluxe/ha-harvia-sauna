@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Neste økt"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Varmeprogram"
+      }
     }
   },
   "options": {

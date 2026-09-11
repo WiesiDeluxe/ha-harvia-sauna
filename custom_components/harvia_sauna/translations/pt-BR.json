@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Próxima sessão"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Programa de aquecimento"
+      }
     }
   },
   "options": {

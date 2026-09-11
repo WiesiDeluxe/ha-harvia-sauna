@@ -232,6 +232,11 @@
       "next_session": {
         "name": "다음 세션"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "가열 프로그램"
+      }
     }
   },
   "options": {

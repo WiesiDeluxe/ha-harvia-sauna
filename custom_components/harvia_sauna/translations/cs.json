@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Příští návštěva"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Program vytápění"
+      }
     }
   },
   "options": {

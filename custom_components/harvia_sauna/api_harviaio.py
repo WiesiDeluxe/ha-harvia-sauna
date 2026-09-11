@@ -174,6 +174,24 @@ class HarviaIoApiClient(HarviaApiClientBase):
             return list(getattr(self._ws_manager, "raw_messages", []))
         return []
 
+    async def async_set_active_profile(self, device_id: str, index: int) -> None:
+        """Activate one of the panel's profiles via PATCH /devices/profile.
+
+        The documented payload uses the profile identifier as a string; the
+        device reflects the change in state["activeProfile"] a few seconds
+        later (measured 10-15 s, issue #9).
+        """
+        await self._async_rest_request(
+            "device",
+            "PATCH",
+            "/devices/profile",
+            json_data={
+                "deviceId": device_id,
+                "cabin": {"id": "C1"},
+                "profile": str(index),
+            },
+        )
+
     async def async_request_state_change(
         self, device_id: str, payload: dict
     ) -> dict:
@@ -578,6 +596,7 @@ def _normalize_state_payload(device_id: str, payload: dict[str, Any]) -> dict[st
         "swVersion": "swVersion",
         # New Fenix-specific fields
         "activeProfile": "activeProfile",
+        "profiles": "profiles",
         "saunaStatus": "saunaStatus",
         "remoteAllowed": "remoteAllowed",
         "demoMode": "demoMode",

@@ -232,6 +232,11 @@
       "next_session": {
         "name": "Következő szauna"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "Fűtési program"
+      }
     }
   },
   "options": {

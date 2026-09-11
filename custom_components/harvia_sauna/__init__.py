@@ -39,6 +39,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.CLIMATE,
     Platform.DATETIME,
+    Platform.SELECT,
     Platform.NUMBER,
     Platform.SENSOR,
     Platform.SWITCH,

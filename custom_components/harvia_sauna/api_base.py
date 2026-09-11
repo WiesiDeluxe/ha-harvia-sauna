@@ -54,3 +54,9 @@ class HarviaApiClientBase(ABC):
     def push_connections_info(self) -> list[dict[str, Any]]:
         """Return push connection info for diagnostics."""
         return []
+
+    async def async_set_active_profile(self, device_id: str, index: int) -> None:
+        """Select a device profile. Only implemented where the device has them."""
+        raise NotImplementedError(
+            "This controller does not support device profiles"
+        )

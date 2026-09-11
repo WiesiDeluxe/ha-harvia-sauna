@@ -42,12 +42,26 @@ XENIO_STATE: dict[str, Any] = {
 }
 TELEMETRY: dict[str, Any] = {"temperature": 25, "humidity": 30, "heatOn": 0}
 
+# Fenix panels additionally carry their own profile definitions (issue #9).
+FENIX_PROFILES: dict[str, Any] = {
+    "0": {"name": "Mild", "targetTemp": 45, "targetHum": 45, "duration": 150,
+          "heater": {"on": 1}, "steamer": {"on": 0}, "light": {"on": 0}},
+    "1": {"name": "Gemütlich", "targetTemp": 65, "targetHum": 40, "duration": 120,
+          "heater": {"on": 1}, "steamer": {"on": 1}, "light": {"on": 0}},
+    "2": {"name": "Intensiv", "targetTemp": 95, "targetHum": 10, "duration": 150,
+          "heater": {"on": 1}, "steamer": {"on": 0}, "light": {"on": 0}},
+    "3": {"name": "", "targetTemp": 95, "targetHum": 0, "duration": 150,
+          "heater": {"on": 1}, "steamer": {"on": 1}, "light": {"on": 0}},
+}
+
 
 class FakeApi(HarviaApiClientBase):
     """Offline stand-in for the Harvia cloud clients."""
 
-    def __init__(self) -> None:
+    def __init__(self, provider: str = API_PROVIDER_MYHARVIA) -> None:
         self.writes: list[tuple[str, dict]] = []
+        self.provider = provider
+        self.active_profile = 2
 
     async def async_authenticate(self) -> bool:
         return True
@@ -58,8 +72,19 @@ class FakeApi(HarviaApiClientBase):
     async def async_get_devices(self) -> list[dict[str, Any]]:
         return [{"device_id": DEVICE_ID, "display_name": "Sauna"}]
 
+    def __init_subclass__(cls, **kw):  # pragma: no cover
+        super().__init_subclass__(**kw)
+
     async def async_get_device_state(self, device_id: str) -> dict:
-        return dict(XENIO_STATE)
+        state = dict(XENIO_STATE)
+        if self.provider == API_PROVIDER_HARVIAIO:
+            state["profiles"] = {k: dict(v) for k, v in FENIX_PROFILES.items()}
+            state["activeProfile"] = self.active_profile
+        return state
+
+    async def async_set_active_profile(self, device_id: str, index: int) -> None:
+        self.writes.append((device_id, {"profile": str(index)}))
+        self.active_profile = index
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
         return dict(TELEMETRY)
@@ -83,7 +108,7 @@ class FakeApi(HarviaApiClientBase):
 
 
 async def _setup(hass: HomeAssistant, provider: str) -> tuple[MockConfigEntry, FakeApi]:
-    api = FakeApi()
+    api = FakeApi(provider)
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -138,8 +163,15 @@ async def test_all_platforms_load_and_every_described_entity_exists(
     for e in entries:
         by_platform.setdefault(e.domain, set()).add(e.unique_id)
 
-    # Every platform produced at least one entity
+    # Every platform produced at least one entity, except platforms that are
+    # deliberately gated to one controller family (select = Fenix profiles).
+    gated = {"select"} if provider != API_PROVIDER_HARVIAIO else set()
     for platform in PLATFORMS:
+        if platform.value in gated:
+            assert not by_platform.get(platform.value), (
+                f"{platform.value} must not create entities for {provider}"
+            )
+            continue
         assert by_platform.get(platform.value), f"platform {platform.value} created no entities"
 
     # Every description key for this provider became an entity

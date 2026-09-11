@@ -232,6 +232,11 @@
       "next_session": {
         "name": "下次会话"
       }
+    },
+    "select": {
+      "active_profile": {
+        "name": "加热程序"
+      }
     }
   },
   "options": {
