@@ -14,7 +14,16 @@ from .coordinator import decode_status_bits, decode_timed_start
 from .const import DOMAIN
 from .coordinator import HarviaSaunaCoordinator
 
-TO_REDACT = {CONF_USERNAME, CONF_PASSWORD, "email", "organizationId"}
+# entry.as_dict() also carries unique_id, which is the account email for
+# myHarvia and "<provider>:<email>" for harvia.io — diagnostics are routinely
+# pasted into public issues, so it must be redacted too (reported in #9).
+TO_REDACT = {
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    "email",
+    "organizationId",
+    "unique_id",
+}
 
 
 async def async_get_config_entry_diagnostics(
