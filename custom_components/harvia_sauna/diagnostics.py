@@ -8,6 +8,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .api_factory import get_provider_from_entry_data
 from .coordinator import decode_status_bits, decode_timed_start
@@ -81,15 +82,15 @@ async def async_get_config_entry_diagnostics(
     # Raw API payloads (Fenix/harvia.io client buffers these) — lets users
     # share a single diagnostics download instead of enabling debug logging.
     # Essential for mapping undocumented fields like the Fenix door sensor.
-    raw_payloads = {
-        "last_state": getattr(coordinator.api, "last_raw_state", None),
-        "last_telemetry": getattr(coordinator.api, "last_raw_telemetry", None),
-        "last_websocket_messages": getattr(
-            coordinator.api, "last_ws_messages", None
-        ),
-    }
+    # Each entry carries captured_at/source so a stale payload is visible
+    # rather than silently misleading (issue #9).
+    raw_payloads = dict(getattr(coordinator, "raw_payloads", {}))
+    raw_payloads["last_websocket_messages"] = getattr(
+        coordinator.api, "last_ws_messages", None
+    )
 
     return {
+        "generated_at": dt_util.utcnow().isoformat(),
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),
         "options": dict(entry.options),
         "raw_payloads": raw_payloads,

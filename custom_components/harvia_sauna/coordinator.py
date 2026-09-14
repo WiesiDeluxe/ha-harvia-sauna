@@ -14,6 +14,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -134,6 +135,36 @@ def schedule_state(device: "HarviaDeviceData") -> tuple[datetime | None, dict[st
     the bytes stay with enabled=1 and a past ready_at (measured). Treat a
     past ready_at as expired, never as planned.
     """
+    # Fenix keeps its schedule as ISO timestamps in state["timer"]; presence
+    # means armed (there is no separate enable flag as on Xenio).
+    timer = getattr(device, "timer", None) or {}
+    ready_raw = timer.get("readyTime")
+    if ready_raw:
+        try:
+            ready = datetime.fromisoformat(str(ready_raw).replace("Z", "+00:00"))
+        except ValueError:
+            return None, {"enabled": False, "expired": False}
+        start_raw = timer.get("startTime")
+        heat_up_min = None
+        if start_raw:
+            try:
+                start = datetime.fromisoformat(str(start_raw).replace("Z", "+00:00"))
+                heat_up_min = int((ready - start).total_seconds() // 60)
+            except ValueError:
+                start_raw = None
+        expired = ready <= datetime.now(timezone.utc)
+        return (
+            None if expired else ready,
+            {
+                "enabled": True,
+                "expired": expired,
+                "ready_at": ready.isoformat(),
+                "start_at": start_raw,
+                "heat_up_min": heat_up_min,
+                "source": "device_timer",
+            },
+        )
+
     dec = decode_timed_start(device.timed_start)
     if not dec:
         return None, {"enabled": False, "expired": False}
@@ -272,6 +303,11 @@ class HarviaDeviceData:
     # From state["profiles"]: {"0": {"name": ..., "targetTemp": ..., ...}, ...}
     # Fenix only; the panel owns these, Home Assistant can only select one.
     profiles: dict[str, Any] = field(default_factory=dict)
+    # From state["timer"] (Fenix): {"startTime": ISO-Z, "readyTime": ISO-Z}.
+    # Empty dict = no schedule. The panel derives startTime from readyTime,
+    # so their difference is its own heat-up estimate (measured 33-35 min) —
+    # useful because Fenix reports heat_up_time: 0.
+    timer: dict[str, Any] = field(default_factory=dict)
     sauna_status: int = 0  # From state["saunaStatus"]
     remote_allowed: bool = False  # From state["remoteAllowed"]
     demo_mode: bool = False  # From state["demoMode"]
@@ -368,6 +404,15 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         )
         self.api = api
         self._auth_failures = 0  # consecutive auth failures (see _async_update_data)
+        # Raw payloads for diagnostics, fed by BOTH the poll and the push path.
+        # Recording only in the poll path made exports freeze on active
+        # devices: every push calls async_set_updated_data(), which resets the
+        # poll timer, so a device pushing more often than the scan interval is
+        # never polled and its raw payload never refreshes (issue #9).
+        self.raw_payloads: dict[str, dict[str, Any]] = {
+            "last_state": {},
+            "last_telemetry": {},
+        }
         self.session_options = parse_session_options(dict(config_entry.options))
         self._ext_sensor_unsub = None
 
@@ -502,6 +547,13 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 else:
                     device_data = HarviaDeviceData(device_id=device_id)
 
+                raw_state = getattr(self.api, "last_raw_state", {}) or {}
+                raw_tele = getattr(self.api, "last_raw_telemetry", {}) or {}
+                if device_id in raw_state:
+                    self._record_raw("last_state", device_id, raw_state[device_id], "poll")
+                if device_id in raw_tele:
+                    self._record_raw("last_telemetry", device_id, raw_tele[device_id], "poll")
+
                 _apply_state_data(device_data, state)
                 _apply_telemetry_data(device_data, telemetry)
                 self._run_session_tracking(device_data)
@@ -534,6 +586,16 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         except Exception as err:
             raise UpdateFailed(f"Error fetching data: {err}") from err
 
+    def _record_raw(
+        self, kind: str, device_id: str, payload: Any, source: str
+    ) -> None:
+        """Store a raw payload with its capture time so staleness is visible."""
+        self.raw_payloads.setdefault(kind, {})[device_id] = {
+            "captured_at": dt_util.utcnow().isoformat(),
+            "source": source,
+            "payload": payload,
+        }
+
     async def _async_handle_ws_update(self, payload_data: dict) -> None:
         """Handle incoming WebSocket push data."""
         if not self.data:
@@ -551,6 +613,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     if device_id and device_id in self.data.devices:
                         device = self.data.devices[device_id]
                         _apply_state_data(device, state)
+                        self._record_raw("last_state", device_id, state, "push")
                         self._run_session_tracking(device)
                         updated = True
 
@@ -562,6 +625,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     telemetry["timestamp"] = item.get("timestamp")
                     device = self.data.devices[device_id]
                     _apply_telemetry_data(device, telemetry)
+                    self._record_raw("last_telemetry", device_id, telemetry, "push")
                     self._run_session_tracking(device)
                     _update_temp_trend(device)
                     updated = True
@@ -747,6 +811,8 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
         device.active_profile = data["activeProfile"]
     if "profiles" in data and isinstance(data["profiles"], dict):
         device.profiles = data["profiles"]
+    if "timer" in data and isinstance(data["timer"], dict):
+        device.timer = data["timer"]
     if "saunaStatus" in data:
         device.sauna_status = data["saunaStatus"]
     if "remoteAllowed" in data:

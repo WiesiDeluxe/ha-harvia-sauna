@@ -60,3 +60,50 @@ async def test_existing_entities_survive_the_upgrade(
         assert any(uid.endswith(key) for uid in uids), f"{key} disappeared on {provider}"
     # climate keeps its own presets (unchanged on both providers)
     assert hass.states.get("climate.sauna_thermostat") is not None
+
+
+async def test_fenix_schedule_sensor_reads_the_timer_object(
+    hass: HomeAssistant,
+) -> None:
+    """Fenix keeps its schedule as ISO timestamps in state["timer"] (#9)."""
+    from datetime import datetime, timedelta, timezone
+
+    ready = datetime.now(timezone.utc) + timedelta(hours=2)
+    start = ready - timedelta(minutes=35)
+    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+    device = coordinator.data.devices[device_id]
+    device.timer = {
+        "startTime": start.isoformat().replace("+00:00", "Z"),
+        "readyTime": ready.isoformat().replace("+00:00", "Z"),
+    }
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.sauna_device_schedule")
+    assert state is not None, hass.states.async_entity_ids("sensor")
+    assert state.attributes["enabled"] is True
+    assert state.attributes["expired"] is False
+    # the panel derives startTime from readyTime, so the gap is its own estimate
+    assert state.attributes["heat_up_min"] == 35
+    assert state.attributes["source"] == "device_timer"
+
+
+async def test_expired_fenix_schedule_is_not_reported_as_planned(
+    hass: HomeAssistant,
+) -> None:
+    """A schedule whose ready time has passed must not look upcoming."""
+    from datetime import datetime, timedelta, timezone
+
+    ready = datetime.now(timezone.utc) - timedelta(minutes=10)
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    device = next(iter(coordinator.data.devices.values()))
+    device.timer = {"readyTime": ready.isoformat().replace("+00:00", "Z")}
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.sauna_device_schedule")
+    assert state.state in ("unknown", "unavailable")
+    assert state.attributes["expired"] is True

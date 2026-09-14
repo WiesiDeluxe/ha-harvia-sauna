@@ -75,7 +75,8 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         translation_key="scheduled_start",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-clock",
-        providers=(API_PROVIDER_MYHARVIA,),
+        # Both controllers: Xenio via timedStart bytes, Fenix via state["timer"]
+        # (read-only on Fenix for now — writing is not understood yet).
         value_fn=lambda d: schedule_state(d)[0],
         attrs_fn=lambda d: schedule_state(d)[1],
     ),

@@ -62,6 +62,16 @@ class FakeApi(HarviaApiClientBase):
         self.writes: list[tuple[str, dict]] = []
         self.provider = provider
         self.active_profile = 2
+        self._raw_state: dict[str, Any] = {}
+        self._raw_telemetry: dict[str, Any] = {}
+
+    @property
+    def last_raw_state(self) -> dict[str, Any]:
+        return self._raw_state
+
+    @property
+    def last_raw_telemetry(self) -> dict[str, Any]:
+        return self._raw_telemetry
 
     async def async_authenticate(self) -> bool:
         return True
@@ -80,6 +90,7 @@ class FakeApi(HarviaApiClientBase):
         if self.provider == API_PROVIDER_HARVIAIO:
             state["profiles"] = {k: dict(v) for k, v in FENIX_PROFILES.items()}
             state["activeProfile"] = self.active_profile
+        self._raw_state[device_id] = state
         return state
 
     async def async_set_active_profile(self, device_id: str, index: int) -> None:
@@ -87,7 +98,9 @@ class FakeApi(HarviaApiClientBase):
         self.active_profile = index
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
-        return dict(TELEMETRY)
+        data = dict(TELEMETRY)
+        self._raw_telemetry[device_id] = data
+        return data
 
     async def async_request_state_change(self, device_id: str, payload: dict, *a, **kw) -> None:
         self.writes.append((device_id, payload))
@@ -214,12 +227,19 @@ async def test_every_entity_can_be_enabled_and_gets_a_state(
     assert not missing, f"enabled entities without a state ({provider}): {missing}"
 
 
-async def test_schedule_entities_only_for_xenio(hass: HomeAssistant) -> None:
-    """The device-schedule sensor and switch are Xenio-only."""
+async def test_schedule_arm_switch_is_xenio_only(hass: HomeAssistant) -> None:
+    """Arming/disarming is a Xenio concept (timedStart byte 0).
+
+    Fenix stores its schedule as plain timestamps with no enable flag, so it
+    gets the read-only schedule sensor but no arm switch.
+    """
     entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
     registry = er.async_get(hass)
-    uids = {e.unique_id for e in er.async_entries_for_config_entry(registry, entry.entry_id)}
-    assert not any(uid.endswith("_scheduled_start") for uid in uids)
+    entries = er.async_entries_for_config_entry(registry, entry.entry_id)
+    switch_uids = {e.unique_id for e in entries if e.domain == "switch"}
+    sensor_uids = {e.unique_id for e in entries if e.domain == "sensor"}
+    assert not any(uid.endswith("_scheduled_start") for uid in switch_uids)
+    assert any(uid.endswith("_scheduled_start") for uid in sensor_uids)
 
 
 async def test_schedule_services_write_expected_bytes(hass: HomeAssistant) -> None:

@@ -597,6 +597,7 @@ def _normalize_state_payload(device_id: str, payload: dict[str, Any]) -> dict[st
         # New Fenix-specific fields
         "activeProfile": "activeProfile",
         "profiles": "profiles",
+        "timer": "timer",
         "saunaStatus": "saunaStatus",
         "remoteAllowed": "remoteAllowed",
         "demoMode": "demoMode",

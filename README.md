@@ -234,6 +234,10 @@ Fenix panels store four profiles of their own (name, target temperature, humidit
 - The three climate presets are unrelated and unchanged — they are a Home Assistant convenience on both controllers.
 - Xenio panels have no device profiles, so the entity is not created there.
 
+### Reading diagnostics exports
+
+Each raw payload in an export carries `captured_at` and `source` (`poll` or `push`), and the export itself carries `generated_at`. Check them before drawing conclusions: on an active device almost all data arrives by push, and before v2.10.0 the raw payloads were recorded on the polling path only — exports from older versions can be frozen at the last poll while the entities were perfectly up to date.
+
 ## Controller support matrix
 
 | | Xenio (myHarvia) | Fenix (harvia.io) |
@@ -241,7 +245,7 @@ Fenix panels store four profiles of their own (name, target temperature, humidit
 | Monitoring & control | ✅ verified (CX110, CX170 reported) | ✅ verified (SW90S Combi) |
 | Door sensor | ✅ status-code bit 1 | ⚠️ derived from `remoteAllowed` (safety-circuit proxy) |
 | Heating profiles | n/a (no device profiles) | ✅ select entity |
-| Device schedule | ✅ | ❌ not yet — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
+| Device schedule | ✅ read/write | ✅ read-only (`timer`) — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
 | Status-code bit map | ✅ | n/a (Fenix delivers named fields) |
 | Real heater power | ❌ estimate | ✅ `heaterPower` telemetry |
 

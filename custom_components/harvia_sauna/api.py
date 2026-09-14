@@ -45,6 +45,7 @@ class HarviaApiClient(HarviaApiClientBase):
 
     def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:
         """Initialize the API client."""
+        self._last_raw_state: dict[str, Any] = {}  # device_id -> raw payload
         self._hass = hass
         self._username = username
         self._password = password
@@ -289,6 +290,11 @@ class HarviaApiClient(HarviaApiClientBase):
         _walk(tree_devices)
         return devices
 
+    @property
+    def last_raw_state(self) -> dict[str, Any]:
+        """Return last raw state payloads per device (for diagnostics)."""
+        return self._last_raw_state
+
     async def async_get_device_state(self, device_id: str) -> dict:
         """Get current device state (reported)."""
         query = {
@@ -308,7 +314,7 @@ class HarviaApiClient(HarviaApiClientBase):
         data = await self.async_graphql_request("device", query)
         reported = json.loads(data["data"]["getDeviceState"]["reported"])
         # Keep the last raw shadow for diagnostics (no credentials inside).
-        self.last_raw_state = reported
+        self._last_raw_state[device_id] = reported
         return reported
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
