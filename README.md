@@ -234,6 +234,8 @@ Fenix panels store four profiles of their own (name, target temperature, humidit
 - The three climate presets are unrelated and unchanged — they are a Home Assistant convenience on both controllers.
 - Xenio panels have no device profiles, so the entity is not created there.
 
+Fenix run state (measured, issue #9): while a scheduled start is pending, the panel already reports `heater.on`, `heatOn` and `steamer.on` as 1 — only `saunaStatus` distinguishes *waiting* (5) from *heating* (1). The integration uses it so the sauna is not shown as on/heating during the wait. Fenix clears its `timer` at ignition, so the schedule sensor returns to *not planned* then (Xenio keeps a consumed plan, shown as expired). Seen once: writing target temperature and humidity while a schedule was pending made the panel drop the schedule for ~2 s before restoring it.
+
 ### Reading diagnostics exports
 
 Each raw payload in an export carries `captured_at` and `source` (`poll` or `push`), and the export itself carries `generated_at`. Check them before drawing conclusions: on an active device almost all data arrives by push, and before v2.10.0 the raw payloads were recorded on the polling path only — exports from older versions can be frozen at the last poll while the entities were perfectly up to date.

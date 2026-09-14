@@ -50,6 +50,7 @@ from .const import (
     READY_TREND_MIN_C_PER_MIN,
     REF_TREND_HISTORY_MAX,
     AUTH_FAILURES_BEFORE_REAUTH,
+    FENIX_SAUNA_STATUS_SCHEDULED,
     SCAN_INTERVAL_FALLBACK,
     STATUS_BIT_DOOR,
     STATUS_BITS_KNOWN,
@@ -131,9 +132,10 @@ def encode_timed_start(
 def schedule_state(device: "HarviaDeviceData") -> tuple[datetime | None, dict[str, Any]]:
     """Return (ready_at if armed and in the future, attributes) for a device.
 
-    The heater does NOT clear a consumed one-shot schedule: after ignition
-    the bytes stay with enabled=1 and a past ready_at (measured). Treat a
-    past ready_at as expired, never as planned.
+    Xenio does NOT clear a consumed one-shot schedule: after ignition the
+    bytes stay with enabled=1 and a past ready_at (measured), so a past
+    ready_at is treated as expired, never as planned. Fenix, by contrast,
+    clears state["timer"] at ignition (measured, issue #9).
     """
     # Fenix keeps its schedule as ISO timestamps in state["timer"]; presence
     # means armed (there is no separate enable flag as on Xenio).
@@ -744,6 +746,22 @@ def _to_bool(value: Any) -> bool:
     return bool(value)
 
 
+def _reconcile_scheduled_wait(device: HarviaDeviceData) -> None:
+    """Do not show a Fenix sauna as on/heating while it only waits for a schedule.
+
+    Measured (issue #9, three fresh snapshots): within ~2 s of setting a
+    schedule the panel reports heater.on = 1, telemetry heatOn = 1 and
+    steamer.on = 1, long before ignition. heater.state stays 0 in every
+    state, so the only reliable discriminator is saunaStatus (5 = waiting,
+    1 = heating). Runs after both the state and the telemetry apply because
+    the flags arrive on different feeds in either order.
+    """
+    if device.sauna_status == FENIX_SAUNA_STATUS_SCHEDULED:
+        device.active = False
+        device.heat_on = False
+        device.steam_on = False
+
+
 def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     """Apply device state (reported) data to the device object."""
     if "displayName" in data:
@@ -827,6 +845,7 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
             device.screen_lock = bool(data["screenLock"])
 
     device._last_update = time.monotonic()
+    _reconcile_scheduled_wait(device)
 
 
 def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
@@ -917,6 +936,7 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         device.fan_on = bool(data["fanOn"])
 
     device._last_update = time.monotonic()
+    _reconcile_scheduled_wait(device)
 
 
 def _update_session_tracking(

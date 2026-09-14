@@ -161,6 +161,14 @@ STATUS_BIT_LIGHT = 1 << 11        # cabin light on
 STATUS_BIT_READY_AUX = 1 << 16    # rises with bit 5, persists until reconnect
 STATUS_BIT_SESSION_ACTIVE = 1 << 17
 STATUS_BIT_STOPPED = 1 << 18      # session stopped / interrupted; persists until reconnect
+# Fenix state["saunaStatus"] values measured on a Combi unit (issue #9).
+# Only this field separates "scheduled, waiting" from "heating": heater.on,
+# telemetry heatOn and steamer.on are all 1 during the wait as well, and
+# heater.state is 0 in every state. Other values are not yet observed.
+FENIX_SAUNA_STATUS_IDLE = 0
+FENIX_SAUNA_STATUS_HEATING = 1
+FENIX_SAUNA_STATUS_SCHEDULED = 5
+
 STATUS_BITS_KNOWN = {1: "door_open", 5: "target_reached", 8: "heat_demand",
                      11: "light", 16: "ready_aux", 17: "session_active",
                      18: "stopped"}

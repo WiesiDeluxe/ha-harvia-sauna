@@ -64,6 +64,8 @@ class FakeApi(HarviaApiClientBase):
         self.active_profile = 2
         self._raw_state: dict[str, Any] = {}
         self._raw_telemetry: dict[str, Any] = {}
+        self.state_overrides: dict[str, Any] = {}
+        self.telemetry_overrides: dict[str, Any] = {}
 
     @property
     def last_raw_state(self) -> dict[str, Any]:
@@ -88,8 +90,12 @@ class FakeApi(HarviaApiClientBase):
     async def async_get_device_state(self, device_id: str) -> dict:
         state = dict(XENIO_STATE)
         if self.provider == API_PROVIDER_HARVIAIO:
+            # Fenix reports named fields, no Xenio-style statusCodes bit field
+            state.pop("statusCodes", None)
             state["profiles"] = {k: dict(v) for k, v in FENIX_PROFILES.items()}
             state["activeProfile"] = self.active_profile
+            state["saunaStatus"] = 0
+        state.update(self.state_overrides)
         self._raw_state[device_id] = state
         return state
 
@@ -99,6 +105,7 @@ class FakeApi(HarviaApiClientBase):
 
     async def async_get_latest_device_data(self, device_id: str) -> dict:
         data = dict(TELEMETRY)
+        data.update(self.telemetry_overrides)
         self._raw_telemetry[device_id] = data
         return data
 
