@@ -70,3 +70,38 @@ async def test_xenio_is_untouched_by_the_fenix_rule(hass: HomeAssistant) -> None
     api.telemetry_overrides = {"heatOn": 1}
     await _refresh(hass, entry.entry_id)
     assert hass.states.get("climate.sauna_thermostat").state == "heat"
+
+
+async def test_combi_limit_uses_the_active_profile_humidity(hass: HomeAssistant) -> None:
+    """On Fenix the session humidity is 0 while off — clamp against the profile.
+
+    PATCH /devices/target writes into the active profile, so a 95 °C setpoint
+    with a 50 % profile would put the heater at 145 combined (issue #9).
+    """
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+    device = coordinator.data.devices[device_id]
+    device.target_rh = 0  # heater off: session value carries no information
+    device.active_profile = 1
+    device.profiles = {"1": {"name": "Gemütlich", "targetTemp": 65, "targetHum": 50}}
+
+    clamped = coordinator._apply_combi_limit(device_id, {"targetTemp": 95})
+    assert clamped["targetRh"] == 45, "must clamp against the profile humidity"
+
+    # An explicit humidity in the payload still wins
+    explicit = coordinator._apply_combi_limit(
+        device_id, {"targetTemp": 95, "targetRh": 10}
+    )
+    assert explicit["targetRh"] == 10
+
+
+async def test_combi_limit_unchanged_on_xenio(hass: HomeAssistant) -> None:
+    """Xenio has no profiles, so nothing new may be clamped."""
+    entry, _ = await _setup(hass, API_PROVIDER_MYHARVIA)
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+    coordinator.data.devices[device_id].target_rh = 0
+    assert coordinator._apply_combi_limit(device_id, {"targetTemp": 95}) == {
+        "targetTemp": 95
+    }

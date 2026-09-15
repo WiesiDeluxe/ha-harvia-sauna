@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from homeassistant.components.diagnostics import async_redact_data
+from homeassistant.components.diagnostics import REDACTED, async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
@@ -18,6 +19,26 @@ from .coordinator import HarviaSaunaCoordinator
 # entry.as_dict() also carries unique_id, which is the account email for
 # myHarvia and "<provider>:<email>" for harvia.io — diagnostics are routinely
 # pasted into public issues, so it must be redacted too (reported in #9).
+# Device payloads are vendor-defined and not enumerable, so raw payloads are
+# redacted by key pattern instead of an explicit list. The Wi-Fi SSID in the
+# device-info websocket message was reported this way (issue #9).
+RAW_REDACT_PATTERN = re.compile(
+    r"ssid|passw|token|secret|api[-_]?key|credential|email|username", re.IGNORECASE
+)
+
+
+def _redact_raw(value: Any) -> Any:
+    """Recursively redact sensitive-looking keys in vendor payloads."""
+    if isinstance(value, dict):
+        return {
+            k: REDACTED if RAW_REDACT_PATTERN.search(str(k)) else _redact_raw(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_redact_raw(v) for v in value]
+    return value
+
+
 TO_REDACT = {
     CONF_USERNAME,
     CONF_PASSWORD,
@@ -88,6 +109,7 @@ async def async_get_config_entry_diagnostics(
     raw_payloads["last_websocket_messages"] = getattr(
         coordinator.api, "last_ws_messages", None
     )
+    raw_payloads = _redact_raw(raw_payloads)
 
     return {
         "generated_at": dt_util.utcnow().isoformat(),

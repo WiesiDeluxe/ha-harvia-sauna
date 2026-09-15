@@ -75,3 +75,24 @@ async def test_raw_payloads_refresh_on_push_not_only_on_poll(
     assert pushed["payload"]["temperature"] == 77
     assert pushed["captured_at"] >= polled["captured_at"]
     assert "generated_at" in after, "exports must carry their own capture time"
+
+
+async def test_raw_payloads_redact_vendor_secrets(hass: HomeAssistant) -> None:
+    """Vendor payloads are redacted by key pattern, not by an explicit list.
+
+    The device-info websocket message carries the Wi-Fi SSID (issue #9), and
+    these payload shapes are not enumerable, so anything that looks like a
+    secret is redacted wherever it sits.
+    """
+    entry, _ = await _setup(hass, API_PROVIDER_MYHARVIA)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    coordinator.api.last_ws_messages = [
+        {"type": "deviceInfo", "wifiSsid": "Wiesi-Home", "swVer": "2.3.4",
+         "nested": {"SSID": "Guest-Net", "rssi": -67}}
+    ]
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    msg = diag["raw_payloads"]["last_websocket_messages"][0]
+    assert msg["wifiSsid"] == REDACTED
+    assert msg["nested"]["SSID"] == REDACTED
+    assert msg["swVer"] == "2.3.4" and msg["nested"]["rssi"] == -67
+    assert "Wiesi-Home" not in str(diag) and "Guest-Net" not in str(diag)

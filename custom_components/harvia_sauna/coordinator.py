@@ -690,12 +690,19 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     (device.target_temp if device else None) or 0,
                 )
             )
-            rh = float(
-                payload.get(
-                    "targetRh",
-                    (device.target_rh if device else 0) or 0,
-                )
-            )
+            rh_current = (device.target_rh if device else 0) or 0
+            if not rh_current and device is not None:
+                # Fenix: target_rh is the session value and 0 while the heater
+                # is off, which silently disabled the clamp. What the device
+                # will actually use is the active profile's targetHum, and
+                # PATCH /devices/target writes straight into that profile
+                # (measured, issue #9). Xenio has no profiles -> unchanged.
+                profile = (device.profiles or {}).get(str(device.active_profile), {})
+                try:
+                    rh_current = float(profile.get("targetHum") or 0)
+                except (TypeError, ValueError):
+                    rh_current = 0
+            rh = float(payload.get("targetRh", rh_current))
         except (TypeError, ValueError):
             return payload
         if rh <= 0 or temp + rh <= COMBI_TEMP_RH_LIMIT:

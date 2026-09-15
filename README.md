@@ -228,7 +228,7 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 
 Fenix panels store four profiles of their own (name, target temperature, humidity, duration). The **Heating profile** select shows them under the names configured on the panel and switches between them; the active profile is mirrored back, so choosing one at the panel updates Home Assistant too.
 
-- The panel owns the profiles — Home Assistant can select one, but editing a profile (including whether its steamer is on) is only possible at the panel.
+- The integration **selects** a profile; it does not edit one. Profile contents *can* be written through the raw state API — the MyHarvia app writes the complete profile object to `profiles.<n>` via `devicesStatesUpdate` (`shadowName: "C1"`) and the panel applies it within about a second (verified by @fasdav, issue #9). Note the pitfall: the server wraps the `state` argument into `desired` itself, so passing `{"desired": {...}}` lands at `desired.desired.…` and is silently ignored. Editing profiles from the integration is not implemented — a read-modify-write of the whole object would overwrite panel-side changes made in between.
 - **Selecting a profile applies its target temperature**, so the climate setpoint follows it. This is why a setpoint written from HA can appear to be overwritten shortly afterwards (issue #9).
 - Changes take 10–15 s to be reflected; send one at a time.
 - The three climate presets are unrelated and unchanged — they are a Home Assistant convenience on both controllers.
@@ -237,6 +237,8 @@ Fenix panels store four profiles of their own (name, target temperature, humidit
 Fenix run state (measured, issue #9): while a scheduled start is pending, the panel already reports `heater.on`, `heatOn` and `steamer.on` as 1 — only `saunaStatus` distinguishes *waiting* (5) from *heating* (1). The integration uses it so the sauna is not shown as on/heating during the wait. Fenix clears its `timer` at ignition, so the schedule sensor returns to *not planned* then (Xenio keeps a consumed plan, shown as expired). Seen once: writing target temperature and humidity while a schedule was pending made the panel drop the schedule for ~2 s before restoring it.
 
 ### Reading diagnostics exports
+
+Payloads captured from a push are *partial*: the `onStateUpdated` shape carries only what changed, so fields like `heater`/`steamer` appear in poll captures (or raw in `last_websocket_messages`). Keys that look like secrets — SSIDs, tokens, credentials — are redacted wherever they appear.
 
 Each raw payload in an export carries `captured_at` and `source` (`poll` or `push`), and the export itself carries `generated_at`. Check them before drawing conclusions: on an active device almost all data arrives by push, and before v2.10.0 the raw payloads were recorded on the polling path only — exports from older versions can be frozen at the last poll while the entities were perfectly up to date.
 
