@@ -235,7 +235,10 @@ class HarviaIoApiClient(HarviaApiClientBase):
             )
             results.append(res)
 
-        # Best-effort duration update if API supports it in command endpoint.
+        # Duration: command.state only accepts on/off - numeric commands take
+        # command.params. The API says so in its own 400 ("leave command.state
+        # out and send command.params") and the Commands table documents
+        # ADJUST_DURATION as taking "minutes" (issue #10).
         if "onTime" in payload:
             res = await self._async_rest_request(
                 "device",
@@ -244,7 +247,10 @@ class HarviaIoApiClient(HarviaApiClientBase):
                 json_data={
                     "deviceId": device_id,
                     "cabin": {"id": "C1"},
-                    "command": {"type": "ADJUST_DURATION", "state": int(payload["onTime"])},
+                    "command": {
+                        "type": "ADJUST_DURATION",
+                        "params": {"minutes": int(payload["onTime"])},
+                    },
                 },
             )
             results.append(res)

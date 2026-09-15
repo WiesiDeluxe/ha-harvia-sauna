@@ -242,6 +242,10 @@ Payloads captured from a push are *partial*: the `onStateUpdated` shape carries 
 
 Each raw payload in an export carries `captured_at` and `source` (`poll` or `push`), and the export itself carries `generated_at`. Check them before drawing conclusions: on an active device almost all data arrives by push, and before v2.10.0 the raw payloads were recorded on the polling path only — exports from older versions can be frozen at the last poll while the entities were perfectly up to date.
 
+### Session time
+
+The **Session time** number sets how long a session runs. The step differs by controller: Xenio firmware normalises `onTime` to whole hours (measured on two devices, and non-hour values break the MyHarvia app's editor), while Fenix accepts quarter hours — its own profile durations are 150/120 min. On Fenix the value is sent as `ADJUST_DURATION` with `command.params.minutes`; numeric values in `command.state` are rejected by the cloud.
+
 ## Controller support matrix
 
 | | Xenio (myHarvia) | Fenix (harvia.io) |

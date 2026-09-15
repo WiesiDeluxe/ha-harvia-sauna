@@ -12,7 +12,12 @@ from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import (
+    API_PROVIDER_HARVIAIO,
+    API_PROVIDER_MYHARVIA,
+    CONF_API_PROVIDER,
+    DOMAIN,
+)
 from .coordinator import HarviaDeviceData, HarviaSaunaCoordinator
 from .entity import HarviaBaseEntity
 
@@ -26,6 +31,7 @@ class HarviaNumberDescription(NumberEntityDescription):
     api_key: str
     state_attr: str
     value_fn: Callable[[HarviaDeviceData], float | None]
+    providers: tuple[str, ...] | None = None  # None = all providers
 
 
 NUMBER_DESCRIPTIONS: list[HarviaNumberDescription] = [
@@ -65,6 +71,23 @@ NUMBER_DESCRIPTIONS: list[HarviaNumberDescription] = [
         # on two devices); non-hour values also break the MyHarvia app's
         # editor (NaN). Expose the granularity the device actually honours.
         native_step=60,
+        providers=(API_PROVIDER_MYHARVIA,),
+        icon="mdi:timer-cog",
+        api_key="onTime",
+        state_attr="on_time",
+        value_fn=lambda d: d.on_time,
+    ),
+    HarviaNumberDescription(
+        key="on_time",
+        translation_key="on_time",
+        native_unit_of_measurement="min",
+        native_min_value=0,
+        native_max_value=720,
+        # Fenix is not bound by the Xenio whole-hour rule: its own profile
+        # durations are 150/120 min and its scheduler works in quarter hours
+        # (issue #9/#10), so a 60-minute step would refuse valid values.
+        native_step=15,
+        providers=(API_PROVIDER_HARVIAIO,),
         icon="mdi:timer-cog",
         api_key="onTime",
         state_attr="on_time",
@@ -80,10 +103,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up Harvia number entities."""
     coordinator: HarviaSaunaCoordinator = hass.data[DOMAIN][entry.entry_id]
+    provider = entry.data.get(CONF_API_PROVIDER, API_PROVIDER_MYHARVIA)
 
     entities = []
     for device_id in coordinator.data.devices:
         for description in NUMBER_DESCRIPTIONS:
+            # Some limits differ per controller family (see on_time).
+            if description.providers is not None and provider not in description.providers:
+                continue
             entities.append(
                 HarviaNumber(coordinator, device_id, description)
             )

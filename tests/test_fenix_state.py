@@ -105,3 +105,49 @@ async def test_combi_limit_unchanged_on_xenio(hass: HomeAssistant) -> None:
     assert coordinator._apply_combi_limit(device_id, {"targetTemp": 95}) == {
         "targetTemp": 95
     }
+
+
+async def test_session_time_uses_command_params_not_state(hass: HomeAssistant) -> None:
+    """Numeric commands go in command.params (issue #10).
+
+    The cloud rejects a number in command.state with HTTP 400 ("Use on/off,
+    true/false, or 1/0 ... send command.params"), so setting the session time
+    failed every time on Fenix.
+    """
+    sent: list[dict] = []
+
+    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
+
+    async def fake_rest(service, method, path, json_data=None, **kw):
+        sent.append({"path": path, "body": json_data})
+        return {}
+
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+    from custom_components.harvia_sauna.api_harviaio import HarviaIoApiClient
+
+    real = HarviaIoApiClient.async_request_state_change
+    client = HarviaIoApiClient.__new__(HarviaIoApiClient)
+    client._async_rest_request = fake_rest
+    await real(client, device_id, {"onTime": 45})
+
+    body = next(s["body"] for s in sent if s["path"] == "/devices/command")
+    assert body["command"]["type"] == "ADJUST_DURATION"
+    assert "state" not in body["command"], "numeric value must not go in state"
+    assert body["command"]["params"] == {"minutes": 45}
+
+
+async def test_session_time_step_differs_per_controller(hass: HomeAssistant) -> None:
+    """Fenix allows quarter hours; the whole-hour rule is a Xenio measurement."""
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    fenix = hass.states.get("number.sauna_session_time")
+    assert fenix is not None, hass.states.async_entity_ids("number")
+    assert fenix.attributes["step"] == 15
+
+
+async def test_session_time_step_stays_whole_hours_on_xenio(hass: HomeAssistant) -> None:
+    """The whole-hour step is a measured Xenio constraint — keep it."""
+    await _setup(hass, API_PROVIDER_MYHARVIA)
+    xenio = hass.states.get("number.sauna_session_time")
+    assert xenio is not None
+    assert xenio.attributes["step"] == 60
