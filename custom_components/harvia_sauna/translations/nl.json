@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Actief profiel"
       },
+      "on_time": {
+        "name": "Sessietijd"
+      },
       "time_to_ready": {
         "name": "Tijd tot gereed"
       },

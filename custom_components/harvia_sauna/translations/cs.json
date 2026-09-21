@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktivní profil"
       },
+      "on_time": {
+        "name": "Doba sezení"
+      },
       "time_to_ready": {
         "name": "Čas do připravenosti"
       },

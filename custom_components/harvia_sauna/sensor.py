@@ -350,6 +350,19 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         providers=(API_PROVIDER_HARVIAIO,),
         value_fn=lambda d: d.active_profile if d.active_profile >= 0 else None,
     ),
+    # Fenix keeps the session duration per heating profile; it cannot be
+    # written as a setpoint (issue #9), so it is a sensor, not a number.
+    HarviaSensorDescription(
+        key="on_time",
+        translation_key="on_time",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        device_class=SensorDeviceClass.DURATION,
+        icon="mdi:timer-cog",
+        providers=(API_PROVIDER_HARVIAIO,),
+        value_fn=lambda d: (
+            (d.profiles or {}).get(str(d.active_profile)) or {}
+        ).get("duration"),
+    ),
     # Session tracking
     HarviaSensorDescription(
         key="last_session_duration",

@@ -10,6 +10,7 @@ from homeassistant.components.number import NumberEntity, NumberEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -77,22 +78,10 @@ NUMBER_DESCRIPTIONS: list[HarviaNumberDescription] = [
         state_attr="on_time",
         value_fn=lambda d: d.on_time,
     ),
-    HarviaNumberDescription(
-        key="on_time",
-        translation_key="on_time",
-        native_unit_of_measurement="min",
-        native_min_value=0,
-        native_max_value=720,
-        # Fenix is not bound by the Xenio whole-hour rule: its own profile
-        # durations are 150/120 min and its scheduler works in quarter hours
-        # (issue #9/#10), so a 60-minute step would refuse valid values.
-        native_step=15,
-        providers=(API_PROVIDER_HARVIAIO,),
-        icon="mdi:timer-cog",
-        api_key="onTime",
-        state_attr="on_time",
-        value_fn=lambda d: d.on_time,
-    ),
+    # No Fenix variant: the cloud rejects ADJUST_DURATION for device type
+    # 'Fenix' and the shadow has no top-level onTime, so the number could not
+    # write and showed the dataclass default (360) rather than a device value
+    # (issue #9). The profile's duration is exposed as a sensor instead.
 ]
 
 
@@ -104,6 +93,16 @@ async def async_setup_entry(
     """Set up Harvia number entities."""
     coordinator: HarviaSaunaCoordinator = hass.data[DOMAIN][entry.entry_id]
     provider = entry.data.get(CONF_API_PROVIDER, API_PROVIDER_MYHARVIA)
+
+    # Up to 2.10.0b6 Fenix had a session-time number that could never write
+    # (see NUMBER_DESCRIPTIONS). Remove it, or it lingers as "unavailable".
+    if provider == API_PROVIDER_HARVIAIO:
+        registry = er.async_get(hass)
+        for device_id in coordinator.data.devices:
+            if stale := registry.async_get_entity_id(
+                "number", DOMAIN, f"{device_id}_on_time"
+            ):
+                registry.async_remove(stale)
 
     entities = []
     for device_id in coordinator.data.devices:

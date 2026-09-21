@@ -86,7 +86,13 @@ async def async_get_config_entry_diagnostics(
                 "humidity": device.humidity,
                 "target_rh": device.target_rh,
                 "remaining_time": device.remaining_time,
-                "on_time": device.on_time,
+                # Fenix has no top-level onTime; without this the export
+                # showed the dataclass default (360) as if it were a reading.
+                "on_time": (
+                    device.on_time
+                    if coordinator.api.supports_session_duration
+                    else None
+                ),
                 "heat_up_time": device.heat_up_time,
                 "door_open": device.door_open,
                 "lights_on": device.lights_on,

@@ -10,6 +10,10 @@ class HarviaApiClientBase(ABC):
     """Abstract interface for Harvia API providers."""
 
     supports_push_updates: bool = False
+    # Whether the session duration can be written as a plain setpoint. Xenio
+    # has a top-level onTime; on Fenix the duration belongs to the heating
+    # profile and the cloud rejects the command outright (issue #9).
+    supports_session_duration: bool = True
 
     @abstractmethod
     async def async_authenticate(self) -> bool:

@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktiivne profil"
       },
+      "on_time": {
+        "name": "Seansi kestus"
+      },
       "time_to_ready": {
         "name": "Aeg valmimiseni"
       },

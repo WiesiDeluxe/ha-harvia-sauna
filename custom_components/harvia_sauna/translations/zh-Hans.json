@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "æ´»è·éç½®æä»¶"
       },
+      "on_time": {
+        "name": "ä½¿ç¨æ¶é´"
+      },
       "time_to_ready": {
         "name": "距就绪时间"
       },

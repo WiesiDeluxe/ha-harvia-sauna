@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktiivinen profiili"
       },
+      "on_time": {
+        "name": "Istunnon kesto"
+      },
       "time_to_ready": {
         "name": "Aika valmiiksi"
       },

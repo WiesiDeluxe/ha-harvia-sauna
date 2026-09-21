@@ -61,6 +61,8 @@ class FakeApi(HarviaApiClientBase):
     def __init__(self, provider: str = API_PROVIDER_MYHARVIA) -> None:
         self.writes: list[tuple[str, dict]] = []
         self.provider = provider
+        # Mirrors the real clients: only the Fenix cloud refuses a duration
+        self.supports_session_duration = provider != API_PROVIDER_HARVIAIO
         self.active_profile = 2
         self._raw_state: dict[str, Any] = {}
         self._raw_telemetry: dict[str, Any] = {}

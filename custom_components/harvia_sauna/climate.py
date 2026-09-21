@@ -203,9 +203,17 @@ class HarviaThermostat(HarviaBaseEntity, ClimateEntity):
         cfg = self._presets[preset_mode]
         payload: dict = {"targetTemp": cfg["temp"]}
         if cfg["duration"] is not None:
-            # Round to whole hours (min 60): the heater normalises onTime to
-            # full hours anyway and odd values break the MyHarvia app editor.
-            payload["onTime"] = max(60, (int(cfg["duration"]) // 60) * 60)
+            if self.coordinator.api.supports_session_duration:
+                # Round to whole hours (min 60): the Xenio heater normalises
+                # onTime to full hours anyway and odd values break the
+                # MyHarvia app editor.
+                payload["onTime"] = max(60, (int(cfg["duration"]) // 60) * 60)
+            else:
+                _LOGGER.info(
+                    "Preset %s: duration ignored - on this controller it "
+                    "belongs to the heating profile",
+                    preset_mode,
+                )
         await self.coordinator.async_request_state_change(
             self._device_id, payload
         )

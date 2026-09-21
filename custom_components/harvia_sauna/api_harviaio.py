@@ -27,6 +27,11 @@ class HarviaIoApiClient(HarviaApiClientBase):
     """Client for Harvia documented REST/GraphQL API."""
 
     supports_push_updates = True
+    # Measured on a Fenix (issue #9): POST /devices/command with
+    # ADJUST_DURATION answers HTTP 400 "Command 'ADJUST_DURATION' is not
+    # supported for device type 'Fenix'". The shadow has no top-level onTime
+    # either - the duration lives in profiles.<n>.duration.
+    supports_session_duration = False
 
     def __init__(self, hass: HomeAssistant, username: str, password: str) -> None:
         """Initialize the API client."""
@@ -235,25 +240,9 @@ class HarviaIoApiClient(HarviaApiClientBase):
             )
             results.append(res)
 
-        # Duration: command.state only accepts on/off - numeric commands take
-        # command.params. The API says so in its own 400 ("leave command.state
-        # out and send command.params") and the Commands table documents
-        # ADJUST_DURATION as taking "minutes" (issue #10).
-        if "onTime" in payload:
-            res = await self._async_rest_request(
-                "device",
-                "POST",
-                "/devices/command",
-                json_data={
-                    "deviceId": device_id,
-                    "cabin": {"id": "C1"},
-                    "command": {
-                        "type": "ADJUST_DURATION",
-                        "params": {"minutes": int(payload["onTime"])},
-                    },
-                },
-            )
-            results.append(res)
+        # No duration command: ADJUST_DURATION is rejected for device type
+        # 'Fenix' whatever its shape (see supports_session_duration). The
+        # coordinator refuses onTime before it gets here.
 
         if not results:
             _LOGGER.warning("No supported command mapping for payload keys: %s", list(payload))

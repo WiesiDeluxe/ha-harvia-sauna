@@ -659,6 +659,14 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         self, device_id: str, payload: dict[str, Any]
     ) -> None:
         """Send a state change command to a device."""
+        if "onTime" in payload and not self.api.supports_session_duration:
+            # Refuse up front: the cloud would apply the other keys first and
+            # then fail on the duration, leaving a half-applied request.
+            raise HomeAssistantError(
+                "This controller does not accept a session duration: on Fenix "
+                "it is part of the heating profile (set it on the panel or in "
+                "the app). Nothing was changed."
+            )
         payload = self._apply_combi_limit(device_id, payload)
         try:
             await self.api.async_request_state_change(device_id, payload)

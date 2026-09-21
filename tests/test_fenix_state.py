@@ -139,42 +139,132 @@ async def test_combi_limit_unchanged_on_xenio(hass: HomeAssistant) -> None:
     }
 
 
-async def test_session_time_uses_command_params_not_state(hass: HomeAssistant) -> None:
-    """Numeric commands go in command.params (issue #10).
+async def test_fenix_client_never_sends_a_duration_command(hass: HomeAssistant) -> None:
+    """ADJUST_DURATION is not a Fenix command at all (issue #9, follow-up to #10).
 
-    The cloud rejects a number in command.state with HTTP 400 ("Use on/off,
-    true/false, or 1/0 ... send command.params"), so setting the session time
-    failed every time on Fenix.
+    b5 moved the value from command.state to command.params.minutes, which got
+    the request past the first validation only: the cloud then answers
+    HTTP 400 "Command 'ADJUST_DURATION' is not supported for device type
+    'Fenix'". The client must not send it, and must say so via its flag.
     """
     sent: list[dict] = []
-
-    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
 
     async def fake_rest(service, method, path, json_data=None, **kw):
         sent.append({"path": path, "body": json_data})
         return {}
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    device_id = next(iter(coordinator.data.devices))
     from custom_components.harvia_sauna.api_harviaio import HarviaIoApiClient
 
-    real = HarviaIoApiClient.async_request_state_change
+    assert HarviaIoApiClient.supports_session_duration is False
     client = HarviaIoApiClient.__new__(HarviaIoApiClient)
     client._async_rest_request = fake_rest
-    await real(client, device_id, {"onTime": 45})
+    await HarviaIoApiClient.async_request_state_change(
+        client, "dev", {"targetTemp": 80, "onTime": 45}
+    )
+    assert sent, "the temperature must still be written"
+    assert not [s for s in sent if "ADJUST_DURATION" in str(s["body"])]
 
-    body = next(s["body"] for s in sent if s["path"] == "/devices/command")
-    assert body["command"]["type"] == "ADJUST_DURATION"
-    assert "state" not in body["command"], "numeric value must not go in state"
-    assert body["command"]["params"] == {"minutes": 45}
+
+async def test_fenix_duration_is_refused_before_anything_is_written(
+    hass: HomeAssistant,
+) -> None:
+    """set_session with a duration must not end up half applied."""
+    import pytest
+    from homeassistant.exceptions import HomeAssistantError
+
+    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+
+    with pytest.raises(HomeAssistantError, match="heating profile"):
+        await coordinator.async_request_state_change(
+            device_id, {"targetTemp": 80, "onTime": 45}
+        )
+    assert api.writes == [], "nothing may be written when the request is refused"
 
 
-async def test_session_time_step_differs_per_controller(hass: HomeAssistant) -> None:
-    """Fenix allows quarter hours; the whole-hour rule is a Xenio measurement."""
-    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
-    fenix = hass.states.get("number.sauna_session_time")
-    assert fenix is not None, hass.states.async_entity_ids("number")
-    assert fenix.attributes["step"] == 15
+async def test_fenix_preset_applies_without_its_duration(hass: HomeAssistant) -> None:
+    """A preset's duration is optional; on Fenix it is skipped, not fatal."""
+    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
+    climate = hass.data["climate"].get_entity("climate.sauna_thermostat")
+    climate._presets = {"Test": {"temp": 80, "duration": 90}}
+
+    await climate.async_set_preset_mode("Test")
+    assert api.writes == [(next(iter(hass.data[DOMAIN][entry.entry_id].data.devices)),
+                           {"targetTemp": 80})]
+
+
+async def test_xenio_preset_still_sends_its_duration(hass: HomeAssistant) -> None:
+    """Xenio has a real onTime setpoint - the Fenix rule must not leak over."""
+    entry, api = await _setup(hass, API_PROVIDER_MYHARVIA)
+    climate = hass.data["climate"].get_entity("climate.sauna_thermostat")
+    climate._presets = {"Test": {"temp": 80, "duration": 90}}
+
+    await climate.async_set_preset_mode("Test")
+    assert api.writes[-1][1] == {"targetTemp": 80, "onTime": 60}
+
+
+async def test_fenix_shows_the_profile_duration_as_a_sensor(hass: HomeAssistant) -> None:
+    """The duration lives in profiles.<n>.duration, so it is read-only there.
+
+    The old number showed 360 - the dataclass default, since the Fenix shadow
+    has no top-level onTime - and could never write.
+    """
+    entry, api = await _setup(hass, API_PROVIDER_HARVIAIO)
+    assert hass.states.get("number.sauna_session_time") is None
+    sensor = hass.states.get("sensor.sauna_session_time")
+    assert sensor is not None, hass.states.async_entity_ids("sensor")
+    assert sensor.state == "150"  # active profile 2 ("Intensiv")
+
+    api.active_profile = 1  # "Gemütlich", 120 min
+    await _refresh(hass, entry.entry_id)
+    assert hass.states.get("sensor.sauna_session_time").state == "120"
+
+    from custom_components.harvia_sauna.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    device = next(iter(diag["devices"].values()))
+    assert device["on_time"] is None, "360 is a default, not a Fenix reading"
+
+
+async def test_stale_fenix_session_time_number_is_removed(hass: HomeAssistant) -> None:
+    """Upgrading from <= b6 must not leave the dead number behind."""
+    from homeassistant.helpers import entity_registry as er
+
+    from .test_setup import DEVICE_ID
+
+    registry = er.async_get(hass)
+    stale = registry.async_get_or_create(  # as registered by an older version
+        "number", DOMAIN, f"{DEVICE_ID}_on_time", suggested_object_id="sauna_session_time"
+    )
+    await _setup(hass, API_PROVIDER_HARVIAIO)
+    assert registry.async_get(stale.entity_id) is None
+
+
+async def test_xenio_session_time_number_keeps_its_registry_entry(
+    hass: HomeAssistant,
+) -> None:
+    """The cleanup is Fenix-only: a Xenio user's renamed number must survive."""
+    from homeassistant.helpers import entity_registry as er
+
+    from .test_setup import DEVICE_ID
+
+    registry = er.async_get(hass)
+    mine = registry.async_get_or_create(
+        "number", DOMAIN, f"{DEVICE_ID}_on_time", suggested_object_id="my_sauna_minutes"
+    )
+    # Assert on the removal itself: Home Assistant remembers deleted entries
+    # and restores the entity_id on re-creation, so the end state alone looks
+    # the same whether or not the entry was wrongly removed in between.
+    from unittest.mock import patch
+
+    with patch.object(registry, "async_remove", wraps=registry.async_remove) as removed:
+        await _setup(hass, API_PROVIDER_MYHARVIA)
+    assert removed.call_count == 0, "Xenio entities must not be touched"
+    assert registry.async_get(mine.entity_id) is not None
+    assert hass.states.get("number.my_sauna_minutes") is not None
 
 
 async def test_session_time_step_stays_whole_hours_on_xenio(hass: HomeAssistant) -> None:
@@ -183,3 +273,4 @@ async def test_session_time_step_stays_whole_hours_on_xenio(hass: HomeAssistant)
     xenio = hass.states.get("number.sauna_session_time")
     assert xenio is not None
     assert xenio.attributes["step"] == 60
+    assert hass.states.get("sensor.sauna_session_time") is None, "sensor is Fenix-only"

@@ -83,7 +83,7 @@ Power, Light, Fan, Steamer, Aroma, Auto Light, Auto Fan, Dehumidifier, Device sc
 Door, Heating active, Steam active
 
 ### Number Controls
-Target humidity, Aroma level, Session time
+Target humidity, Aroma level, Session time *(Xenio; on Fenix a read-only sensor — see [Session time](#session-time))*
 
 ## Options (v2.6.0+)
 
@@ -149,7 +149,7 @@ action: harvia_sauna.set_session
 data:
   device_id: "your_device_id"
   target_temp: 80        # 40–110 °C
-  duration: 60           # 1–720 minutes
+  duration: 60           # 1–720 minutes — Xenio only, refused on Fenix (see Session time)
   active: true           # start/stop
 ```
 
@@ -247,7 +247,9 @@ Each raw payload in an export carries `captured_at` and `source` (`poll` or `pus
 
 ### Session time
 
-The **Session time** number sets how long a session runs. The step differs by controller: Xenio firmware normalises `onTime` to whole hours (measured on two devices, and non-hour values break the MyHarvia app's editor), while Fenix accepts quarter hours — its own profile durations are 150/120 min. On Fenix the value is sent as `ADJUST_DURATION` with `command.params.minutes`; numeric values in `command.state` are rejected by the cloud.
+The **Session time** number sets how long a session runs — **on Xenio only**. Xenio firmware normalises `onTime` to whole hours (measured on two devices, and non-hour values break the MyHarvia app's editor), so the number steps by 60.
+
+**Fenix has no such setpoint.** Its session duration belongs to the heating profile (`profiles.<n>.duration`), the shadow carries no top-level `onTime`, and the cloud rejects the command outright: `Command 'ADJUST_DURATION' is not supported for device type 'Fenix'` (measured, issue #9). On Fenix the integration therefore shows the active profile's duration as a read-only **Session time** sensor; change it on the panel or in the app. A preset's duration is skipped there, and `harvia_sauna.set_session` with a `duration` is refused before anything is written. *2.10.0b5/b6 shipped a Fenix session-time number that could never write and displayed 360 — a default, not a device value. It is removed automatically on upgrade.*
 
 ## Controller support matrix
 

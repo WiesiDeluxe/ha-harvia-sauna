@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktives Profil"
       },
+      "on_time": {
+        "name": "Sitzungsdauer"
+      },
       "time_to_ready": {
         "name": "Restzeit bis bereit"
       },

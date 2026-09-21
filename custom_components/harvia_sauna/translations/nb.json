@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktiv profil"
       },
+      "on_time": {
+        "name": "Økttid"
+      },
       "time_to_ready": {
         "name": "Tid til klar"
       },

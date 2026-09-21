@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "アクティブプロフィール"
       },
+      "on_time": {
+        "name": "セッション時間"
+      },
       "time_to_ready": {
         "name": "準備完了までの時間"
       },

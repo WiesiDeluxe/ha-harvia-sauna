@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Active profile"
       },
+      "on_time": {
+        "name": "Session time"
+      },
       "time_to_ready": {
         "name": "Time to ready"
       },

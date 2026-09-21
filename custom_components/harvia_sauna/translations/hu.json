@@ -169,6 +169,9 @@
       "active_profile": {
         "name": "Aktív profil"
       },
+      "on_time": {
+        "name": "Ülés idő"
+      },
       "time_to_ready": {
         "name": "Idő a készenlétig"
       },
