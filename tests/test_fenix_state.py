@@ -96,6 +96,38 @@ async def test_combi_limit_uses_the_active_profile_humidity(hass: HomeAssistant)
     assert explicit["targetRh"] == 10
 
 
+async def test_combi_limit_humidity_write_uses_the_profile_temperature(
+    hass: HomeAssistant,
+) -> None:
+    """Mirror case: a humidity-only write must not trust a stale session temp.
+
+    Measured on a Fenix (issue #9): after a profile edit in the app with the
+    heater off, the profile held the new temperature while target_temp kept
+    the old one. With the session value the lower of the two, 60 % against a
+    90 °C profile went through as 150 combined.
+    """
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    device_id = next(iter(coordinator.data.devices))
+    device = coordinator.data.devices[device_id]
+    device.target_temp = 70  # stale session value
+    device.active_profile = 1
+    device.profiles = {"1": {"name": "Heiß", "targetTemp": 90, "targetHum": 30}}
+
+    clamped = coordinator._apply_combi_limit(device_id, {"targetRh": 60})
+    assert clamped["targetRh"] == 50, "must clamp against the profile temperature"
+
+    # The stale value can also be the higher one -> still the stricter clamp
+    device.target_temp = 95
+    assert coordinator._apply_combi_limit(device_id, {"targetRh": 60})["targetRh"] == 45
+
+    # An explicit temperature in the payload still wins over both
+    explicit = coordinator._apply_combi_limit(
+        device_id, {"targetTemp": 60, "targetRh": 60}
+    )
+    assert explicit["targetRh"] == 60
+
+
 async def test_combi_limit_unchanged_on_xenio(hass: HomeAssistant) -> None:
     """Xenio has no profiles, so nothing new may be clamped."""
     entry, _ = await _setup(hass, API_PROVIDER_MYHARVIA)

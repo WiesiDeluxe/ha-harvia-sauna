@@ -96,3 +96,75 @@ async def test_raw_payloads_redact_vendor_secrets(hass: HomeAssistant) -> None:
     assert msg["nested"]["SSID"] == REDACTED
     assert msg["swVer"] == "2.3.4" and msg["nested"]["rssi"] == -67
     assert "Wiesi-Home" not in str(diag) and "Guest-Net" not in str(diag)
+
+
+async def test_redaction_descends_into_json_strings(hass: HomeAssistant) -> None:
+    """Payloads carry AWSJSON — JSON encoded as a string (issue #9).
+
+    Shape as measured on a Fenix: in the device-info websocket message,
+    devicesStatesUpdateFeed.item.reported is a JSON *string*, so the
+    `wifissid` key inside it was never visited and the b4 claim that SSIDs
+    are redacted was wrong.
+    """
+    import json as _json
+
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    coordinator.api.last_ws_messages = [
+        {
+            "endpoint": "device",
+            "payload": {
+                "devicesStatesUpdateFeed": {
+                    "item": {
+                        "deviceId": "abc",
+                        "reported": _json.dumps(
+                            {"wifissid": "Wiesi-Home", "rssi": -67, "name": "Süd"}
+                        ),
+                    }
+                }
+            },
+        }
+    ]
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    assert "Wiesi-Home" not in str(diag), "SSID leaked inside a JSON string"
+    item = diag["raw_payloads"]["last_websocket_messages"][0]["payload"][
+        "devicesStatesUpdateFeed"
+    ]["item"]
+    assert isinstance(item["reported"], str), "the payload shape must not change"
+    inner = _json.loads(item["reported"])
+    assert inner["wifissid"] == REDACTED
+    assert inner["rssi"] == -67, "useful diagnostics must survive"
+    assert inner["name"] == "Süd" and "Süd" in item["reported"]
+
+
+async def test_redaction_handles_nested_and_malformed_json_strings(
+    hass: HomeAssistant,
+) -> None:
+    """JSON inside JSON is followed; text that merely looks like JSON is kept."""
+    import json as _json
+
+    entry, _ = await _setup(hass, API_PROVIDER_HARVIAIO)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    twice = _json.dumps({"reported": _json.dumps({"wifissid": "Guest-Net"})})
+    coordinator.api.last_ws_messages = [
+        {"payload": {"data": twice, "cmd": "{not json", "note": "[plain text"}}
+    ]
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    payload = diag["raw_payloads"]["last_websocket_messages"][0]["payload"]
+    assert "Guest-Net" not in str(diag)
+    assert _json.loads(_json.loads(payload["data"])["reported"])["wifissid"] == REDACTED
+    assert payload["cmd"] == "{not json" and payload["note"] == "[plain text"
+
+
+async def test_raw_payloads_redact_unit_identifiers(hass: HomeAssistant) -> None:
+    """MAC address and serial number identify one unit and aid no debugging."""
+    entry, _ = await _setup(hass, API_PROVIDER_MYHARVIA)
+    coordinator = hass.data["harvia_sauna"][entry.entry_id]
+    coordinator.api.last_ws_messages = [
+        {"macAddr": "AABBCCDDEEFF", "serialNum": "2527000000", "swVer": "2.3.4"}
+    ]
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    msg = diag["raw_payloads"]["last_websocket_messages"][0]
+    assert msg["macAddr"] == REDACTED and msg["serialNum"] == REDACTED
+    assert msg["swVer"] == "2.3.4"
+    assert "AABBCCDDEEFF" not in str(diag) and "2527000000" not in str(diag)

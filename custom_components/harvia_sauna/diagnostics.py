@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 
@@ -21,14 +22,24 @@ from .coordinator import HarviaSaunaCoordinator
 # pasted into public issues, so it must be redacted too (reported in #9).
 # Device payloads are vendor-defined and not enumerable, so raw payloads are
 # redacted by key pattern instead of an explicit list. The Wi-Fi SSID in the
-# device-info websocket message was reported this way (issue #9).
+# device-info websocket message was reported this way (issue #9). The MAC
+# address and serial number identify a single unit and help nobody debug.
 RAW_REDACT_PATTERN = re.compile(
-    r"ssid|passw|token|secret|api[-_]?key|credential|email|username", re.IGNORECASE
+    r"ssid|passw|token|secret|api[-_]?key|credential|email|username"
+    r"|mac[-_]?addr|serial",
+    re.IGNORECASE,
 )
 
 
 def _redact_raw(value: Any) -> Any:
-    """Recursively redact sensitive-looking keys in vendor payloads."""
+    """Recursively redact sensitive-looking keys in vendor payloads.
+
+    Payloads carry AWSJSON, i.e. JSON encoded as a *string* (shadow
+    `reported`, telemetry `data`, and the websocket buffer, which stores
+    messages before they are parsed). Walking dicts and lists alone therefore
+    missed the `wifissid` key inside `devicesStatesUpdateFeed.item.reported`,
+    so JSON strings are decoded, redacted and re-encoded (issue #9).
+    """
     if isinstance(value, dict):
         return {
             k: REDACTED if RAW_REDACT_PATTERN.search(str(k)) else _redact_raw(v)
@@ -36,6 +47,12 @@ def _redact_raw(value: Any) -> Any:
         }
     if isinstance(value, list):
         return [_redact_raw(v) for v in value]
+    if isinstance(value, str) and value.lstrip()[:1] in ("{", "["):
+        try:
+            parsed = json.loads(value)
+        except (ValueError, TypeError):
+            return value
+        return json.dumps(_redact_raw(parsed), ensure_ascii=False)
     return value
 
 

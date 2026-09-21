@@ -683,21 +683,30 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         device = (
             self.data.devices.get(device_id) if self.data else None
         )
+        # Fenix: PATCH /devices/target writes straight into the active profile,
+        # so the profile is what the device will actually use (measured,
+        # issue #9). Xenio has no profiles -> both fallbacks stay inert.
+        profile: dict[str, Any] = {}
+        if device is not None:
+            profile = (device.profiles or {}).get(str(device.active_profile)) or {}
         try:
-            temp = float(
-                payload.get(
-                    "targetTemp",
-                    (device.target_temp if device else None) or 0,
-                )
-            )
+            if "targetTemp" in payload:
+                temp = float(payload["targetTemp"])
+            else:
+                temp = float((device.target_temp if device else None) or 0)
+                # A humidity-only write: the session temperature goes stale
+                # when the profile is edited elsewhere while the heater is off
+                # (measured: profile set to 90, target_temp still 95), so a
+                # lower session value would let the sum through. Either value
+                # may be the stale one -> clamp against the higher.
+                try:
+                    temp = max(temp, float(profile.get("targetTemp") or 0))
+                except (TypeError, ValueError):
+                    pass
             rh_current = (device.target_rh if device else 0) or 0
-            if not rh_current and device is not None:
-                # Fenix: target_rh is the session value and 0 while the heater
-                # is off, which silently disabled the clamp. What the device
-                # will actually use is the active profile's targetHum, and
-                # PATCH /devices/target writes straight into that profile
-                # (measured, issue #9). Xenio has no profiles -> unchanged.
-                profile = (device.profiles or {}).get(str(device.active_profile), {})
+            if not rh_current:
+                # target_rh is the session value and 0 while the heater is
+                # off, which silently disabled the clamp.
                 try:
                     rh_current = float(profile.get("targetHum") or 0)
                 except (TypeError, ValueError):

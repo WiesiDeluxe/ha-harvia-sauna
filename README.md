@@ -122,7 +122,10 @@ heating trend) and **Ready at** (timestamp) for notifications like
 "Sauna ready at 17:42".
 
 **Combi safety** — `target temperature + target humidity` is clamped to
-140 (the MyHarvia app enforces this limit, the raw API does not).
+140 (the MyHarvia app enforces this limit, the raw API does not). On Fenix
+the clamp also checks the active profile's temperature and humidity, because
+the session values are empty or stale while the heater is off (measured,
+issue #9).
 
 ## Cooldown End Mode (v2.8.1+)
 
@@ -238,7 +241,7 @@ Fenix run state (measured, issue #9): while a scheduled start is pending, the pa
 
 ### Reading diagnostics exports
 
-Payloads captured from a push are *partial*: the `onStateUpdated` shape carries only what changed, so fields like `heater`/`steamer` appear in poll captures (or raw in `last_websocket_messages`). Keys that look like secrets — SSIDs, tokens, credentials — are redacted wherever they appear.
+Payloads captured from a push are *partial*: the `onStateUpdated` shape carries only what changed, so fields like `heater`/`steamer` appear in poll captures (or raw in `last_websocket_messages`). Keys that look like secrets or unit identifiers — SSIDs, tokens, credentials, MAC address, serial number — are redacted wherever they appear, including inside the JSON-encoded strings the cloud nests its payloads in (up to 2.10.0b5 those strings were skipped, so an SSID could still show up). The device ID is kept, because it is the key the payloads are grouped by. Still read an export before you post it.
 
 Each raw payload in an export carries `captured_at` and `source` (`poll` or `push`), and the export itself carries `generated_at`. Check them before drawing conclusions: on an active device almost all data arrives by push, and before v2.10.0 the raw payloads were recorded on the polling path only — exports from older versions can be frozen at the last poll while the entities were perfectly up to date.
 
