@@ -16,6 +16,12 @@ ENDPOINTS = ["users", "device", "events", "data"]
 WS_RECONNECT_INTERVAL = 1800  # 30 Minuten - periodischer Reconnect
 WS_HEARTBEAT_TIMEOUT = 300  # 5 Minuten ohne Heartbeat = Reconnect
 WS_MAX_RECONNECT_DELAY = 60  # Max Backoff bei Reconnect
+# Upper bound for each step of tearing a websocket down. On 2026-09-26 an
+# unload never finished (the entry stayed in unload_in_progress until Home
+# Assistant was restarted). Which step blocked was not logged; send() and
+# close() on a half-dead connection can wait as long as the TCP stack keeps
+# retrying, so every step is bounded rather than guessing.
+WS_STOP_TIMEOUT = 5
 
 # Coordinator
 AUTH_FAILURES_BEFORE_REAUTH = 3  # consecutive auth failures before the reauth flow

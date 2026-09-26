@@ -136,8 +136,16 @@ when the reference sensor drops below the configured value — and this is
 the same point at which Ambilight restores the everyday standard, so the
 session and the lights end together.
 
+With an external reference sensor configured, the integration keeps its
+5-minute fallback poll running during cooldown. Up to 2.10.0b7 every update
+of that sensor re-armed the poll timer, so a sensor reporting every minute
+(BLE H&T) silenced polling entirely; the heater then counted as stale 10
+minutes after its last own push and every entity went *unavailable* for a few
+minutes at a time until the next push (measured 2026-09-26).
+
 A **flicker guard** requires several consecutive readings below the
-threshold before ending, so a BLE reference sensor (e.g. Shelly BLU H&T)
+threshold before ending (since 2.10.0b8 each sensor report counts once,
+however often it is evaluated), so a BLE reference sensor (e.g. Shelly BLU H&T)
 briefly dropping to `unavailable` can no longer end the session early.
 
 ## Custom Services

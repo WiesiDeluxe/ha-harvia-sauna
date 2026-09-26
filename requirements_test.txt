@@ -1,1 +1,3 @@
 pytest-homeassistant-custom-component
+# Runtime dependency of the websocket modules, so their teardown can be tested
+websockets>=12.0

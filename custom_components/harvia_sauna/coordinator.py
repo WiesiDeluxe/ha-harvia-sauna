@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -52,6 +53,7 @@ from .const import (
     AUTH_FAILURES_BEFORE_REAUTH,
     FENIX_SAUNA_STATUS_SCHEDULED,
     SCAN_INTERVAL_FALLBACK,
+    WS_STOP_TIMEOUT,
     STATUS_BIT_DOOR,
     STATUS_BITS_KNOWN,
     SESSION_END_COOLDOWN,
@@ -274,6 +276,7 @@ class HarviaDeviceData:
     _cooldown_started: float | None = None
     _frozen_target_temp: float | None = None
     _cooldown_below_count: int = 0  # consecutive readings below end threshold
+    _cooldown_last_reading: Any = None  # which reference reading was counted last
     _ext_sensor_last_valid: float | None = None  # monotonic ts of last valid ext reading
     last_session_duration: float = 0.0  # Minuten
     last_session_max_temp: float = 0.0  # °C
@@ -442,13 +445,37 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 self._run_session_tracking(device)
                 updated = True
         if updated:
-            self.async_set_updated_data(self.data)
+            # async_update_listeners(), not async_set_updated_data(): the
+            # latter also resets the fallback poll timer, and a reference
+            # sensor that ticks every minute (BLE H&T) then kept the 5-minute
+            # poll from ever running during cooldown. The device stamp was
+            # refreshed only by its own pushes - every ~15 min when idle - so
+            # 10 min after each push the device counted as stale and every
+            # entity flipped to unavailable until the next push (measured
+            # 2026-09-26, three 4.5-minute outages 15 minutes apart).
+            self.async_update_listeners()
+
+    def _ext_reading_id(self) -> Any:
+        """Identify the reference sensor's current reading.
+
+        Session tracking runs from the sensor listener, every push and every
+        poll, so one reading is evaluated several times. The cooldown flicker
+        guard must count readings, not evaluations. last_reported changes on
+        every report, even one repeating the previous value.
+        """
+        state = self.hass.states.get(self.session_options.ext_sensor or "")
+        if state is None:
+            return None
+        return getattr(state, "last_reported", None) or state.last_updated
 
     def _run_session_tracking(self, device: HarviaDeviceData) -> None:
         """Run session tracking with current options and external sensor."""
         ext_temp = self._get_external_temp_c(device)
         was_active = device._session_active
-        _update_session_tracking(self.hass, device, self.session_options, ext_temp)
+        _update_session_tracking(
+            self.hass, device, self.session_options, ext_temp,
+            reading_id=self._ext_reading_id() if ext_temp is not None else None,
+        )
         _update_ready_state(self.hass, device, self.session_options, ext_temp)
         _update_ref_trend_and_eta(device, self.session_options, ext_temp)
 
@@ -510,11 +537,26 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         return value
 
     async def async_shutdown(self) -> None:
-        """Shut down push update connections."""
+        """Stop polling, the sensor listener and the push connections."""
+        # The base class cancels the poll timer and debouncer here, and
+        # registers this very method as the entry's unload callback - an
+        # override that skips it kept the old coordinator polling after an
+        # unload (and during a hung one: entities came back at 18:01 while
+        # the entry was still "unloading", 2026-09-26).
+        await super().async_shutdown()
         if self._ext_sensor_unsub is not None:
             self._ext_sensor_unsub()
             self._ext_sensor_unsub = None
-        await self.api.async_stop_push_updates()
+        # Bounded: an unload that waits on a dead socket never finishes, and
+        # Home Assistant has no timeout of its own for it.
+        try:
+            async with asyncio.timeout(WS_STOP_TIMEOUT * 2):
+                await self.api.async_stop_push_updates()
+        except TimeoutError:
+            _LOGGER.warning(
+                "Push connections did not stop within %ds; unloading anyway",
+                WS_STOP_TIMEOUT * 2,
+            )
 
     @property
     def websocket_connected(self) -> bool:
@@ -968,6 +1010,8 @@ def _update_session_tracking(
     device: HarviaDeviceData,
     opts: SessionOptions,
     ext_temp_c: float | None,
+    *,
+    reading_id: Any = None,
 ) -> None:
     """Track sauna session start/end and fire HA events.
 
@@ -1064,6 +1108,7 @@ def _update_session_tracking(
         device._cooldown_active = True
         device._cooldown_started = now
         device._cooldown_below_count = 0
+        device._cooldown_last_reading = None
         device._frozen_target_temp = float(frozen)
         _LOGGER.debug(
             "Heater off — cooldown phase started (device %s, frozen target "
@@ -1115,6 +1160,12 @@ def _update_session_tracking(
         # readings below the threshold before ending, so a single outlier
         # right after an "unavailable" gap cannot end the session early.
         if float(ref_temp) < threshold:
+            if reading_id is not None and reading_id == device._cooldown_last_reading:
+                # The same reading again, re-evaluated by a poll or push -
+                # not a further confirmation (it would let a single outlier
+                # end the session).
+                return
+            device._cooldown_last_reading = reading_id
             device._cooldown_below_count += 1
             if device._cooldown_below_count < COOLDOWN_END_CONFIRM_COUNT:
                 _LOGGER.debug(
@@ -1140,6 +1191,7 @@ def _update_session_tracking(
             # Back above the threshold (re-heat or sensor recovered high)
             # → reset the confirmation streak
             device._cooldown_below_count = 0
+            device._cooldown_last_reading = None
 
 
 def _track_max_temp(
@@ -1162,6 +1214,7 @@ def _end_session(
     device._cooldown_started = None
     device._frozen_target_temp = None
     device._cooldown_below_count = 0
+    device._cooldown_last_reading = None
 
     if device._session_start_time is not None:
         duration_sec = now - device._session_start_time

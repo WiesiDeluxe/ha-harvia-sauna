@@ -14,7 +14,12 @@ from typing import Any, Awaitable, Callable
 import websockets
 
 from .api_harviaio import HarviaIoApiClient, _normalize_state_payload, _normalize_telemetry_payload
-from .const import WS_HEARTBEAT_TIMEOUT, WS_MAX_RECONNECT_DELAY, WS_RECONNECT_INTERVAL
+from .const import (
+    WS_HEARTBEAT_TIMEOUT,
+    WS_MAX_RECONNECT_DELAY,
+    WS_RECONNECT_INTERVAL,
+)
+from .websocket import _bounded, _stop_all
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,14 +76,7 @@ class HarviaIoWebSocketManager:
 
         _LOGGER.debug("Stopping all WebSocket subscriptions (%d connections)", len(self._connections))
         self._running = False
-        for ws in self._connections:
-            await ws.async_stop()
-        for task in self._tasks:
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+        await _stop_all(self._connections, self._tasks)
         self._connections.clear()
         self._tasks.clear()
         _LOGGER.debug("WebSocket subscriptions stopped")
@@ -230,17 +228,14 @@ class HarviaIoWebSocket:
             await asyncio.sleep(delay)
 
     async def async_stop(self) -> None:
-        """Stop websocket connection."""
+        """Stop websocket connection (bounded, see websocket._bounded)."""
         self._running = False
-        if self._websocket is not None:
-            try:
-                await self._websocket.send(
-                    json.dumps({"id": self._subscription_id, "type": "stop"})
-                )
-                await self._websocket.close()
-            except Exception:
-                pass
-            self._websocket = None
+        websocket, self._websocket = self._websocket, None
+        if websocket is not None:
+            await _bounded(
+                websocket.send(json.dumps({"id": self._subscription_id, "type": "stop"}))
+            )
+            await _bounded(websocket.close())
 
     async def _async_connect_and_listen(self) -> None:
         """Connect and listen to feed updates."""

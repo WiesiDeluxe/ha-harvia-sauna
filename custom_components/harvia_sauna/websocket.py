@@ -13,9 +13,45 @@ from typing import Any, Callable
 import websockets
 
 from .api import HarviaApiClient
-from .const import WS_HEARTBEAT_TIMEOUT, WS_MAX_RECONNECT_DELAY, WS_RECONNECT_INTERVAL
+from .const import (
+    WS_HEARTBEAT_TIMEOUT,
+    WS_MAX_RECONNECT_DELAY,
+    WS_RECONNECT_INTERVAL,
+    WS_STOP_TIMEOUT,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def _bounded(coro) -> None:
+    """Await a teardown step, giving up after WS_STOP_TIMEOUT seconds.
+
+    On a half-dead connection send() and close() can wait until the TCP
+    stack gives up. Whatever happens here, the caller must be able to move
+    on.
+    """
+    try:
+        async with asyncio.timeout(WS_STOP_TIMEOUT):
+            await coro
+    except Exception:  # noqa: BLE001 - includes TimeoutError, ConnectionClosed
+        pass
+
+
+async def _stop_all(connections, tasks) -> None:
+    """Cancel the run loops first, then close the sockets, all bounded."""
+    for task in tasks:
+        task.cancel()
+    for ws in connections:
+        await ws.async_stop()
+    if tasks:
+        try:
+            async with asyncio.timeout(WS_STOP_TIMEOUT):
+                await asyncio.gather(*tasks, return_exceptions=True)
+        except TimeoutError:
+            _LOGGER.warning(
+                "%d websocket task(s) ignored cancellation for %ds; abandoning",
+                len(tasks), WS_STOP_TIMEOUT,
+            )
 
 
 class HarviaWebSocketManager:
@@ -64,19 +100,9 @@ class HarviaWebSocketManager:
         _LOGGER.debug("Started %d WebSocket connections", len(self._connections))
 
     async def async_stop(self) -> None:
-        """Stop all WebSocket connections gracefully."""
+        """Stop all WebSocket connections, taking at most a few seconds."""
         self._running = False
-
-        for ws in self._connections:
-            await ws.async_stop()
-
-        for task in self._tasks:
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
+        await _stop_all(self._connections, self._tasks)
         self._connections.clear()
         self._tasks.clear()
         _LOGGER.debug("All WebSocket connections stopped")
@@ -159,15 +185,11 @@ class HarviaWebSocket:
     async def async_stop(self) -> None:
         """Stop the WebSocket connection."""
         self._running = False
-        if self._websocket:
-            try:
-                # Send stop message before closing
-                stop_payload = {"id": self._subscription_id, "type": "stop"}
-                await self._websocket.send(json.dumps(stop_payload))
-                await self._websocket.close()
-            except Exception:
-                pass
-            self._websocket = None
+        websocket, self._websocket = self._websocket, None
+        if websocket:
+            stop_payload = {"id": self._subscription_id, "type": "stop"}
+            await _bounded(websocket.send(json.dumps(stop_payload)))
+            await _bounded(websocket.close())
 
     @staticmethod
     def _create_ssl_context() -> ssl.SSLContext:
