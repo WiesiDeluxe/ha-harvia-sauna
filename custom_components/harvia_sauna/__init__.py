@@ -8,8 +8,13 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    EVENT_HOMEASSISTANT_STOP,
+    Platform,
+)
+from homeassistant.core import Event, HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
@@ -113,6 +118,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Start WebSocket connections for real-time updates
     await coordinator.async_setup()
+
+    # Home Assistant does not unload config entries when it stops, and only
+    # shuts down coordinators that have no config entry. Without this the
+    # push tasks were simply cancelled at a restart and stuck in websockets'
+    # close(), which the cloud never answers: "Task could not be canceled and
+    # was still running after shutdown", once per subscription (2026-09-27).
+    async def _async_stop_push(_event: Event) -> None:
+        await coordinator.async_shutdown()
+
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _async_stop_push)
+    )
 
     # Store coordinator
     hass.data.setdefault(DOMAIN, {})

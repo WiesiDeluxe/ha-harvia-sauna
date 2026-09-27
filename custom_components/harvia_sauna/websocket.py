@@ -37,12 +37,31 @@ async def _bounded(coro) -> None:
         pass
 
 
+async def _drop(websocket) -> None:
+    """End a connection without waiting for the close handshake.
+
+    Called after the subscription's "stop" has been sent, so a graceful
+    close adds nothing - and the cloud does not complete it: on a Fenix every
+    close() ran into its full timeout (measured 2026-09-27), which a local
+    server that never answers a close frame reproduces in either teardown
+    order. Aborting the transport is immediate; the run loop then sees the
+    connection closed and ends on its own.
+    """
+    transport = getattr(websocket, "transport", None)
+    if transport is not None:
+        transport.abort()
+    else:
+        await _bounded(websocket.close())
+
+
 async def _stop_all(connections, tasks) -> None:
-    """Cancel the run loops first, then close the sockets, all bounded."""
+    """Stop every connection at once, then end the run loops, all bounded."""
+    # return_exceptions: one failing stop must not skip cancelling the loops
+    await asyncio.gather(
+        *(ws.async_stop() for ws in connections), return_exceptions=True
+    )
     for task in tasks:
         task.cancel()
-    for ws in connections:
-        await ws.async_stop()
     if tasks:
         try:
             async with asyncio.timeout(WS_STOP_TIMEOUT):
@@ -189,7 +208,7 @@ class HarviaWebSocket:
         if websocket:
             stop_payload = {"id": self._subscription_id, "type": "stop"}
             await _bounded(websocket.send(json.dumps(stop_payload)))
-            await _bounded(websocket.close())
+            await _drop(websocket)
 
     @staticmethod
     def _create_ssl_context() -> ssl.SSLContext:

@@ -550,12 +550,14 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         # Bounded: an unload that waits on a dead socket never finishes, and
         # Home Assistant has no timeout of its own for it.
         try:
-            async with asyncio.timeout(WS_STOP_TIMEOUT * 2):
+            # Inner steps take at most one send timeout (all connections in
+            # parallel) plus one for the run loops; this is the backstop.
+            async with asyncio.timeout(WS_STOP_TIMEOUT * 3):
                 await self.api.async_stop_push_updates()
         except TimeoutError:
             _LOGGER.warning(
                 "Push connections did not stop within %ds; unloading anyway",
-                WS_STOP_TIMEOUT * 2,
+                WS_STOP_TIMEOUT * 3,
             )
 
     @property

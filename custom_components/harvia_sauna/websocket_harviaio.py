@@ -19,7 +19,7 @@ from .const import (
     WS_MAX_RECONNECT_DELAY,
     WS_RECONNECT_INTERVAL,
 )
-from .websocket import _bounded, _stop_all
+from .websocket import _bounded, _drop, _stop_all
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -235,7 +235,7 @@ class HarviaIoWebSocket:
             await _bounded(
                 websocket.send(json.dumps({"id": self._subscription_id, "type": "stop"}))
             )
-            await _bounded(websocket.close())
+            await _drop(websocket)
 
     async def _async_connect_and_listen(self) -> None:
         """Connect and listen to feed updates."""

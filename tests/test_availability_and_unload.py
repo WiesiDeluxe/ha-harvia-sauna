@@ -114,12 +114,19 @@ async def test_unload_completes_even_if_push_shutdown_hangs(hass: HomeAssistant)
     async def never_returns():
         await asyncio.Event().wait()
 
-    api.async_stop_push_updates = never_returns
+    async def returns():
+        return None
 
-    with patch("custom_components.harvia_sauna.coordinator.WS_STOP_TIMEOUT", 0.05):
-        async with asyncio.timeout(5):
-            assert await hass.config_entries.async_unload(entry.entry_id)
-    assert entry.state is ConfigEntryState.NOT_LOADED
+    api.async_stop_push_updates = never_returns
+    try:
+        with patch("custom_components.harvia_sauna.coordinator.WS_STOP_TIMEOUT", 0.05):
+            async with asyncio.timeout(5):
+                assert await hass.config_entries.async_unload(entry.entry_id)
+        assert entry.state is ConfigEntryState.NOT_LOADED
+    finally:
+        # A regression must fail here, not hang the test run at teardown
+        # (Home Assistant stopping calls the shutdown again).
+        api.async_stop_push_updates = returns
 
 
 class _DeadSocket:
@@ -290,3 +297,189 @@ async def test_no_poll_while_the_unload_is_still_shutting_down(
 
     release.set()
     assert await unload
+
+
+_WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+
+async def _silent_ws_server():
+    """A websocket server that accepts, then never answers a close frame.
+
+    Reproduces what a Fenix measured on the cloud side (2026-09-27): the stop
+    frame goes out instantly, close() never completes.
+    """
+    import base64
+    import hashlib
+
+    async def handle(reader, writer):
+        request = b""
+        while b"\r\n\r\n" not in request:
+            request += await reader.read(1024)
+        key = next(
+            line.split(b":", 1)[1].strip()
+            for line in request.split(b"\r\n")
+            if line.lower().startswith(b"sec-websocket-key")
+        )
+        accept = base64.b64encode(hashlib.sha1(key + _WS_GUID.encode()).digest())
+        writer.write(
+            b"HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n"
+            b"Connection: Upgrade\r\nSec-WebSocket-Accept: " + accept + b"\r\n\r\n"
+        )
+        await writer.drain()
+        while await reader.read(1024):
+            pass  # swallow everything, reply to nothing
+        writer.close()
+
+    return await asyncio.start_server(handle, "127.0.0.1", 0)
+
+
+@pytest.mark.parametrize("module", ["websocket", "websocket_harviaio"])
+async def test_stop_does_not_wait_for_a_close_the_cloud_never_answers(
+    hass: HomeAssistant, module: str, socket_enabled
+) -> None:
+    """With the real websockets client: stop must not sit out the timeout.
+
+    b8 awaited close() after the stop frame; the cloud never completes the
+    close handshake, so every reload took the full timeout per connection
+    (~12 s on a Fenix). The order of cancel and close made no difference.
+    """
+    import importlib
+    import time
+
+    from websockets.asyncio.client import connect
+
+    server = await _silent_ws_server()
+    port = server.sockets[0].getsockname()[1]
+    client = await connect(f"ws://127.0.0.1:{port}/", close_timeout=10)
+
+    async def run_loop():
+        # Same shape as the integration's loop: `async with connect()` around
+        # recv(). Its exit calls close() itself - the call that hung for all
+        # four Xenio connections at a Home Assistant restart on 2026-09-27
+        # ("Task could not be canceled", waiting in websockets' close()).
+        async with client:
+            await client.recv()
+
+    reader = hass.loop.create_task(run_loop())
+
+    mod = importlib.import_module(f"custom_components.harvia_sauna.{module}")
+    cls = mod.HarviaWebSocket if module == "websocket" else mod.HarviaIoWebSocket
+    ws = cls.__new__(cls)
+    ws._websocket = client
+    ws._subscription_id = "sub"
+    ws._running = True
+
+    try:
+        with patch("custom_components.harvia_sauna.websocket.WS_STOP_TIMEOUT", 2):
+            started = time.monotonic()
+            await ws.async_stop()
+            elapsed = time.monotonic() - started
+        assert elapsed < 0.5, f"stop waited {elapsed:.2f}s for a close handshake"
+        with contextlib.suppress(Exception):
+            async with asyncio.timeout(1):
+                await reader  # the run loop ends on its own
+        assert reader.done(), "the run loop must end once the connection is dropped"
+    finally:
+        client.transport.abort()  # whatever happened above, never leave it open
+        reader.cancel()
+        with contextlib.suppress(BaseException):
+            await reader
+        server.close()
+        with contextlib.suppress(TimeoutError):
+            async with asyncio.timeout(1):
+                await server.wait_closed()
+
+
+async def test_connections_stop_in_parallel(hass: HomeAssistant) -> None:
+    """Each connection's stop is bounded; all of them together take one bound.
+
+    Xenio keeps four subscriptions. Stopped one after another, four dead
+    sockets add up to four timeouts - longer than the coordinator's backstop,
+    which then cut the teardown off half-way (seen with two on a Fenix).
+    """
+    import time
+
+    from custom_components.harvia_sauna.websocket import HarviaWebSocketManager
+
+    class _Blocking:
+        async def async_stop(self):
+            await asyncio.sleep(0.3)
+
+    manager = HarviaWebSocketManager.__new__(HarviaWebSocketManager)
+    manager._connections = [_Blocking() for _ in range(4)]
+    manager._tasks = []
+    manager._running = True
+
+    started = time.monotonic()
+    await manager.async_stop()
+    elapsed = time.monotonic() - started
+    assert elapsed < 0.6, f"four connections took {elapsed:.2f}s - stopped one by one"
+
+
+async def test_push_is_stopped_when_home_assistant_stops(hass: HomeAssistant) -> None:
+    """Home Assistant stopping must tear the push connections down.
+
+    It does not unload config entries at shutdown and only shuts down
+    coordinators without one, so the integration has to listen itself. At a
+    restart on 2026-09-27 all four Xenio subscriptions were instead cancelled
+    by the runner and logged "Task could not be canceled".
+    """
+    from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+
+    _, api = await _setup(hass, API_PROVIDER_MYHARVIA)
+    stops = 0
+
+    async def counting_stop():
+        nonlocal stops
+        stops += 1
+
+    api.async_stop_push_updates = counting_stop
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STOP)
+    await hass.async_block_till_done()
+    assert stops == 1
+
+
+async def test_stop_listener_is_removed_on_unload(hass: HomeAssistant) -> None:
+    """An unloaded entry must not react to a later stop event."""
+    from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+
+    entry, api = await _setup(hass, API_PROVIDER_MYHARVIA)
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    stops = 0
+
+    async def counting_stop():
+        nonlocal stops
+        stops += 1
+
+    api.async_stop_push_updates = counting_stop
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_STOP)
+    await hass.async_block_till_done()
+    assert stops == 0
+
+
+async def test_one_failing_stop_does_not_skip_the_run_loops(hass: HomeAssistant) -> None:
+    """If one connection's stop raises, the others and the loops still stop."""
+    from custom_components.harvia_sauna.websocket import HarviaWebSocketManager
+
+    stopped = []
+
+    class _Broken:
+        async def async_stop(self):
+            raise RuntimeError("boom")
+
+    class _Fine:
+        async def async_stop(self):
+            stopped.append(self)
+
+    async def loop_forever():
+        await asyncio.Event().wait()
+
+    task = hass.loop.create_task(loop_forever())
+    manager = HarviaWebSocketManager.__new__(HarviaWebSocketManager)
+    manager._connections = [_Broken(), _Fine()]
+    manager._tasks = [task]
+    manager._running = True
+
+    await manager.async_stop()
+    assert len(stopped) == 1
+    assert task.cancelled(), "the run loop was left running"
