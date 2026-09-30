@@ -197,7 +197,13 @@ trigger:
 
 The energy sensor uses `state_class: total_increasing` and works with the HA Energy Dashboard.
 
-> **⚠️ Xenio users:** Power and energy are **estimates**. The Xenio API does not expose the actual heater relay state — it only reports whether the session is active. So the power sensor shows the full rated power (e.g. 10800 W) for the whole session, even when the thermostat has cycled the element off (and the stones keep radiating heat). Real consumption is lower than reported. For accurate measurement, use an external energy meter (e.g. Shelly 3EM, CT clamp) on the heater circuit.
+> **⚠️ Power and energy are estimates.** No cloud field reports the heating element itself, so the integration counts the heater's rated power only while it is most likely running.
+> - **Xenio** (since 2.11.0): rated power while the panel reports heating demand (status bit 8) and the target has not yet been reached (bit 5 clear), i.e. during heat-up. Bit 8 alone stays set for the whole session, which is what 2.10 and earlier counted. Measured against a meter on one session: **11.9 kWh estimated vs 12.8–13.1 kWh real** (2.10 counted 27.4 kWh). Not visible to the estimate: the element cycling while it holds the temperature, and re-heating after the target was first reached (bit 5 stays set).
+> - **Fenix**: rated power while `heatOn`; the telemetry field `heaterPower` would be used if a unit ever reported it (it has been 0 on every unit seen so far).
+>
+> For exact figures use an external meter (e.g. Shelly 3EM, CT clamp) on the heater circuit.
+>
+> **Do not use *Power* to detect a running sauna.** Since 2.11.0 it drops to 0 once the target is reached, while the session goes on. For "sauna is on" use the *Power* switch or the thermostat's state; for "element is heating" the thermostat's `hvac_action`.
 >
 > **Fenix users:** The Fenix API provides a real measured `heaterPower` value, so the "Actual heater power" sensor reflects true consumption.
 
@@ -239,6 +245,8 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 
 Fenix panels store four profiles of their own (name, target temperature, humidity, duration). The **Heating profile** select shows them under the names configured on the panel and switches between them; the active profile is mirrored back, so choosing one at the panel updates Home Assistant too.
 
+**Target temperature on Fenix** (since 2.11.0): the thermostat shows the target the heater actually uses. The device state's own `targetTemp` does not follow profile changes (measured), so with the heater off the value comes from the active profile, and while it runs from the live telemetry (a profile change arrives there within about half a minute). Humidity is handled the same way.
+
 - The integration **selects** a profile; it does not edit one. Profile contents *can* be written through the raw state API — the MyHarvia app writes the complete profile object to `profiles.<n>` via `devicesStatesUpdate` (`shadowName: "C1"`) and the panel applies it within about a second (verified by @fasdav, issue #9). Note the pitfall: the server wraps the `state` argument into `desired` itself, so passing `{"desired": {...}}` lands at `desired.desired.…` and is silently ignored. Editing profiles from the integration is not implemented — a read-modify-write of the whole object would overwrite panel-side changes made in between.
 - **Selecting a profile applies its target temperature**, so the climate setpoint follows it. This is why a setpoint written from HA can appear to be overwritten shortly afterwards (issue #9).
 - Changes take 10–15 s to be reflected; send one at a time.
@@ -268,7 +276,7 @@ The **Session time** number sets how long a session runs — **on Xenio only**. 
 | Heating profiles | n/a (no device profiles) | ✅ select entity |
 | Device schedule | ✅ read/write | ✅ read-only (`timer`) — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
 | Status-code bit map | ✅ | n/a (Fenix delivers named fields) |
-| Real heater power | ❌ estimate | ✅ `heaterPower` telemetry |
+| Real heater power | ❌ estimate (heat-up phase, see Energy Dashboard) | ❌ estimate (`heaterPower` reported as 0 so far) |
 
 Fenix note: remote control on MyHarvia 2 is a paid *Control* tier after a trial. If reading works but starting does not, check the licence in the app before filing a bug.
 

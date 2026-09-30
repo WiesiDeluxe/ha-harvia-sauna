@@ -703,6 +703,7 @@ def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "steamOn": "steamOn",
         "remainingTime": "remainingTime",
         "targetTemp": "targetTemp",
+        "targetHum": "targetHum",  # Fenix: live session humidity target
         "wifiRSSI": "wifiRSSI",
         # New Fenix-specific fields
         "heaterPower": "heaterPower",

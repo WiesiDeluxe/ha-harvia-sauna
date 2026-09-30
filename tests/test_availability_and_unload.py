@@ -41,7 +41,7 @@ async def _setup_with_cooldown(hass: HomeAssistant) -> tuple[MockConfigEntry, Fa
             CONF_PASSWORD: "secret",
             CONF_API_PROVIDER: API_PROVIDER_MYHARVIA,
             CONF_HEATER_MODEL: "other",
-            CONF_HEATER_POWER: 10800,
+            CONF_HEATER_POWER: "10.8",  # stored as kW text, like a real entry
         },
         options={
             "session_end_mode": "cooldown",

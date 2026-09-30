@@ -55,6 +55,8 @@ from .const import (
     SCAN_INTERVAL_FALLBACK,
     WS_STOP_TIMEOUT,
     STATUS_BIT_DOOR,
+    STATUS_BIT_HEAT_DEMAND,
+    STATUS_BIT_TARGET_REACHED,
     STATUS_BITS_KNOWN,
     SESSION_END_COOLDOWN,
     SESSION_MIN_DURATION_SEC,
@@ -250,7 +252,8 @@ class HarviaDeviceData:
     heater_power: int = 10800  # Nennleistung in Watt (wird aus Config überschrieben)
     heater_power_actual: int = 0  # Dynamic power from telemetry["heaterPower"]
     energy_kwh: float = 0.0  # Kumulierter Energieverbrauch in kWh
-    _last_heat_on_timestamp: float | None = None  # Für Energy-Berechnung
+    _energy_ts: float | None = None  # monotonic time of the last energy step
+    _energy_power_w: int = 0  # estimated draw since _energy_ts
     _last_update: float = 0.0  # monotonic timestamp of last data received
 
     # Session tracking
@@ -314,6 +317,13 @@ class HarviaDeviceData:
     # useful because Fenix reports heat_up_time: 0.
     timer: dict[str, Any] = field(default_factory=dict)
     sauna_status: int = 0  # From state["saunaStatus"]
+    # Fenix target sources (issue #11): the state's targetTemp is stale in
+    # every state; telemetry carries the live session target while heating,
+    # the active profile the real one while off. See _resolve_fenix_targets.
+    _telemetry_target_temp: float | None = None
+    _telemetry_target_rh: float | None = None
+    _telemetry_target_ts: float | None = None
+    _heating_since: float | None = None  # monotonic time the heater came on
     remote_allowed: bool = False  # From state["remoteAllowed"]
     demo_mode: bool = False  # From state["demoMode"]
     screen_lock: bool = False  # From state["screenLock"]["on"]
@@ -720,6 +730,40 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             raise HomeAssistantError(
                 f"Command rejected by the Harvia cloud (auth), please retry: {err}"
             ) from err
+        self._apply_target_write_locally(device_id, payload)
+
+    def _apply_target_write_locally(
+        self, device_id: str, payload: dict[str, Any]
+    ) -> None:
+        """Mirror an accepted Fenix target write into the active profile.
+
+        PATCH /devices/target writes straight into the active profile
+        (measured, issue #9), and the displayed target is read from there
+        while the heater is off. Without this the UI kept the previous value
+        until the next full poll, so a preset never looked applied (#11).
+        """
+        device = self.data.devices.get(device_id) if self.data else None
+        if device is None or not device.profiles:
+            return
+        key = str(device.active_profile)
+        profile = dict(device.profiles.get(key) or {})
+        if not profile:
+            return
+        if "targetTemp" in payload:
+            profile["targetTemp"] = payload["targetTemp"]
+        if "targetRh" in payload:
+            profile["targetHum"] = payload["targetRh"]
+        device.profiles = {**device.profiles, key: profile}
+        if device.active:
+            # Running: the session follows within a telemetry frame; show it now
+            now = time.monotonic()
+            if "targetTemp" in payload:
+                device._telemetry_target_temp = payload["targetTemp"]
+                device._telemetry_target_ts = now
+            if "targetRh" in payload:
+                device._telemetry_target_rh = payload["targetRh"]
+                device._telemetry_target_ts = now
+        _resolve_fenix_targets(device)
 
     def _apply_combi_limit(
         self, device_id: str, payload: dict[str, Any]
@@ -830,6 +874,85 @@ def _reconcile_scheduled_wait(device: HarviaDeviceData) -> None:
         device.steam_on = False
 
 
+def _resolve_fenix_targets(device: HarviaDeviceData) -> None:
+    """Show the target the Fenix actually uses, not the stale shadow value.
+
+    Measured on a Fenix Combi (issue #9/#11): the state's targetTemp does not
+    follow a profile change in any state, not even after a forced poll.
+    While the heater is off only the active profile holds the real target
+    (profile set to 100, state still 95); while it runs, a profile change
+    reaches the session target with the next telemetry frame (34 s).
+    So: off -> active profile, on -> telemetry received since ignition,
+    falling back to the profile (which is what the heater starts with).
+    Xenio has no profiles and its state is current, so it is left alone.
+    """
+    if not device.profiles:
+        return
+    now = time.monotonic()
+    if device.active and device._heating_since is None:
+        device._heating_since = now
+    elif not device.active:
+        device._heating_since = None
+    profile = device.profiles.get(str(device.active_profile)) or {}
+    temp = profile.get("targetTemp")
+    rh = profile.get("targetHum")
+    if (
+        device.active
+        and device._telemetry_target_ts is not None
+        and device._telemetry_target_ts >= device._heating_since
+    ):
+        # Only telemetry that arrived after ignition: a value from before
+        # can be the stale one from an earlier session.
+        if device._telemetry_target_temp is not None:
+            temp = device._telemetry_target_temp
+        if device._telemetry_target_rh is not None:
+            rh = device._telemetry_target_rh
+    if temp is not None:
+        device.target_temp = temp
+    if rh is not None:
+        device.target_rh = rh
+
+
+def estimated_heater_power_w(device: HarviaDeviceData) -> int:
+    """Best estimate of what the heater draws right now, in watts.
+
+    No cloud field reports the element itself. Xenio: bit 8 is heating
+    demand and stays set through thermostat pauses, bit 5 latches once the
+    target is first reached (measured against a meter, 18 and 30 Sep 2026).
+    Counting rated power only while bit 8 is set and bit 5 is not came to
+    11.9 kWh for a session the meter put at 12.8-13.1 kWh; counting the
+    whole demand phase gave 27.4. Re-heating after bit 5 is not visible.
+    Fenix: telemetry heaterPower if it is ever non-zero (it was 0 on every
+    unit seen so far), else rated power while heatOn.
+    """
+    if device.heater_power_actual and device.heater_power_actual > 0:
+        return device.heater_power_actual
+    if device.status_codes is not None:
+        try:
+            bits = int(device.status_codes)
+        except (TypeError, ValueError):
+            bits = None
+        if bits is not None:
+            heating = bits & STATUS_BIT_HEAT_DEMAND and not bits & STATUS_BIT_TARGET_REACHED
+            return device.heater_power if heating else 0
+    return device.heater_power if device.heat_on else 0
+
+
+def _accumulate_energy(device: HarviaDeviceData, now: float | None = None) -> None:
+    """Integrate the estimated draw over the time since the last update.
+
+    Runs after every state and telemetry update: on Xenio the bits that
+    decide the estimate arrive with the state, not with the telemetry that
+    used to drive this.
+    """
+    now = time.monotonic() if now is None else now
+    if device._energy_ts is not None and now > device._energy_ts:
+        hours = (now - device._energy_ts) / 3600.0
+        device.energy_kwh += (device._energy_power_w / 1000.0) * hours
+    device._energy_power_w = estimated_heater_power_w(device)
+    device._energy_ts = now
+
+
 def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     """Apply device state (reported) data to the device object."""
     if "displayName" in data:
@@ -914,6 +1037,8 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
 
     device._last_update = time.monotonic()
     _reconcile_scheduled_wait(device)
+    _resolve_fenix_targets(device)
+    _accumulate_energy(device)
 
 
 def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
@@ -923,29 +1048,7 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
     if "humidity" in data:
         device.humidity = data["humidity"]
     if "heatOn" in data:
-        was_heating = device.heat_on
         device.heat_on = bool(data["heatOn"])
-
-        # Energy calculation: accumulate kWh while heating
-        now = time.monotonic()
-        if was_heating and device._last_heat_on_timestamp is not None:
-            elapsed_hours = (now - device._last_heat_on_timestamp) / 3600.0
-            # Prefer the heater's own reported power when the device sends
-            # it; otherwise fall back to the configured rated power. NOTE:
-            # heatOn is a heating *demand* flag (Xenio bit 8 stays set through
-            # thermostat pauses — measured), so without real telemetry this
-            # remains an upper-bound estimate.
-            power_w = (
-                device.heater_power_actual
-                if device.heater_power_actual and device.heater_power_actual > 0
-                else device.heater_power
-            )
-            device.energy_kwh += (power_w / 1000.0) * elapsed_hours
-
-        if device.heat_on:
-            device._last_heat_on_timestamp = now
-        else:
-            device._last_heat_on_timestamp = None
 
     if "steamOn" in data:
         device.steam_on = bool(data["steamOn"])
@@ -953,6 +1056,10 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         device.remaining_time = data["remainingTime"]
     if "targetTemp" in data:
         device.target_temp = data["targetTemp"]
+        device._telemetry_target_temp = data["targetTemp"]
+        device._telemetry_target_ts = time.monotonic()
+    if "targetHum" in data:  # Fenix telemetry only
+        device._telemetry_target_rh = data["targetHum"]
     if "wifiRSSI" in data:
         device.wifi_rssi = data["wifiRSSI"]
     if "timestamp" in data:
@@ -1005,6 +1112,8 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
 
     device._last_update = time.monotonic()
     _reconcile_scheduled_wait(device)
+    _resolve_fenix_targets(device)
+    _accumulate_energy(device)
 
 
 def _update_session_tracking(

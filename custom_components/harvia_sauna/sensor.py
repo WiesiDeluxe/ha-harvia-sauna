@@ -27,7 +27,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import API_PROVIDER_HARVIAIO, API_PROVIDER_MYHARVIA, CONF_API_PROVIDER, DOMAIN
-from .coordinator import decode_status_bits, decode_timed_start, schedule_state, HarviaDeviceData, HarviaSaunaCoordinator
+from .coordinator import (
+    HarviaDeviceData,
+    HarviaSaunaCoordinator,
+    decode_status_bits,
+    decode_timed_start,
+    estimated_heater_power_w,
+    schedule_state,
+)
 from .entity import HarviaBaseEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -247,7 +254,7 @@ SENSOR_DESCRIPTIONS: list[HarviaSensorDescription] = [
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:flash",
-        value_fn=lambda d: d.heater_power if d.heat_on else 0,
+        value_fn=lambda d: estimated_heater_power_w(d),
     ),
     HarviaSensorDescription(
         key="energy",

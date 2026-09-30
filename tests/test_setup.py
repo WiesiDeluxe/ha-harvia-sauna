@@ -138,7 +138,7 @@ async def _setup(hass: HomeAssistant, provider: str) -> tuple[MockConfigEntry, F
             CONF_PASSWORD: "secret",
             CONF_API_PROVIDER: provider,
             CONF_HEATER_MODEL: "other",
-            CONF_HEATER_POWER: 10800,
+            CONF_HEATER_POWER: "10.8",  # stored as kW text, like a real entry
         },
         options={},
         unique_id="user@example.com",
