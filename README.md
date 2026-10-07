@@ -117,9 +117,19 @@ everyday standard (color temperature + brightness) is restored.
 `harvia_sauna_ready` event, fired once per session when the reference
 temperature reaches the threshold (target temperature, or a fixed value —
 useful for stone-heavy heaters you enter before the target is reached).
-Companion sensors: **Time to ready** (minutes, from the reference-sensor
-heating trend) and **Ready at** (timestamp) for notifications like
+Companion sensors: **Time to ready** (minutes, using the native Fenix
+estimate when available, otherwise the reference-sensor heating trend)
+and **Ready at** (timestamp) for notifications like
 "Sauna ready at 17:42".
+
+**Fenix ready-time estimate** — Harvia telemetry's `timeToTarget` supplies
+the same remaining minutes as MyHarvia. It is used with target-temperature
+readiness and the internal sensor. Custom fixed thresholds and configured
+external reference sensors retain the trend calculation. Invalid values,
+changed targets/profiles, stopped sessions and estimates older than ten
+minutes discard the previous native estimate. Partial updates without
+this field do not refresh its age. Zero is a valid estimate, but the
+temperature-based Ready flag/event and Xenio scheduling are unchanged.
 
 **Combi safety** — `target temperature + target humidity` is clamped to
 140 (the MyHarvia app enforces this limit, the raw API does not). On Fenix
@@ -326,3 +336,4 @@ MIT License. This project is not affiliated with Harvia Oyj.
 ---
 
 <p align="center"><i>Scripted in Austria 🇦🇹 — Happy Schwitzing! 🧖‍♂️🔥</i></p>
+
