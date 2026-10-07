@@ -702,6 +702,7 @@ def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "heatOn": "heatOn",
         "steamOn": "steamOn",
         "remainingTime": "remainingTime",
+        "timeToTarget": "timeToTarget",  # Fenix live ETA in minutes
         "targetTemp": "targetTemp",
         "targetHum": "targetHum",  # Fenix: live session humidity target
         "wifiRSSI": "wifiRSSI",
@@ -795,3 +796,4 @@ def _extract_device_id(item: dict[str, Any]) -> str | None:
 
     _LOGGER.debug("_extract_device_id: no device_id found in item")
     return None
+

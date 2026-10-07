@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -219,6 +220,10 @@ class HarviaDeviceData:
 
     # Timers
     heat_up_time: int = 0
+    # Fenix live remaining ETA; Xenio heatUpTime is a scheduling duration.
+    time_to_target_min: float | None = None
+    _time_to_target_ts: float | None = None
+    _time_to_target_context: tuple | None = None
     remaining_time: int = 0
     on_time: int = 360  # Default max time in minutes
 
@@ -955,6 +960,7 @@ def _accumulate_energy(device: HarviaDeviceData, now: float | None = None) -> No
 
 def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     """Apply device state (reported) data to the device object."""
+    was_active = device.active
     if "displayName" in data:
         device.display_name = data["displayName"]
     if "deviceId" in data:
@@ -1040,6 +1046,12 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     _resolve_fenix_targets(device)
     _accumulate_energy(device)
 
+    if not device.active or not was_active or (
+        device._time_to_target_context is not None
+        and device._time_to_target_context != _eta_context(device)
+    ):
+        _clear_native_eta(device)
+
 
 def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
     """Apply telemetry (sensor) data to the device object."""
@@ -1114,6 +1126,37 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
     _reconcile_scheduled_wait(device)
     _resolve_fenix_targets(device)
     _accumulate_energy(device)
+
+    if "timeToTarget" in data:
+        _clear_native_eta(device)
+        value = data["timeToTarget"]
+        if (
+            device.active
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and math.isfinite(value)
+            and value >= 0
+        ):
+            device.time_to_target_min = float(value)
+            device._time_to_target_ts = time.monotonic()
+            device._time_to_target_context = _eta_context(device)
+    elif not device.active or (
+        device._time_to_target_context is not None
+        and device._time_to_target_context != _eta_context(device)
+    ):
+        _clear_native_eta(device)
+
+
+def _eta_context(device: HarviaDeviceData) -> tuple:
+    """Identify the target/profile a native estimate belongs to."""
+    return (device.active_profile, device.target_temp, device.target_rh)
+
+
+def _clear_native_eta(device: HarviaDeviceData) -> None:
+    """Discard the previous Fenix estimate when its context is no longer valid."""
+    device.time_to_target_min = None
+    device._time_to_target_ts = None
+    device._time_to_target_context = None
 
 
 def _update_session_tracking(
@@ -1470,6 +1513,27 @@ def _update_ref_trend_and_eta(
 
     threshold = _ready_threshold(device, opts)
     trend = device.ref_trend
+    # Harvia's estimate is for its own sensor and current target. Keep the
+    # reference-sensor trend for custom readiness thresholds/external sensors.
+    # A partial update may omit the ETA: retain it only within its own age
+    # limit, independent of unrelated pushes keeping the device available.
+    if (
+        device.active
+        and opts.ext_sensor is None
+        and ext_temp_c is None
+        and opts.ready_mode != READY_MODE_FIXED
+        and device.time_to_target_min is not None
+        and device._time_to_target_ts is not None
+        and 0 <= now - device._time_to_target_ts < DEVICE_STALE_TIMEOUT
+        and device._time_to_target_context == _eta_context(device)
+    ):
+        device.time_to_ready_min = device.time_to_target_min
+        device.ready_at = dt.datetime.now(dt.timezone.utc) + dt.timedelta(
+            minutes=device.time_to_target_min,
+            seconds=-(now - device._time_to_target_ts),
+        )
+        return
+
     if (
         threshold is None
         or trend is None
@@ -1512,3 +1576,4 @@ def _update_temp_trend(device: HarviaDeviceData) -> None:
         return
 
     device.temp_trend = round((temp_new - temp_old) / elapsed_min, 2)
+
