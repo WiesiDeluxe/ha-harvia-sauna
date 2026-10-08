@@ -336,4 +336,3 @@ MIT License. This project is not affiliated with Harvia Oyj.
 ---
 
 <p align="center"><i>Scripted in Austria 🇦🇹 — Happy Schwitzing! 🧖‍♂️🔥</i></p>
-

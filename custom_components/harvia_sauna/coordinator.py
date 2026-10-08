@@ -1576,4 +1576,3 @@ def _update_temp_trend(device: HarviaDeviceData) -> None:
         return
 
     device.temp_trend = round((temp_new - temp_old) / elapsed_min, 2)
-

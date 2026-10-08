@@ -796,4 +796,3 @@ def _extract_device_id(item: dict[str, Any]) -> str | None:
 
     _LOGGER.debug("_extract_device_id: no device_id found in item")
     return None
-
