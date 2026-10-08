@@ -25,6 +25,7 @@ WS_STOP_TIMEOUT = 5
 
 # Coordinator
 AUTH_FAILURES_BEFORE_REAUTH = 3  # consecutive auth failures before the reauth flow
+POLL_FAILURES_BEFORE_UNAVAILABLE = 3  # consecutive failed polls ridden out on the last data
 TOKEN_RENEW_MARGIN_SEC = 120      # renew tokens this long before they expire
 SCAN_INTERVAL_FALLBACK = 300  # 5 Minuten Fallback-Polling falls WebSocket ausfällt
 

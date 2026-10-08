@@ -250,6 +250,7 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 - **Switching the heater off at the panel is reflected within a second** (`active` → 0, status bits update). The cabin light is independent of the session state and stays on until switched off.
 - **Duration in the device schedule is honoured at 15-minute granularity** (90 min → `remainingTime` = heat-up + 90, measured), and the schedule's target temperature is applied at ignition and reverts to the previous setpoint when the session stops.
 - The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
+- **A single failed poll no longer blanks the entities** (since 2.11.0). A DNS timeout or a cloud hiccup used to mark every entity *unavailable* until the next poll five minutes later. The last data is now kept; entities go *unavailable* after three failed polls in a row, or when nothing — poll or push — has been heard from the device for 10 minutes.
 
 ## Heating profiles (Fenix, v2.10.0+)
 
@@ -320,7 +321,7 @@ This Integration ──REST──▶ harvia.io API (REST + GraphQL + WebSocket)
 | Issue | Solution |
 |-------|----------|
 | Cannot connect | Verify MyHarvia app credentials, check internet |
-| Entities unavailable | Check Xenio WiFi panel LED, verify WiFi |
+| Entities unavailable | Check Xenio WiFi panel LED, verify WiFi; a warning `Polling failed (n/3)` in the log means Home Assistant could not reach the Harvia cloud (DNS, internet) |
 | Stale data | Check diagnostics for WebSocket status |
 
 ## Companion Card

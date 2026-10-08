@@ -52,6 +52,7 @@ from .const import (
     READY_TREND_MIN_C_PER_MIN,
     REF_TREND_HISTORY_MAX,
     AUTH_FAILURES_BEFORE_REAUTH,
+    POLL_FAILURES_BEFORE_UNAVAILABLE,
     FENIX_SAUNA_STATUS_SCHEDULED,
     SCAN_INTERVAL_FALLBACK,
     WS_STOP_TIMEOUT,
@@ -424,6 +425,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         )
         self.api = api
         self._auth_failures = 0  # consecutive auth failures (see _async_update_data)
+        self._poll_failures = 0  # consecutive failed polls (see _keep_last_data)
         # Raw payloads for diagnostics, fed by BOTH the poll and the push path.
         # Recording only in the poll path made exports freeze on active
         # devices: every push calls async_set_updated_data(), which resets the
@@ -624,6 +626,11 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
 
             data.available = True
             self._auth_failures = 0
+            if self._poll_failures:
+                _LOGGER.info(
+                    "Polling recovered after %d failed attempt(s)", self._poll_failures
+                )
+                self._poll_failures = 0
             _LOGGER.debug("Polling: successfully updated %d devices", len(data.devices))
             return data
 
@@ -634,18 +641,42 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             # failures; until then retry on the next cycle (issue #8).
             self._auth_failures += 1
             if self._auth_failures < AUTH_FAILURES_BEFORE_REAUTH:
-                _LOGGER.warning(
-                    "Authentication problem (%d/%d), will retry: %s",
-                    self._auth_failures, AUTH_FAILURES_BEFORE_REAUTH, err,
+                return self._keep_last_data(
+                    f"Authentication problem ({self._auth_failures}/"
+                    f"{AUTH_FAILURES_BEFORE_REAUTH}), will retry: {err}",
+                    err,
                 )
-                raise UpdateFailed(f"Authentication problem (retrying): {err}") from err
             raise ConfigEntryAuthFailed(
                 f"Authentication error: {err}"
             ) from err
         except HarviaConnectionError as err:
-            raise UpdateFailed(f"Connection error: {err}") from err
-        except Exception as err:
-            raise UpdateFailed(f"Error fetching data: {err}") from err
+            return self._keep_last_data(f"Connection error: {err}", err)
+        except Exception as err:  # noqa: BLE001 - kept briefly, then UpdateFailed
+            return self._keep_last_data(f"Error fetching data: {err}", err)
+
+    def _keep_last_data(self, reason: str, err: Exception) -> HarviaSaunaData:
+        """Ride out a failed poll on the previous data, or raise UpdateFailed.
+
+        One failed poll (a DNS timeout, a cloud hiccup) used to mark every
+        entity unavailable until the next poll five minutes later - seen on
+        the maintainer's Xenio on 1, 7 and 8 Oct 2026, the last one logged as
+        "Timeout while contacting DNS servers". The previous data is still
+        what the device last reported, and each device turns unavailable on
+        its own once neither a poll nor a push has refreshed it for
+        DEVICE_STALE_TIMEOUT, so keeping it hides no outage. A failure on
+        the first refresh, or several in a row, still raises.
+        """
+        self._poll_failures += 1
+        if (
+            self.data is None
+            or self._poll_failures >= POLL_FAILURES_BEFORE_UNAVAILABLE
+        ):
+            raise UpdateFailed(reason) from err
+        _LOGGER.warning(
+            "Polling failed (%d/%d), keeping the last data: %s",
+            self._poll_failures, POLL_FAILURES_BEFORE_UNAVAILABLE, reason,
+        )
+        return self.data
 
     def _record_raw(
         self, kind: str, device_id: str, payload: Any, source: str
