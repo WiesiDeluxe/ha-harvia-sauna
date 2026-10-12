@@ -53,6 +53,7 @@ from .const import (
     REF_TREND_HISTORY_MAX,
     AUTH_FAILURES_BEFORE_REAUTH,
     POLL_FAILURES_BEFORE_UNAVAILABLE,
+    STATE_RECHECK_DELAY,
     FENIX_SAUNA_STATUS_SCHEDULED,
     SCAN_INTERVAL_FALLBACK,
     WS_STOP_TIMEOUT,
@@ -330,6 +331,10 @@ class HarviaDeviceData:
     _telemetry_target_rh: float | None = None
     _telemetry_target_ts: float | None = None
     _heating_since: float | None = None  # monotonic time the heater came on
+    # Telemetry says heating while the state says off (#14): since when, and
+    # when the state was last re-read because of it. See _maybe_recheck_state.
+    _heat_without_active_since: float | None = None
+    _state_recheck_ts: float | None = None
     remote_allowed: bool = False  # From state["remoteAllowed"]
     demo_mode: bool = False  # From state["demoMode"]
     screen_lock: bool = False  # From state["screenLock"]["on"]
@@ -426,11 +431,12 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         self.api = api
         self._auth_failures = 0  # consecutive auth failures (see _async_update_data)
         self._poll_failures = 0  # consecutive failed polls (see _keep_last_data)
+        self._state_rechecks = 0  # state re-reads (see _maybe_recheck_state)
         # Raw payloads for diagnostics, fed by BOTH the poll and the push path.
         # Recording only in the poll path made exports freeze on active
-        # devices: every push calls async_set_updated_data(), which resets the
-        # poll timer, so a device pushing more often than the scan interval is
-        # never polled and its raw payload never refreshes (issue #9).
+        # devices: pushes used to call async_set_updated_data(), which resets
+        # the poll timer, so a device pushing more often than the scan interval
+        # was never polled and its raw payload never refreshed (issue #9).
         self.raw_payloads: dict[str, dict[str, Any]] = {
             "last_state": {},
             "last_telemetry": {},
@@ -618,7 +624,10 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     self._record_raw("last_telemetry", device_id, raw_tele[device_id], "poll")
 
                 _apply_state_data(device_data, state)
-                _apply_telemetry_data(device_data, telemetry)
+                if not _is_stale_telemetry(
+                    telemetry.get("timestamp"), device_data.timestamp
+                ):
+                    _apply_telemetry_data(device_data, telemetry)
                 self._run_session_tracking(device_data)
                 _update_temp_trend(device_data)
 
@@ -720,13 +729,60 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     self._record_raw("last_telemetry", device_id, telemetry, "push")
                     self._run_session_tracking(device)
                     _update_temp_trend(device)
+                    self._maybe_recheck_state(device)
                     updated = True
 
             if updated:
-                self.async_set_updated_data(self.data)
+                if self.last_update_success:
+                    # async_update_listeners(), not async_set_updated_data():
+                    # the latter also resets the fallback poll timer. While
+                    # the heater runs, telemetry arrives every ~30 s, so the
+                    # poll never ran and a state message lost at ignition was
+                    # never corrected - switch and thermostat showed off for
+                    # 42 min of heat-up (#14). Same mechanism as the cooldown
+                    # outages fixed in 2.10.0b8 for the reference sensor.
+                    self.async_update_listeners()
+                else:
+                    # After failed polls a push still brings the entities back
+                    self.async_set_updated_data(self.data)
 
         except Exception as err:
             _LOGGER.exception("Unexpected error handling WebSocket update: %s", err)
+
+    def _maybe_recheck_state(self, device: HarviaDeviceData) -> None:
+        """Re-read the state when telemetry reports heating but the state says off.
+
+        Measured on a Fenix (#14): after a start at the panel the state
+        message carrying heater.on = 1 never arrived, while telemetry reported
+        heatOn from ignition on. The two arrive on separate feeds in either
+        order, so the mismatch has to last STATE_RECHECK_DELAY before the
+        state is re-read, and it is re-read at most once per scan interval.
+        heat_on is already cleared during a scheduled wait (saunaStatus 5),
+        so a waiting Fenix does not trigger this.
+        """
+        if not device.heat_on or device.active:
+            device._heat_without_active_since = None
+            return
+        now = time.monotonic()
+        if device._heat_without_active_since is None:
+            device._heat_without_active_since = now
+        if now - device._heat_without_active_since < STATE_RECHECK_DELAY:
+            return
+        if (
+            device._state_recheck_ts is not None
+            and now - device._state_recheck_ts < SCAN_INTERVAL_FALLBACK
+        ):
+            return
+        device._state_recheck_ts = now
+        self._state_rechecks += 1
+        _LOGGER.info(
+            "%s: telemetry reports heating but the state has said off for "
+            "%.0f s - re-reading the state",
+            device.device_id, now - device._heat_without_active_since,
+        )
+        self.config_entry.async_create_background_task(
+            self.hass, self.async_request_refresh(), "harvia_sauna_state_recheck"
+        )
 
     async def async_set_active_profile(self, device_id: str, index: int) -> None:
         """Select one of the heater's own profiles (Fenix).
@@ -870,6 +926,24 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         if device._last_update == 0.0:
             return False  # No update yet, trust initial data
         return (time.monotonic() - device._last_update) > DEVICE_STALE_TIMEOUT
+
+
+def _is_stale_telemetry(new_ts: Any, last_ts: Any) -> bool:
+    """Whether a polled telemetry frame is not newer than the last one applied.
+
+    The fallback poll reads the latest frame over REST; a push may already
+    have delivered it (same timestamp) or a newer one. Re-applying it would
+    restart the age of the Fenix ready-time estimate and could move values
+    back by a frame. Both feeds use the same timestamp field per provider
+    (Fenix: milliseconds as a string); anything not comparable is applied.
+    """
+    try:
+        new, last = float(new_ts), float(last_ts)
+    except (TypeError, ValueError):
+        return False
+    if new <= 0 or last <= 0 or max(new, last) > 100 * min(new, last):
+        return False  # different units: do not guess
+    return new <= last
 
 
 def _to_bool(value: Any) -> bool:

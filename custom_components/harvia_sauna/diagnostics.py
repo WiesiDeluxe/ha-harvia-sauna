@@ -143,6 +143,7 @@ async def async_get_config_entry_diagnostics(
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
             "poll_failures": coordinator._poll_failures,
+            "state_rechecks": coordinator._state_rechecks,
             "update_interval": str(coordinator.update_interval),
             "websocket_connected": coordinator.websocket_connected,
             "websocket_connections": coordinator.websocket_connections_info,

@@ -251,6 +251,7 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 - **Duration in the device schedule is honoured at 15-minute granularity** (90 min → `remainingTime` = heat-up + 90, measured), and the schedule's target temperature is applied at ignition and reverts to the previous setpoint when the session stops.
 - The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
 - **A single failed poll no longer blanks the entities** (since 2.11.0). A DNS timeout or a cloud hiccup used to mark every entity *unavailable* until the next poll five minutes later. The last data is now kept; entities go *unavailable* after three failed polls in a row, or when nothing — poll or push — has been heard from the device for 10 minutes.
+- **A lost state message is corrected** (since 2.11.0). The 5-minute fallback poll now also runs while pushes arrive (it used to be postponed by every push, so during a session it never ran), and if telemetry reports heating while the state has said *off* for a minute, the state is re-read right away (at most once per 5 minutes). Seen on a Fenix started at the panel: the switch and thermostat stayed *off* for 42 minutes of heat-up.
 
 ## Heating profiles (Fenix, v2.10.0+)
 
