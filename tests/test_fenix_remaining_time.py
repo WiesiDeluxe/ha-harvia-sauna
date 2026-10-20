@@ -79,3 +79,11 @@ async def test_fenix_remaining_time_reaches_sensor(hass, transport):
     assert remaining() == 46
     await deliver({"autoOffTime": None, "onTime": 0})
     assert remaining() == 46  # null is not a new countdown sample
+
+    # A confirmed off state already makes the public sensor zero, even
+    # though the coordinator retains the last valid countdown internally.
+    api.state_overrides = {"active": 0, "saunaStatus": 3}
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    await deliver({"autoOffTime": None, "onTime": 0, "heatOn": 0})
+    assert remaining() == 0

@@ -702,6 +702,7 @@ def _normalize_telemetry_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "heatOn": "heatOn",
         "steamOn": "steamOn",
         "remainingTime": "remainingTime",
+        "autoOffTime": "autoOffTime",  # Fenix remaining session minutes
         "timeToTarget": "timeToTarget",  # Fenix live ETA in minutes
         "targetTemp": "targetTemp",
         "targetHum": "targetHum",  # Fenix: live session humidity target

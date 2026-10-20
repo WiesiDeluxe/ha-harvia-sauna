@@ -1171,6 +1171,9 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         device.steam_on = bool(data["steamOn"])
     if "remainingTime" in data:
         device.remaining_time = data["remainingTime"]
+    elif "autoOffTime" in data and data["autoOffTime"] is not None:
+        # Fenix reports its remaining switch-off countdown here.
+        device.remaining_time = data["autoOffTime"]
     if "targetTemp" in data:
         device.target_temp = data["targetTemp"]
         device._telemetry_target_temp = data["targetTemp"]
