@@ -40,9 +40,13 @@ async def test_fenix_remaining_time_reaches_sensor(hass, transport):
         "sensor", DOMAIN, f"{DEVICE_ID}_remaining_time"
     )
     assert entity_id is not None
+    timestamp_ms = 1700000000000
 
     async def deliver(data, sub_id="C1"):
+        nonlocal timestamp_ms
+        timestamp_ms += 60000
         item = _measurement(data, sub_id)
+        item["timestamp"] = str(timestamp_ms)
         if transport == "rest":
             # Replace only the network response; call the real REST adapter.
             with patch.object(client, "_async_rest_request", AsyncMock(return_value=item)):
