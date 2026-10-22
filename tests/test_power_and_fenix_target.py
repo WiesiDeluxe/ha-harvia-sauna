@@ -74,11 +74,24 @@ def test_xenio_energy_counts_only_the_heat_up_phase() -> None:
     device = HarviaDeviceData(device_id="d", heater_power=10800)
     _apply_telemetry_data(device, {"heatOn": 1})
     _apply_state_data(device, {"active": 1, "statusCodes": HEATING_UP})
-    device._energy_ts -= 3600  # an hour passes, then the target is reached
+    for _ in range(12):  # an hour of heat-up, a frame every 5 minutes
+        device._energy_ts -= 300
+        _apply_telemetry_data(device, {"heatOn": 1, "temperature": 50})
     _apply_state_data(device, {"statusCodes": TARGET_REACHED})
-    device._energy_ts -= 3600  # an hour of holding, heatOn still 1
-    _apply_telemetry_data(device, {"heatOn": 1, "temperature": 70})
+    for _ in range(12):  # an hour of holding, heatOn still 1
+        device._energy_ts -= 300
+        _apply_telemetry_data(device, {"heatOn": 1, "temperature": 70})
     assert round(device.energy_kwh, 2) == 10.8
+
+
+def test_energy_over_a_long_gap_is_capped() -> None:
+    """An outage mid heat-up must not add the whole gap at full power."""
+    device = HarviaDeviceData(device_id="d", heater_power=10800)
+    _apply_telemetry_data(device, {"heatOn": 1})
+    _apply_state_data(device, {"active": 1, "statusCodes": HEATING_UP})
+    device._energy_ts -= 3600  # an hour without any update
+    _apply_state_data(device, {"statusCodes": TARGET_REACHED})
+    assert round(device.energy_kwh, 2) == 1.8, "at most 10 min of the gap count"
 
 
 def test_energy_is_integrated_from_state_updates_too() -> None:

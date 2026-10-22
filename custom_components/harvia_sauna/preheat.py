@@ -10,8 +10,8 @@ Robustness:
 - recompute every PREHEAT_RECOMPUTE_INTERVAL_MIN minutes
 - if the start time is already in the past (or within the next interval),
   start immediately
-- if the sauna is already heating, absorb the schedule (consider it
-  fulfilled)
+- if the sauna is already heating when the start is due, absorb the
+  schedule (consider it fulfilled)
 - after starting, verify after PREHEAT_START_VERIFY_DELAY_SEC and retry up
   to PREHEAT_START_MAX_RETRIES times (Xenio requires panel re-enable after
   a door opening — remote start can silently fail, so this MUST be loud)
@@ -220,33 +220,42 @@ class PreheatScheduler:
         if device is None:
             return
 
-        # Already heating? Absorb the schedule.
-        if device.active:
+        ref = self._coordinator._get_external_temp_c(device)
+        if ref is None and device._ext_sensor_holding and self._planned_start:
+            # External sensor briefly gone (often right after a restart):
+            # keep the plan instead of recomputing it from the internal
+            # sensor - but still arm it below if the start is now due.
+            start_at = self._planned_start
+        else:
+            model = getattr(self._coordinator, "heating_model", None)
+            target = self._schedule["target_temp"]
+            if ref is None:
+                ref = device.current_temp
+            if model is None or target is None or ref is None:
+                return
+            minutes = model.estimate_minutes(float(ref), float(target))
+            if minutes is None:
+                return
+            total = minutes + self.buffer_min
+            start_at = self._schedule["ready_at"] - dt.timedelta(minutes=total)
+            self._planned_start = start_at
+
+        now = dt_util.utcnow()
+        # Start now if we're at/after the computed start, or it falls within
+        # the next recompute interval (so we don't miss it between ticks).
+        threshold = now + dt.timedelta(minutes=PREHEAT_RECOMPUTE_INTERVAL_MIN)
+
+        # Already heating when the start is due? Then the schedule is
+        # fulfilled. Up to 2.11.0b5 any running session absorbed it, at
+        # every recompute: a plan for tomorrow morning set during this
+        # evening's session was cancelled at once, without a notice.
+        if device.active and start_at <= threshold:
             _LOGGER.info("Preheat: sauna already heating — schedule fulfilled")
             self._hass.async_create_background_task(
                 self.async_cancel(), "harvia_preheat_absorb_cancel"
             )
             return
 
-        model = getattr(self._coordinator, "heating_model", None)
-        target = self._schedule["target_temp"]
-        ref = self._coordinator._get_external_temp_c(device)
-        if ref is None:
-            ref = device.current_temp
-        if model is None or target is None or ref is None:
-            return
-
-        minutes = model.estimate_minutes(float(ref), float(target))
-        if minutes is None:
-            return
-        total = minutes + self.buffer_min
-        start_at = self._schedule["ready_at"] - dt.timedelta(minutes=total)
-        self._planned_start = start_at
-
-        now = dt_util.utcnow()
-        # Start now if we're at/after the computed start, or it falls within
-        # the next recompute interval (so we don't miss it between ticks).
-        threshold = now + dt.timedelta(minutes=PREHEAT_RECOMPUTE_INTERVAL_MIN)
         if self._unsub_start is not None:
             self._unsub_start()
             self._unsub_start = None

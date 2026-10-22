@@ -7,6 +7,7 @@ import json
 import logging
 import random
 import ssl
+import time
 import uuid
 from typing import Any, Callable
 
@@ -14,11 +15,13 @@ import websockets
 
 from .api import HarviaApiClient
 from .const import (
+    WS_AUTH_RETRY_DELAY,
     WS_HEARTBEAT_TIMEOUT,
     WS_MAX_RECONNECT_DELAY,
     WS_RECONNECT_INTERVAL,
     WS_STOP_TIMEOUT,
 )
+from .errors import HarviaAuthError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +55,79 @@ async def _drop(websocket) -> None:
         transport.abort()
     else:
         await _bounded(websocket.close())
+
+
+def _is_rejected_token(err: Exception) -> bool:
+    """Whether the cloud refused the token (handshake or request 401/403)."""
+    response = getattr(err, "response", None)
+    if getattr(response, "status_code", None) in (401, 403):
+        return True
+    text = str(err)
+    return "401" in text or "403" in text or "Unauthorized" in text
+
+
+def _retry_delay(api, label: str, err: Exception, attempts: int) -> float:
+    """Back-off before reconnecting a feed after an error.
+
+    Up to 2.11.0b5 every auth-looking error reset the back-off, so a changed
+    password made each feed log in every 1-2 s until the reauth flow was
+    completed. Now a refused login waits WS_AUTH_RETRY_DELAY (the reauth flow
+    started by the poll is the fix), a refused token is dropped so the next
+    attempt logs in again, and the exponential back-off keeps growing.
+    """
+    delay = min(2 ** attempts + random.uniform(0, 1), WS_MAX_RECONNECT_DELAY)
+    if isinstance(err, HarviaAuthError):
+        _LOGGER.warning(
+            "Harvia feed %s: login refused (%s), retrying in %ds",
+            label, err, WS_AUTH_RETRY_DELAY,
+        )
+        return max(delay, WS_AUTH_RETRY_DELAY)
+    if _is_rejected_token(err):
+        _LOGGER.debug("Harvia feed %s: token refused (%s), logging in again", label, err)
+        api.invalidate_tokens()
+    else:
+        _LOGGER.debug("Harvia feed %s error: %s, reconnecting", label, err)
+    return delay
+
+
+def _reconnect_due(connected_at: float) -> bool:
+    """Whether a connection has been up for the periodic reconnect interval.
+
+    Real time: up to 2.11.0b5 each keep-alive added the full heartbeat
+    timeout (300 s) whatever time had passed, so with keep-alives about a
+    minute apart a feed reconnected every ~6 min instead of every 30.
+    """
+    return time.monotonic() - connected_at >= WS_RECONNECT_INTERVAL
+
+
+def _frame_rejects_token(message: dict) -> bool:
+    """Whether an error frame says the token was refused.
+
+    AppSync reports a refused token mostly as an error frame
+    (UnauthorizedException, errorCode 401), not as an HTTP 401.
+    """
+    text = json.dumps(message.get("payload", {}))
+    return "Unauthorized" in text or "401" in text or "403" in text
+
+
+async def _leave(websocket, subscription_id: str, running: bool) -> None:
+    """Leave a connection at once instead of waiting for a close handshake.
+
+    The cloud never answers a close frame: leaving the `async with` with a
+    graceful close waited the full 10 s close_timeout at every reconnect, a
+    gap in which pushes were lost (websockets 17.1 against a silent server:
+    10.0 s graceful, 0.0 s aborted). A lost state message at ignition left a
+    Fenix showing "off" for 42 min (#14).
+    """
+    try:
+        if running:
+            await _bounded(
+                websocket.send(json.dumps({"id": subscription_id, "type": "stop"}))
+            )
+    finally:
+        # Even when cancelled while sending: a skipped abort would leave the
+        # graceful close to `async with`, longer than the unload allows
+        await _drop(websocket)
 
 
 async def _stop_all(connections, tasks) -> None:
@@ -93,8 +169,8 @@ class HarviaWebSocketManager:
         if self._running:
             return
 
+        user_data = await self._api.async_get_user_data()  # may raise: setup retries
         self._running = True
-        user_data = await self._api.async_get_user_data()
 
         # 4 WebSocket connections: device + data × organization + user
         connection_configs = [
@@ -155,6 +231,7 @@ class HarviaWebSocket:
         self._websocket = None
         self._running = False
         self._reconnect_attempts = 0
+        self._reconnect_now = False  # periodic reconnect: no back-off
         self._subscription_id = str(uuid.uuid4())
         self._label = (
             f"{endpoint}({'user' if is_user_receiver else 'org'})"
@@ -169,31 +246,22 @@ class HarviaWebSocket:
                 await self._async_connect_and_listen()
             except asyncio.CancelledError:
                 break
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001 - every error reconnects
                 if not self._running:
                     break
-                err_str = str(err)
-                if "401" in err_str or "403" in err_str or "Unauthorized" in err_str:
-                    _LOGGER.debug(
-                        "WebSocket %s auth error, forcing token refresh: %s",
-                        self._label, err,
-                    )
-                    # Reset backoff for auth errors - retry quickly after refresh
-                    self._reconnect_attempts = 0
-                else:
-                    _LOGGER.debug(
-                        "WebSocket %s error: %s, reconnecting...",
-                        self._label, err,
-                    )
+                delay = _retry_delay(self._api, self._label, err, self._reconnect_attempts)
+            else:
+                delay = min(
+                    2 ** self._reconnect_attempts + random.uniform(0, 1),
+                    WS_MAX_RECONNECT_DELAY,
+                )
 
             if not self._running:
                 break
+            if self._reconnect_now:
+                self._reconnect_now = False
+                continue
 
-            # Exponential backoff with jitter
-            delay = min(
-                2 ** self._reconnect_attempts + random.uniform(0, 1),
-                WS_MAX_RECONNECT_DELAY,
-            )
             self._reconnect_attempts += 1
             _LOGGER.debug(
                 "WebSocket %s reconnecting in %.1fs (attempt %d)",
@@ -231,64 +299,72 @@ class HarviaWebSocket:
             url, subprotocols=["graphql-ws"], ssl=ssl_context
         ) as websocket:
             self._websocket = websocket
-            self._reconnect_attempts = 0
-
-            # Send connection init
-            await websocket.send(json.dumps({"type": "connection_init"}))
-
-            # Connection timeout (reset by heartbeats)
-            timeout = WS_HEARTBEAT_TIMEOUT
-            reconnect_timer = 0.0
-
-            while self._running:
+            try:
+                await self._async_listen(websocket, ws_info["host"])
+            finally:
                 try:
-                    raw_message = await asyncio.wait_for(
-                        websocket.recv(), timeout=timeout
-                    )
-                except asyncio.TimeoutError:
-                    _LOGGER.debug(
-                        "WebSocket %s: no heartbeat in %ds, reconnecting",
-                        self._label, timeout,
-                    )
-                    break
-                except websockets.exceptions.ConnectionClosedError as err:
-                    _LOGGER.debug(
-                        "WebSocket %s connection closed: %s", self._label, err
-                    )
-                    break
+                    await _leave(websocket, self._subscription_id, self._running)
+                finally:
+                    self._websocket = None
 
-                message = json.loads(raw_message)
-                msg_type = message.get("type")
+    async def _async_listen(self, websocket, host: str) -> None:
+        """Receive until the connection ends, fails or is due for a reconnect."""
+        await websocket.send(json.dumps({"type": "connection_init"}))
+        timeout = WS_HEARTBEAT_TIMEOUT  # replaced by the server's value
+        connected_at = time.monotonic()
 
-                if msg_type == "ka":
-                    # Heartbeat - no logging to avoid spam
-                    reconnect_timer += timeout
-                    if reconnect_timer >= WS_RECONNECT_INTERVAL:
-                        _LOGGER.debug(
-                            "WebSocket %s: periodic reconnect after %ds",
-                            self._label, WS_RECONNECT_INTERVAL,
-                        )
-                        break
-                elif msg_type == "connection_ack":
-                    if message.get("payload"):
-                        timeout = (
-                            message["payload"]["connectionTimeoutMs"] / 1000
-                        )
-                    await self._async_create_subscription(websocket, ws_info["host"])
-                    _LOGGER.debug("WebSocket %s: subscription active", self._label)
-                elif msg_type == "data":
-                    await self._on_message(self._endpoint, message)
-                elif msg_type == "error":
-                    _LOGGER.warning(
-                        "WebSocket %s error message: %s", self._label, message
-                    )
-                else:
+        while self._running:
+            try:
+                raw_message = await asyncio.wait_for(
+                    websocket.recv(), timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                _LOGGER.debug(
+                    "WebSocket %s: no heartbeat in %ds, reconnecting",
+                    self._label, timeout,
+                )
+                return
+            except websockets.exceptions.ConnectionClosed as err:
+                _LOGGER.debug("WebSocket %s connection closed: %s", self._label, err)
+                return
+
+            message = json.loads(raw_message)
+            msg_type = message.get("type")
+
+            if msg_type == "ka":
+                if _reconnect_due(connected_at):
                     _LOGGER.debug(
-                        "WebSocket %s unknown message type: %s",
-                        self._label, msg_type,
+                        "WebSocket %s: periodic reconnect after %ds",
+                        self._label, WS_RECONNECT_INTERVAL,
                     )
-
-        self._websocket = None
+                    self._reconnect_now = True
+                    return
+            elif msg_type == "connection_ack":
+                if message.get("payload"):
+                    timeout = message["payload"]["connectionTimeoutMs"] / 1000
+                await self._async_create_subscription(websocket, host)
+            elif msg_type == "start_ack":
+                # Only a confirmed subscription ends the back-off; a server
+                # that accepts and then drops the connection keeps it growing
+                self._reconnect_attempts = 0
+                _LOGGER.debug("WebSocket %s: subscription active", self._label)
+            elif msg_type == "data":
+                self._reconnect_attempts = 0
+                await self._on_message(self._endpoint, message)
+            elif msg_type in ("error", "connection_error"):
+                # A refused subscription delivers nothing; the connection
+                # would otherwise idle on keep-alives until the next reconnect
+                _LOGGER.warning(
+                    "WebSocket %s error message: %s", self._label, message
+                )
+                if _frame_rejects_token(message):
+                    self._api.invalidate_tokens()
+                return
+            else:
+                _LOGGER.debug(
+                    "WebSocket %s unknown message type: %s",
+                    self._label, msg_type,
+                )
 
     async def _async_create_subscription(
         self, websocket, host: str

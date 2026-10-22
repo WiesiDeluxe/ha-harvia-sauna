@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import ssl
+import time
 import uuid
 from typing import Any, Awaitable, Callable
 
@@ -17,9 +18,16 @@ from .api_harviaio import HarviaIoApiClient, _normalize_state_payload, _normaliz
 from .const import (
     WS_HEARTBEAT_TIMEOUT,
     WS_MAX_RECONNECT_DELAY,
-    WS_RECONNECT_INTERVAL,
 )
-from .websocket import _bounded, _drop, _stop_all
+from .websocket import (
+    _bounded,
+    _drop,
+    _frame_rejects_token,
+    _leave,
+    _reconnect_due,
+    _retry_delay,
+    _stop_all,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,12 +55,13 @@ class HarviaIoWebSocketManager:
             _LOGGER.debug("WebSocket manager already running")
             return
 
-        try:
-            receiver = await self._api.async_get_receiver_id()
-            _LOGGER.debug("Starting WebSocket subscriptions for receiver: %s", receiver)
-        except Exception as err:
-            _LOGGER.error("Failed to get receiver ID for subscriptions: %s", err)
+        # May raise: setup is then retried. Logging and returning here left
+        # the entry running on 5-minute polls only, with no retry until a reload.
+        receiver = await self._api.async_get_receiver_id()
+        if receiver is None:
+            _LOGGER.info("No Harvia devices on this account - push not started")
             return
+        _LOGGER.debug("Starting WebSocket subscriptions for receiver: %s", receiver)
 
         self._running = True
 
@@ -156,6 +165,12 @@ class HarviaIoWebSocketManager:
             
             # Normalize telemetry to match coordinator expectations
             normalized = _normalize_telemetry_payload(telemetry_payload)
+            if not set(normalized) - {"timestamp", "type"}:
+                # No measurement in it, e.g. the "ESP" sub-feed (heapSize,
+                # rssi). It still shows the device is alive, but its
+                # timestamp must not count as the latest telemetry frame: a
+                # polled cabin frame older than it would be skipped as stale.
+                normalized.pop("timestamp", None)
             _LOGGER.debug("Normalized measurement for %s: %s", device_id, normalized)
 
             update_payload = {
@@ -189,6 +204,7 @@ class HarviaIoWebSocket:
         self._running = False
         self._websocket = None
         self._reconnect_attempts = 0
+        self._reconnect_now = False  # periodic reconnect: no back-off
         self._subscription_id = str(uuid.uuid4())
         self._label = endpoint
 
@@ -202,22 +218,21 @@ class HarviaIoWebSocket:
             except asyncio.CancelledError:
                 _LOGGER.debug("Harvia feed %s connection cancelled", self._label)
                 break
-            except Exception as err:
+            except Exception as err:  # noqa: BLE001 - every error reconnects
                 if not self._running:
                     break
-                err_str = str(err)
-                if "401" in err_str or "403" in err_str or "Unauthorized" in err_str:
-                    self._reconnect_attempts = 0
-                    _LOGGER.warning("Harvia feed %s authentication error: %s", self._label, err)
-                else:
-                    _LOGGER.warning("Harvia feed %s connection error: %s", self._label, err)
+                delay = _retry_delay(self._api, self._label, err, self._reconnect_attempts)
+            else:
+                delay = min(
+                    2 ** self._reconnect_attempts + random.uniform(0, 1),
+                    WS_MAX_RECONNECT_DELAY,
+                )
 
             if not self._running:
                 break
-            delay = min(
-                2 ** self._reconnect_attempts + random.uniform(0, 1),
-                WS_MAX_RECONNECT_DELAY,
-            )
+            if self._reconnect_now:
+                self._reconnect_now = False
+                continue
             self._reconnect_attempts += 1
             _LOGGER.debug(
                 "Harvia feed %s reconnecting in %.1f seconds (attempt %d)",
@@ -252,64 +267,77 @@ class HarviaIoWebSocket:
             url, subprotocols=["graphql-ws"], ssl=ssl_context
         ) as websocket:
             self._websocket = websocket
-            self._reconnect_attempts = 0
-
-            await websocket.send(json.dumps({"type": "connection_init"}))
-
-            timeout = WS_HEARTBEAT_TIMEOUT
-            reconnect_timer = 0.0
-            subscription_active = False
-
-            while self._running:
+            try:
+                await self._async_listen(websocket, ws_info["host"], id_token)
+            finally:
                 try:
-                    raw_message = await asyncio.wait_for(
-                        websocket.recv(), timeout=timeout
-                    )
-                except asyncio.TimeoutError:
-                    break
-                except websockets.exceptions.ConnectionClosedError:
-                    break
+                    await _leave(websocket, self._subscription_id, self._running)
+                finally:
+                    self._websocket = None
 
-                message = json.loads(raw_message)
-                msg_type = message.get("type")
-                _LOGGER.debug("WebSocket %s received message type=%s payload=%s", self._label, msg_type, str(message)[:200])
+    async def _async_listen(self, websocket, host: str, id_token: str) -> None:
+        """Receive until the connection ends, fails or is due for a reconnect."""
+        await websocket.send(json.dumps({"type": "connection_init"}))
+        timeout = WS_HEARTBEAT_TIMEOUT
+        connected_at = time.monotonic()
+        subscription_active = False
 
-                if msg_type == "ka":
-                    reconnect_timer += timeout
-                    _LOGGER.debug("WebSocket %s keepalive, reconnect_timer=%.0f/%.0f", self._label, reconnect_timer, WS_RECONNECT_INTERVAL)
-                    if reconnect_timer >= WS_RECONNECT_INTERVAL:
-                        _LOGGER.debug("WebSocket %s reconnect interval exceeded, reconnecting", self._label)
-                        break
-                elif msg_type == "connection_ack":
-                    _LOGGER.debug("WebSocket %s connection acknowledged", self._label)
-                    if message.get("payload"):
-                        timeout = message["payload"]["connectionTimeoutMs"] / 1000
-                        _LOGGER.debug("WebSocket %s timeout set to %.0f seconds", self._label, timeout)
-                    await self._async_start_subscription(websocket, ws_info["host"], id_token)
-                elif msg_type == "start_ack":
-                    # Subscription successfully registered, now expecting data
-                    subscription_active = True
-                    _LOGGER.info("WebSocket %s subscription registered and active", self._label)
-                elif msg_type == "data":
-                    if subscription_active:
-                        try:
-                            _LOGGER.debug("WebSocket %s processing data message: %s", self._label, str(message)[:300])
-                            await self._on_message(self._endpoint, message)
-                        except Exception as err:
-                            _LOGGER.error("Error processing message from feed %s: %s", self._label, err)
-                    else:
-                        _LOGGER.debug("Received data before subscription active on feed %s", self._label)
-                elif msg_type == "complete":
-                    # Subscription completed
-                    _LOGGER.debug("WebSocket %s subscription completed", self._label)
-                    break
-                elif msg_type == "error":
-                    error_msg = message.get("payload", {})
-                    _LOGGER.error("Feed %s received error: %s", self._label, error_msg)
+        while self._running:
+            try:
+                raw_message = await asyncio.wait_for(
+                    websocket.recv(), timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                return
+            except websockets.exceptions.ConnectionClosed:
+                return
+
+            message = json.loads(raw_message)
+            msg_type = message.get("type")
+            _LOGGER.debug("WebSocket %s received message type=%s payload=%s", self._label, msg_type, str(message)[:200])
+
+            if msg_type == "ka":
+                _LOGGER.debug("WebSocket %s keepalive, up %.0fs", self._label, time.monotonic() - connected_at)
+                if _reconnect_due(connected_at):
+                    _LOGGER.debug("WebSocket %s reconnect interval exceeded, reconnecting", self._label)
+                    self._reconnect_now = True
+                    return
+            elif msg_type == "connection_ack":
+                _LOGGER.debug("WebSocket %s connection acknowledged", self._label)
+                if message.get("payload"):
+                    timeout = message["payload"]["connectionTimeoutMs"] / 1000
+                    _LOGGER.debug("WebSocket %s timeout set to %.0f seconds", self._label, timeout)
+                await self._async_start_subscription(websocket, host, id_token)
+            elif msg_type == "start_ack":
+                # Subscription successfully registered, now expecting data.
+                # Only now the back-off ends: a server that accepts and
+                # then drops the connection keeps it growing.
+                subscription_active = True
+                self._reconnect_attempts = 0
+                _LOGGER.info("WebSocket %s subscription registered and active", self._label)
+            elif msg_type == "data":
+                if subscription_active:
+                    try:
+                        _LOGGER.debug("WebSocket %s processing data message: %s", self._label, str(message)[:300])
+                        await self._on_message(self._endpoint, message)
+                    except Exception as err:
+                        _LOGGER.error("Error processing message from feed %s: %s", self._label, err)
                 else:
-                    _LOGGER.debug("WebSocket %s received unknown message type: %s full_message=%s", self._label, msg_type, message)
-
-        self._websocket = None
+                    _LOGGER.debug("Received data before subscription active on feed %s", self._label)
+            elif msg_type == "complete":
+                # Subscription completed
+                _LOGGER.debug("WebSocket %s subscription completed", self._label)
+                return
+            elif msg_type in ("error", "connection_error"):
+                # A refused subscription delivers nothing; the connection
+                # would otherwise idle on keep-alives until the next reconnect
+                error_msg = message.get("payload", {})
+                _LOGGER.error("Feed %s received error: %s", self._label, error_msg)
+                if _frame_rejects_token(message):
+                    self._api.invalidate_tokens()
+                return
+            else:
+                _LOGGER.debug("WebSocket %s received unknown message type: %s full_message=%s", self._label, msg_type, message)
 
     async def _async_start_subscription(self, websocket, host: str, id_token: str) -> None:
         """Send GraphQL subscription start frame."""

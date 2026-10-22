@@ -161,6 +161,13 @@ threshold before ending (since 2.10.0b8 each sensor report counts once,
 however often it is evaluated), so a BLE reference sensor (e.g. Shelly BLU H&T)
 briefly dropping to `unavailable` can no longer end the session early.
 
+While the external sensor is `unavailable`, the integration **waits up to 10
+minutes** for it (since 2.11.0) — cooldown, ready detection, max temperature,
+the heat-up trend, Ambilight and smart preheat keep their state instead of
+switching to the heater's own sensor — and only then falls back to the
+internal sensor (logged once). Up to 2.11.0b5 the fallback was immediate, so
+a single BLE gap could end a cooldown on the internal reading.
+
 ## Custom Services
 
 ### `set_session`

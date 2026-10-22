@@ -59,6 +59,9 @@ class HarviaApiClientBase(ABC):
         """Return push connection info for diagnostics."""
         return []
 
+    def invalidate_tokens(self) -> None:
+        """Drop cached tokens so the next request logs in again."""
+
     async def async_set_active_profile(self, device_id: str, index: int) -> None:
         """Select a device profile. Only implemented where the device has them."""
         raise NotImplementedError(

@@ -116,8 +116,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Apply configured heater power to devices
     _apply_heater_power(coordinator, entry)
 
-    # Start WebSocket connections for real-time updates
-    await coordinator.async_setup()
+    # Start WebSocket connections for real-time updates. A failure here (the
+    # user data or receiver lookup timing out) used to leave the entry in
+    # setup_error, which Home Assistant never retries; not ready is retried.
+    try:
+        await coordinator.async_setup()
+    except HarviaAuthError as err:
+        raise ConfigEntryAuthFailed(f"Authentication failed: {err}") from err
+    except Exception as err:  # any start failure is retried
+        raise ConfigEntryNotReady(f"Push updates could not start: {err}") from err
 
     # Home Assistant does not unload config entries when it stops, and only
     # shuts down coordinators that have no config entry. Without this the
@@ -270,7 +277,9 @@ def _async_register_services(hass: HomeAssistant) -> None:
         if "target_temp" in call.data:
             payload["targetTemp"] = call.data["target_temp"]
         if "duration" in call.data:
-            payload["onTime"] = call.data["duration"]
+            # Whole hours, like the number entity and the presets: the
+            # Xenio rounds down itself (90 -> 60, measured).
+            payload["onTime"] = max(60, (call.data["duration"] // 60) * 60)
         if "active" in call.data:
             payload["active"] = int(call.data["active"])
 

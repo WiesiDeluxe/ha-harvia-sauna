@@ -249,6 +249,8 @@ class HarviaAmbilight:
         ext = self._coordinator._get_external_temp_c(device)
         if ext is not None:
             return ext
+        if device._ext_sensor_holding:
+            return None  # briefly gone: keep the color, wait for it
         return float(device.current_temp) if device.current_temp is not None else None
 
     @callback
@@ -289,7 +291,6 @@ class HarviaAmbilight:
             ):
                 continue  # throttled (small change, recent update)
             self._last_ref_temp = ref
-            self._last_apply_ts = now
             self._hass.async_create_background_task(
                 self._async_apply_zones(ref), "harvia_ambilight_apply"
             )
@@ -327,6 +328,11 @@ class HarviaAmbilight:
         self, targets: list[str], data: dict[str, Any]
     ) -> None:
         """light.turn_on with our own tracked context."""
+        # Stamped only when a call is really made: stamped on every
+        # evaluation (up to 2.11.0b5) the 10-s echo grace re-opened with each
+        # coordinator update, and a manual color change falling into it was
+        # taken for our own echo and painted over.
+        self._last_apply_ts = time.monotonic()
         context = Context()
         self._own_context_ids.append(context.id)
         if len(self._own_context_ids) > MAX_TRACKED_CONTEXTS:
@@ -471,5 +477,10 @@ class HarviaAmbilight:
         device_id = event.data.get("device_id")
         data = self._coordinator.data
         if data and device_id not in data.devices:
+            return
+        device = data.devices.get(device_id) if data else None
+        if device is not None and not device.ambilight_enabled:
+            # Switched off: the standard was restored then, and the lights
+            # are the user's since - do not override their scene now.
             return
         await self.async_restore_standard()

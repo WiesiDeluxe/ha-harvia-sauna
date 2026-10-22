@@ -16,6 +16,9 @@ ENDPOINTS = ["users", "device", "events", "data"]
 WS_RECONNECT_INTERVAL = 1800  # 30 Minuten - periodischer Reconnect
 WS_HEARTBEAT_TIMEOUT = 300  # 5 Minuten ohne Heartbeat = Reconnect
 WS_MAX_RECONNECT_DELAY = 60  # Max Backoff bei Reconnect
+# A login refused by the cloud (wrong password) is retried this rarely by
+# the push connections; the coordinator's reauth flow is the real fix.
+WS_AUTH_RETRY_DELAY = 900
 # Upper bound for each step of tearing a websocket down. On 2026-09-26 an
 # unload never finished (the entry stayed in unload_in_progress until Home
 # Assistant was restarted). Which step blocked was not logged; send() and

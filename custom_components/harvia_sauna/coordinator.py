@@ -288,6 +288,12 @@ class HarviaDeviceData:
     _cooldown_below_count: int = 0  # consecutive readings below end threshold
     _cooldown_last_reading: Any = None  # which reference reading was counted last
     _ext_sensor_last_valid: float | None = None  # monotonic ts of last valid ext reading
+    # External reference sensor gone (unknown/unavailable/unparseable): since
+    # when, whether callers should still hold (within the grace period), and
+    # whether the fallback to the internal sensor was logged.
+    _ext_sensor_invalid_since: float | None = None
+    _ext_sensor_holding: bool = False
+    _ext_sensor_fallback_logged: bool = False
     last_session_duration: float = 0.0  # Minuten
     last_session_max_temp: float = 0.0  # °C
     sessions_today: int = 0
@@ -335,6 +341,7 @@ class HarviaDeviceData:
     # when the state was last re-read because of it. See _maybe_recheck_state.
     _heat_without_active_since: float | None = None
     _state_recheck_ts: float | None = None
+    _state_seq: int = 0  # counts state pushes; a poll must not undo a newer one
     remote_allowed: bool = False  # From state["remoteAllowed"]
     demo_mode: bool = False  # From state["demoMode"]
     screen_lock: bool = False  # From state["screenLock"]["on"]
@@ -494,13 +501,18 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     def _run_session_tracking(self, device: HarviaDeviceData) -> None:
         """Run session tracking with current options and external sensor."""
         ext_temp = self._get_external_temp_c(device)
+        # External sensor briefly gone: decisions that depend on the reference
+        # temperature wait instead of switching to the internal sensor.
+        hold = device._ext_sensor_holding
         was_active = device._session_active
         _update_session_tracking(
             self.hass, device, self.session_options, ext_temp,
             reading_id=self._ext_reading_id() if ext_temp is not None else None,
+            ref_hold=hold,
         )
-        _update_ready_state(self.hass, device, self.session_options, ext_temp)
-        _update_ref_trend_and_eta(device, self.session_options, ext_temp)
+        if not hold:
+            _update_ready_state(self.hass, device, self.session_options, ext_temp)
+            _update_ref_trend_and_eta(device, self.session_options, ext_temp)
 
         # Feed the heating model (v2.8.0). Learn only while the session is
         # active (not during cooldown — heater is off there).
@@ -509,7 +521,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             if device._session_active and not was_active:
                 model.reset_recording()  # fresh heat-up
             ref_temp = ext_temp if ext_temp is not None else device.current_temp
-            if device._session_active and ref_temp is not None:
+            if device._session_active and ref_temp is not None and not hold:
                 model.add_sample(
                     float(ref_temp),
                     heating=bool(device.active),
@@ -526,37 +538,51 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
     def _get_external_temp_c(self, device: HarviaDeviceData) -> float | None:
         """Read the configured external temp sensor, normalized to °C.
 
-        Returns None if no sensor is configured, the sensor is unavailable,
-        or the value cannot be parsed. Falls back to None (caller then uses
-        the internal Harvia sensor) if the sensor has been invalid longer
-        than COOLDOWN_EXT_SENSOR_GRACE_SEC.
+        Returns None if no sensor is configured, or if it is unknown,
+        unavailable or unparseable. In the latter case device.
+        _ext_sensor_holding tells callers what None means: True during the
+        first COOLDOWN_EXT_SENSOR_GRACE_SEC of the gap - hold the decision,
+        a BLE sensor usually comes back - and False after that, when they
+        fall back to the internal Harvia sensor. Up to 2.11.0b5 the grace
+        period only gated a log line and every caller switched to the
+        internal sensor at once, so one BLE gap could end a cooldown on the
+        internal reading or reset its confirmation count.
         """
         opts = self.session_options
         if not opts.ext_sensor:
+            device._ext_sensor_holding = False
             return None
         state = self.hass.states.get(opts.ext_sensor)
         now = time.monotonic()
-        if state is None or state.state in ("unknown", "unavailable"):
-            if (
-                device._ext_sensor_last_valid is not None
-                and now - device._ext_sensor_last_valid
-                > COOLDOWN_EXT_SENSOR_GRACE_SEC
-            ):
+        value: float | None = None
+        if state is not None and state.state not in ("unknown", "unavailable"):
+            try:
+                value = float(state.state)
+            except (ValueError, TypeError):
+                value = None
+        if value is None:
+            if device._ext_sensor_invalid_since is None:
+                device._ext_sensor_invalid_since = now
+            gone = now - device._ext_sensor_invalid_since
+            device._ext_sensor_holding = gone <= COOLDOWN_EXT_SENSOR_GRACE_SEC
+            if not device._ext_sensor_holding and not device._ext_sensor_fallback_logged:
+                device._ext_sensor_fallback_logged = True
                 _LOGGER.warning(
-                    "External cooldown sensor %s unavailable for >%ds — "
-                    "falling back to internal Harvia sensor",
+                    "External reference sensor %s unavailable for >%ds — "
+                    "falling back to the internal Harvia sensor",
                     opts.ext_sensor,
                     COOLDOWN_EXT_SENSOR_GRACE_SEC,
                 )
             return None
-        try:
-            value = float(state.state)
-        except (ValueError, TypeError):
-            return None
         unit = state.attributes.get("unit_of_measurement", "")
         if unit in ("°F", "F"):
             value = (value - 32.0) * 5.0 / 9.0
+        if device._ext_sensor_fallback_logged:
+            _LOGGER.info("External reference sensor %s is back", opts.ext_sensor)
         device._ext_sensor_last_valid = now
+        device._ext_sensor_invalid_since = None
+        device._ext_sensor_holding = False
+        device._ext_sensor_fallback_logged = False
         return value
 
     async def async_shutdown(self) -> None:
@@ -603,6 +629,11 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             for device_entry in device_list:
                 device_id = device_entry["device_id"]
 
+                # A state push arriving while the poll awaits its requests is
+                # newer than the snapshot fetched here (see _state_seq).
+                previous = self.data.devices.get(device_id) if self.data else None
+                seq_before = previous._state_seq if previous else None
+
                 # Fetch both state and latest telemetry
                 state = await self.api.async_get_device_state(device_id)
                 telemetry = await self.api.async_get_latest_device_data(device_id)
@@ -623,7 +654,13 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 if device_id in raw_tele:
                     self._record_raw("last_telemetry", device_id, raw_tele[device_id], "poll")
 
-                _apply_state_data(device_data, state)
+                if seq_before is None or device_data._state_seq == seq_before:
+                    _apply_state_data(device_data, state)
+                else:
+                    _LOGGER.debug(
+                        "Poll: a state push arrived meanwhile, keeping it (%s)",
+                        device_id,
+                    )
                 if not _is_stale_telemetry(
                     telemetry.get("timestamp"), device_data.timestamp
                 ):
@@ -713,6 +750,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     device_id = state.get("deviceId")
                     if device_id and device_id in self.data.devices:
                         device = self.data.devices[device_id]
+                        device._state_seq += 1
                         _apply_state_data(device, state)
                         self._record_raw("last_state", device_id, state, "push")
                         self._run_session_tracking(device)
@@ -723,7 +761,8 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 device_id = item.get("deviceId")
                 if device_id and device_id in self.data.devices:
                     telemetry = json.loads(item.get("data", "{}"))
-                    telemetry["timestamp"] = item.get("timestamp")
+                    if item.get("timestamp") is not None:
+                        telemetry["timestamp"] = item["timestamp"]
                     device = self.data.devices[device_id]
                     _apply_telemetry_data(device, telemetry)
                     self._record_raw("last_telemetry", device_id, telemetry, "push")
@@ -815,13 +854,21 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             )
         payload = self._apply_combi_limit(device_id, payload)
         try:
-            await self.api.async_request_state_change(device_id, payload)
+            result = await self.api.async_request_state_change(device_id, payload)
         except HarviaAuthError as err:
             # Do not start the reauth flow from a single failed command; the
             # polling path escalates if the problem persists.
             raise HomeAssistantError(
                 f"Command rejected by the Harvia cloud (auth), please retry: {err}"
             ) from err
+        if isinstance(result, dict) and result.get("handled") is False:
+            # Fenix has no command for e.g. aroma, auto light, auto fan or
+            # dehumidifier. This used to log a warning and report success,
+            # so the switch flipped on while nothing happened.
+            raise HomeAssistantError(
+                "This controller does not support "
+                f"{', '.join(sorted(payload))}. Nothing was changed."
+            )
         self._apply_target_write_locally(device_id, payload)
 
     def _apply_target_write_locally(
@@ -926,6 +973,17 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         if device._last_update == 0.0:
             return False  # No update yet, trust initial data
         return (time.monotonic() - device._last_update) > DEVICE_STALE_TIMEOUT
+
+
+def local_day() -> str:
+    """Today in Home Assistant's time zone (not the host's), ISO format."""
+    return dt_util.now().date().isoformat()
+
+
+def local_week() -> str:
+    """The ISO week in Home Assistant's time zone, as "YYYY-WW"."""
+    iso = dt_util.now().isocalendar()
+    return f"{iso[0]}-{iso[1]:02d}"
 
 
 def _is_stale_telemetry(new_ts: Any, last_ts: Any) -> bool:
@@ -1057,8 +1115,12 @@ def _accumulate_energy(device: HarviaDeviceData, now: float | None = None) -> No
     """
     now = time.monotonic() if now is None else now
     if device._energy_ts is not None and now > device._energy_ts:
-        hours = (now - device._energy_ts) / 3600.0
-        device.energy_kwh += (device._energy_power_w / 1000.0) * hours
+        # At most DEVICE_STALE_TIMEOUT of a gap: beyond that the device counts
+        # as stale, and holding the last draw over a long outage (HA or cloud
+        # down mid heat-up) would add up to 10.8 kWh per hour that is never
+        # taken back - the meter only ever increases.
+        seconds = min(now - device._energy_ts, DEVICE_STALE_TIMEOUT)
+        device.energy_kwh += (device._energy_power_w / 1000.0) * seconds / 3600.0
     device._energy_power_w = estimated_heater_power_w(device)
     device._energy_ts = now
 
@@ -1146,6 +1208,9 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
         else:
             device.screen_lock = bool(data["screenLock"])
 
+    if "wifiRSSI" in data:  # Fenix state: signalStrength (api_harviaio)
+        device.wifi_rssi = data["wifiRSSI"]
+
     device._last_update = time.monotonic()
     _reconcile_scheduled_wait(device)
     _resolve_fenix_targets(device)
@@ -1182,7 +1247,7 @@ def _apply_telemetry_data(device: HarviaDeviceData, data: dict[str, Any]) -> Non
         device._telemetry_target_rh = data["targetHum"]
     if "wifiRSSI" in data:
         device.wifi_rssi = data["wifiRSSI"]
-    if "timestamp" in data:
+    if data.get("timestamp") is not None:
         device.timestamp = data["timestamp"]
 
     # Relay counters
@@ -1274,6 +1339,7 @@ def _update_session_tracking(
     ext_temp_c: float | None,
     *,
     reading_id: Any = None,
+    ref_hold: bool = False,
 ) -> None:
     """Track sauna session start/end and fire HA events.
 
@@ -1288,28 +1354,37 @@ def _update_session_tracking(
     otherwise the internal Harvia sensor. Sessions shorter than
     SESSION_MIN_DURATION_SEC are ignored to filter out state bounces.
     """
-    import datetime as dt
-
-    # Reset daily counter at midnight
-    today = dt.date.today().isoformat()
+    # Reset the daily and weekly counters at local midnight / Monday. The
+    # weekly one used to reset only when the week's first session ended, so
+    # it showed last week's total until then.
+    today = local_day()
     if device._sessions_today_date != today:
         device.sessions_today = 0
         device._sessions_today_date = today
+    week = local_week()
+    if device._sessions_week_anchor != week:
+        device.sessions_week = 0
+        device._sessions_week_anchor = week
 
     now = time.monotonic()
     cooldown_mode = opts.end_mode == SESSION_END_COOLDOWN
 
-    # Reference temperature for cooldown decisions and (optionally) max temp
-    ref_temp = ext_temp_c if ext_temp_c is not None else device.current_temp
+    # Reference temperature for cooldown decisions and (optionally) max temp.
+    # None while the external sensor is briefly gone (ref_hold): wait for it.
+    ref_temp = (
+        None if ref_hold
+        else ext_temp_c if ext_temp_c is not None
+        else device.current_temp
+    )
 
     # ── Session start / re-heat during cooldown ─────────────────────
     if device.active and not device._session_active:
         device._session_active = True
         device._session_start_time = now
-        device._session_max_temp = (
-            ref_temp if (opts.ext_sensor_for_max_temp and ext_temp_c is not None)
-            else device.current_temp
-        ) or 0.0
+        if opts.ext_sensor_for_max_temp and (ext_temp_c is not None or ref_hold):
+            device._session_max_temp = ext_temp_c or 0.0
+        else:
+            device._session_max_temp = device.current_temp or 0.0
         device._cooldown_active = False
         device._cooldown_started = None
         device._frozen_target_temp = None
@@ -1349,7 +1424,7 @@ def _update_session_tracking(
                 device.device_id,
             )
         # Session ongoing — track max temperature
-        _track_max_temp(device, opts, ext_temp_c)
+        _track_max_temp(device, opts, ext_temp_c, ref_hold)
         return
 
     # ── Heater just turned off ───────────────────────────────────────
@@ -1363,8 +1438,9 @@ def _update_session_tracking(
         # reached temperature), the end condition is met immediately —
         # behaves exactly like heater_off mode in that case.
         frozen = device.target_temp
-        if frozen is None or ref_temp is None:
+        if frozen is None or (ref_temp is None and not ref_hold):
             # Without a target or reference there is nothing to wait for
+            # (a briefly missing external sensor is not "no reference")
             _end_session(hass, device, now)
             return
         device._cooldown_active = True
@@ -1374,7 +1450,7 @@ def _update_session_tracking(
         device._frozen_target_temp = float(frozen)
         _LOGGER.debug(
             "Heater off — cooldown phase started (device %s, frozen target "
-            "%.1f°C, hysteresis %.1f°C, ref %.1f°C)",
+            "%.1f°C, hysteresis %.1f°C, ref %s°C)",
             device.device_id,
             device._frozen_target_temp,
             opts.hysteresis_c,
@@ -1384,7 +1460,7 @@ def _update_session_tracking(
 
     # ── Cooldown phase evaluation ────────────────────────────────────
     if device._session_active and device._cooldown_active:
-        _track_max_temp(device, opts, ext_temp_c)
+        _track_max_temp(device, opts, ext_temp_c, ref_hold)
 
         # Safety net: hard stop after max cooldown duration
         if (
@@ -1457,9 +1533,14 @@ def _update_session_tracking(
 
 
 def _track_max_temp(
-    device: HarviaDeviceData, opts: SessionOptions, ext_temp_c: float | None
+    device: HarviaDeviceData,
+    opts: SessionOptions,
+    ext_temp_c: float | None,
+    ref_hold: bool = False,
 ) -> None:
     """Update the session max temperature from the configured source."""
+    if opts.ext_sensor_for_max_temp and ref_hold:
+        return  # the external sensor is the source; wait for it
     if opts.ext_sensor_for_max_temp and ext_temp_c is not None:
         if ext_temp_c > device._session_max_temp:
             device._session_max_temp = ext_temp_c
@@ -1495,9 +1576,7 @@ def _end_session(
                 # that large means the start snapshot was unreliable — skip.
                 if 0.0 <= delta < 50.0:
                     device.last_session_kwh = round(delta, 2)
-            import datetime as _dt
-            iso = _dt.datetime.now().isocalendar()
-            week_anchor = f"{iso[0]}-{iso[1]:02d}"
+            week_anchor = local_week()
             if device._sessions_week_anchor != week_anchor:
                 device._sessions_week_anchor = week_anchor
                 device.sessions_week = 0

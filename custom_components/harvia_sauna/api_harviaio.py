@@ -256,11 +256,12 @@ class HarviaIoApiClient(HarviaApiClientBase):
             return
         from .websocket_harviaio import HarviaIoWebSocketManager
 
-        self._ws_manager = HarviaIoWebSocketManager(
+        manager = HarviaIoWebSocketManager(
             api=self,
             on_device_update=on_device_update,
         )
-        await self._ws_manager.async_start()
+        await manager.async_start()  # set only once started, so a retry can start it
+        self._ws_manager = manager
 
     async def async_stop_push_updates(self) -> None:
         """Stop realtime subscriptions."""
@@ -339,18 +340,22 @@ class HarviaIoApiClient(HarviaApiClientBase):
         encoded_header = base64.b64encode(json.dumps(header_payload).encode()).decode()
         return f"{ws_info['wss_url']}?header={quote(encoded_header)}&payload=e30="
 
-    async def async_get_receiver_id(self) -> str:
-        """Return receiver ID used in GraphQL feed subscriptions."""
+    async def async_get_receiver_id(self) -> str | None:
+        """Return receiver ID used in GraphQL feed subscriptions (None: no devices)."""
         # Always fetch devices directly to ensure we have the latest data
         devices = await self.async_get_devices()
         if not devices:
-            raise HarviaConnectionError("No devices available for subscription receiver")
+            return None  # nothing to subscribe to; retrying setup would not help
         first_device = devices[0]
         device_id = first_device.get("device_id")
         if not device_id:
             raise HarviaConnectionError("Device list does not contain device_id")
         _LOGGER.debug("Using device ID as receiver: %s", device_id)
         return device_id
+
+    def invalidate_tokens(self) -> None:
+        """Drop cached tokens so the next request logs in again."""
+        self._token_data = None
 
     async def _async_get_valid_id_token(self) -> str:
         """Return valid ID token, refreshing when required."""

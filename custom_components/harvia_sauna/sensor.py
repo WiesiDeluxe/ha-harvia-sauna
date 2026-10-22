@@ -25,6 +25,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from .const import API_PROVIDER_HARVIAIO, API_PROVIDER_MYHARVIA, CONF_API_PROVIDER, DOMAIN
 from .coordinator import (
@@ -33,6 +34,8 @@ from .coordinator import (
     decode_status_bits,
     decode_timed_start,
     estimated_heater_power_w,
+    local_day,
+    local_week,
     schedule_state,
 )
 from .entity import HarviaBaseEntity
@@ -539,10 +542,13 @@ class HarviaSessionSensor(HarviaSensor, RestoreEntity):
             _LOGGER.debug("Restored last_session_max_temp: %.0f°C", restored_value)
 
         elif key == "sessions_today" and device.sessions_today == 0:
-            # Only restore if same day (otherwise the midnight reset is correct)
-            import datetime as dt
-            today = dt.date.today().isoformat()
-            if device._sessions_today_date == "" or device._sessions_today_date == today:
+            # Only a count from today. The first poll has already stamped the
+            # device with today's date, so that stamp cannot tell (it let
+            # yesterday's count back in after an overnight restart); the
+            # restored state's own date can.
+            today = local_day()
+            restored_day = dt_util.as_local(last_state.last_changed).date().isoformat()
+            if restored_day == today:
                 device.sessions_today = int(restored_value)
                 device._sessions_today_date = today
                 _LOGGER.debug("Restored sessions_today: %d", int(restored_value))
@@ -618,9 +624,7 @@ class HarviaStatsSensor(HarviaSensor, RestoreEntity):
 
         elif key == "sessions_week" and device.sessions_week == 0:
             # Only restore within the same ISO week
-            import datetime as dt
-            iso = dt.datetime.now().isocalendar()
-            week_anchor = f"{iso[0]}-{iso[1]:02d}"
+            week_anchor = local_week()
             restored_anchor = attrs.get("week_anchor")
             if restored_anchor == week_anchor and value is not None:
                 device.sessions_week = int(value)

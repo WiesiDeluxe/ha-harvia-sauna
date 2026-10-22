@@ -117,6 +117,11 @@ class HarviaApiClient(HarviaApiClientBase):
             "id_token": client.id_token,
         }
 
+    def invalidate_tokens(self) -> None:
+        """Drop cached tokens so the next request logs in again."""
+        self._token_data = None
+        self._cognito = None
+
     async def async_get_id_token(self) -> str:
         """Get a valid ID token, renewing if necessary."""
         await self.async_check_and_renew_tokens()
@@ -398,11 +403,12 @@ class HarviaApiClient(HarviaApiClientBase):
             return
         from .websocket import HarviaWebSocketManager
 
-        self._ws_manager = HarviaWebSocketManager(
+        manager = HarviaWebSocketManager(
             api=self,
             on_device_update=on_device_update,
         )
-        await self._ws_manager.async_start()
+        await manager.async_start()  # set only once started, so a retry can start it
+        self._ws_manager = manager
 
     async def async_stop_push_updates(self) -> None:
         """Stop realtime push updates."""
