@@ -49,9 +49,13 @@ async def test_fenix_remaining_time_reaches_sensor(hass, transport):
         item["timestamp"] = str(timestamp_ms)
         if transport == "rest":
             # Replace only the network response; call the real REST adapter.
-            with patch.object(client, "_async_rest_request", AsyncMock(return_value=item)):
-                with patch.object(api, "async_get_latest_device_data", client.async_get_latest_device_data):
-                    await coordinator.async_refresh()
+            with (
+                patch.object(client, "_async_rest_request", AsyncMock(return_value=item)),
+                patch.object(
+                    api, "async_get_latest_device_data", client.async_get_latest_device_data
+                ),
+            ):
+                await coordinator.async_refresh()
         else:
             item["data"] = json.dumps(data)
             await manager._handle_message("data", {"payload": {"data": {
