@@ -4,7 +4,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/WiesiDeluxe/ha-harvia-sauna)](https://github.com/WiesiDeluxe/ha-harvia-sauna/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Custom Home Assistant integration for **Harvia sauna heaters** with **Xenio WiFi** (CX110 / CX001WIFI) and **Fenix** (FX001XW / FX002XW) control panels, providing real-time monitoring and control through the Harvia cloud APIs.
+Custom Home Assistant integration for **Harvia sauna heaters** with **Xenio WiFi** (CX110 / CX170 / CX001WIFI) and **Fenix** (FX001XW / FX002XW) control panels, providing real-time monitoring and control through the Harvia cloud APIs.
 
 ## Features
 
@@ -22,7 +22,7 @@ Custom Home Assistant integration for **Harvia sauna heaters** with **Xenio WiFi
 
 ## Requirements
 
-- A Harvia sauna heater with **Xenio WiFi** (CX110 / CX001WIFI) or **Fenix** (FX001XW / FX002XW) control panel
+- A Harvia sauna heater with **Xenio WiFi** (CX110 / CX170 / CX001WIFI) or **Fenix** (FX001XW / FX002XW) control panel
 - An active **MyHarvia** or **MyHarvia 2** app account
 - Internet connectivity (cloud API — no local control available)
 
@@ -48,7 +48,7 @@ The integration is in the HACS default list — no custom repository needed.
 
 1. **Settings** → **Devices & Services** → **Add Integration** → search "Harvia Sauna"
 2. Select your **API Provider**:
-   - **myHarvia (Xenio controller)** — for Xenio WiFi panels (CX110 / CX001WIFI)
+   - **myHarvia (Xenio controller)** — for Xenio WiFi panels (CX110 / CX170 / CX001WIFI)
    - **myHarvia 2 - harvia.io (Fenix controller)** — for Fenix panels (FX001XW / FX002XW)
 3. Enter your credentials (same email/password as in the app)
 4. Select heater model and power rating (auto-detection attempted)
@@ -293,7 +293,7 @@ The **Session time** number sets how long a session runs — **on Xenio only**. 
 
 | | Xenio (myHarvia) | Fenix (harvia.io) |
 |---|---|---|
-| Monitoring & control | ✅ verified (CX110, CX170 reported) | ✅ verified (SW90S Combi) |
+| Monitoring & control | ✅ verified (CX110, CX170) | ✅ verified (SW90S Combi) |
 | Door sensor | ✅ status-code bit 1 | ⚠️ derived from `remoteAllowed` (safety-circuit proxy) |
 | Heating profiles | n/a (no device profiles) | ✅ select entity |
 | Device schedule | ✅ read/write | ✅ read-only (`timer`) — scheduling fields unknown; a v2.8.8+ diagnostics export from a Fenix unit would help |
