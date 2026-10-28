@@ -94,8 +94,9 @@ def _reconnect_due(connected_at: float) -> bool:
     """Whether a connection has been up for the periodic reconnect interval.
 
     Real time: up to 2.11.0b5 each keep-alive added the full heartbeat
-    timeout (300 s) whatever time had passed, so with keep-alives about a
-    minute apart a feed reconnected every ~6 min instead of every 30.
+    timeout (300 s) whatever time had passed. With keep-alives about a
+    minute apart a feed reconnected every ~6 min, which apparently kept the
+    pushes coming (see WS_RECONNECT_INTERVAL).
     """
     return time.monotonic() - connected_at >= WS_RECONNECT_INTERVAL
 
@@ -350,7 +351,12 @@ class HarviaWebSocket:
                 _LOGGER.debug("WebSocket %s: subscription active", self._label)
             elif msg_type == "data":
                 self._reconnect_attempts = 0
+                _LOGGER.debug("WebSocket %s: data", self._label)
                 await self._on_message(self._endpoint, message)
+            elif msg_type == "complete":
+                # The server ended the subscription; nothing more will come
+                _LOGGER.debug("WebSocket %s: subscription completed", self._label)
+                return
             elif msg_type in ("error", "connection_error"):
                 # A refused subscription delivers nothing; the connection
                 # would otherwise idle on keep-alives until the next reconnect

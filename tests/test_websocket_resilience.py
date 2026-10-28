@@ -5,7 +5,9 @@ review, 22 Oct 2026).
   keep-alive, so with keep-alives a minute apart each feed reconnected about
   every 6 min instead of every 30 - and every reconnect sat out websockets'
   10 s close_timeout, because the cloud never answers a close frame. Pushes
-  arriving in that gap were lost (a lost ignition message: #14).
+  arriving in that gap were lost (a lost ignition message: #14). The 30 min
+  of 2.11.0b6 then cost most pushes (only the first 12-14 min of each
+  connection delivered), so 2.11.0b7 went back to ~5 min, without the gap.
 - Any auth-looking error reset the back-off, so a changed password made each
   feed log in every 1-2 s.
 - An "error" frame left the connection idling on keep-alives.
@@ -283,3 +285,22 @@ async def test_leave_aborts_even_when_cancelled_while_sending() -> None:
     with pytest.raises(asyncio.CancelledError):
         await _leave(socket, "sub", running=True)
     socket.transport.abort.assert_called_once()
+
+
+@pytest.mark.parametrize("module", MODULES)
+async def test_complete_frame_ends_the_connection(module: str) -> None:
+    """The Xenio feed ignored it and idled on keep-alives until the next reconnect."""
+    _, socket = await _listen(module, [
+        {"type": "connection_ack"}, {"type": "start_ack"},
+        {"type": "complete", "id": "x"}, {"type": "ka"},
+    ])
+    assert socket._frames, "it kept listening after the subscription ended"
+
+
+def test_reconnect_comes_before_the_pushes_stop() -> None:
+    """With 30 min between reconnects the Xenio pushes stopped 12-14 min into
+    each connection (25 Oct 2026); the reconnect is only checked on a
+    keep-alive, about a minute apart."""
+    from custom_components.harvia_sauna.const import WS_RECONNECT_INTERVAL
+
+    assert WS_RECONNECT_INTERVAL + 60 < 12 * 60

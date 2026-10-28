@@ -314,7 +314,7 @@ class HarviaIoWebSocket:
                 # then drops the connection keeps it growing.
                 subscription_active = True
                 self._reconnect_attempts = 0
-                _LOGGER.info("WebSocket %s subscription registered and active", self._label)
+                _LOGGER.debug("WebSocket %s subscription registered and active", self._label)
             elif msg_type == "data":
                 if subscription_active:
                     try:

@@ -13,7 +13,11 @@ MYHARVIA_REGION = "eu-west-1"
 ENDPOINTS = ["users", "device", "events", "data"]
 
 # WebSocket
-WS_RECONNECT_INTERVAL = 1800  # 30 Minuten - periodischer Reconnect
+# Periodic reconnect, checked on each keep-alive (about a minute apart), so
+# in practice every 5-6 min. With 30 min a Xenio got pushes only for the
+# first 12-14 min of each connection while keep-alives kept coming (25 Oct
+# 2026); with the ~6 min of 2.11.0b1-b5 pushes were continuous (22 Oct).
+WS_RECONNECT_INTERVAL = 300
 WS_HEARTBEAT_TIMEOUT = 300  # 5 Minuten ohne Heartbeat = Reconnect
 WS_MAX_RECONNECT_DELAY = 60  # Max Backoff bei Reconnect
 # A login refused by the cloud (wrong password) is retried this rarely by
