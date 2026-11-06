@@ -47,6 +47,7 @@ from .const import (
     HEATING_BUCKET_MIN_C,
     HEATING_BUCKET_SIZE_C,
     HEATING_DIP_TOLERANCE_C,
+    HEATING_ESTIMATE_MIN_C,
     HEATING_EWMA_ALPHA,
     HEATING_EXTRAPOLATION_DECAY,
     HEATING_LEARN_CEILING_BELOW_TARGET_C,
@@ -111,6 +112,7 @@ class HeatingModel:
         # bucket_floor (int) -> learned EWMA rate in °C/min
         self._learned: dict[int, float] = {}
         self._samples_total = 0
+        self._samples_saved = 0
         # Live recording of the current heat-up:
         # bucket_floor -> {"enter_ts": monotonic, "min_temp": float,
         #                  "max_temp": float, "dirty": bool}
@@ -128,6 +130,7 @@ class HeatingModel:
                 int(k): float(v) for k, v in data.get("buckets", {}).items()
             }
             self._samples_total = int(data.get("samples_total", 0))
+            self._samples_saved = self._samples_total
             _LOGGER.debug(
                 "Heating model loaded: %d learned buckets, %d samples",
                 len(self._learned),
@@ -136,6 +139,7 @@ class HeatingModel:
 
     async def async_save(self) -> None:
         """Persist learned buckets."""
+        samples = self._samples_total
         await self._store.async_save(
             {
                 "buckets": {str(k): v for k, v in self._learned.items()},
@@ -143,6 +147,7 @@ class HeatingModel:
                 "heater_class": self._heater_class,
             }
         )
+        self._samples_saved = samples
 
     # ── Properties for diagnostics / sensor attributes ───────────────
 
@@ -299,12 +304,16 @@ class HeatingModel:
 
     def finish_recording(self) -> bool:
         """End of heat-up: discard incomplete buckets. Returns True if
-        anything was learned this run (caller should persist)."""
-        learned_before = self._samples_total
+        anything learned is not saved yet (caller should persist).
+
+        Buckets are scored during the heat-up, so comparing the counter
+        before and after clearing was always False and up to 2.11.0b7 the
+        model was never saved (#17).
+        """
         self._recording.clear()
         self._last_bucket = None
         self._last_temp = None
-        return self._samples_total > learned_before
+        return self._samples_total > self._samples_saved
 
     # ── Estimation ───────────────────────────────────────────────────
 
@@ -332,7 +341,9 @@ class HeatingModel:
         """Estimate heat-up duration in minutes (no buffer included)."""
         if target_temp_c <= start_temp_c:
             return 0.0
-        start = max(start_temp_c, float(HEATING_BUCKET_MIN_C))
+        # Nothing is learned below HEATING_BUCKET_MIN_C, but a cold cabin
+        # still has to get through it, at the seed rate (#17).
+        start = max(start_temp_c, float(HEATING_ESTIMATE_MIN_C))
         if start >= target_temp_c:
             return 0.0
 

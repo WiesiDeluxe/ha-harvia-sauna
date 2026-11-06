@@ -217,6 +217,7 @@ HEATING_RATE_MIN = 0.05            # °C/min sanity bounds for learning
 HEATING_RATE_MAX = 5.0
 HEATING_BUCKET_MIN_C = 10          # learn from this cabin temp upwards
 HEATING_BUCKET_MAX_C = 110
+HEATING_ESTIMATE_MIN_C = -30       # a colder reading is taken for a bad sensor
 HEATING_LEARN_CEILING_BELOW_TARGET_C = 3.0  # exclude thermostat zone
 HEATING_EXTRAPOLATION_DECAY = 0.9  # rate multiplier per unknown bucket
 HEATING_DIP_TOLERANCE_C = 0.5      # in-bucket dip > this discards bucket
