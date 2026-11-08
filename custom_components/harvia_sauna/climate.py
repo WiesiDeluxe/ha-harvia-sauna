@@ -81,6 +81,10 @@ class HarviaThermostat(HarviaBaseEntity, ClimateEntity):
 
     _attr_translation_key = "thermostat"
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT]
+    # HA 2026.11 renamed the temperature members to native_*. The old names
+    # stay for older versions and stop working in 2027.11; a class that
+    # provides both gets no deprecation warning.
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = 40
     _attr_max_temp = 110
@@ -102,16 +106,19 @@ class HarviaThermostat(HarviaBaseEntity, ClimateEntity):
         self._attr_supported_features = features
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         """Return the current temperature."""
         device = self._get_device_data()
         return device.current_temp if device else None
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Return the target temperature."""
         device = self._get_device_data()
         return device.target_temp if device else None
+
+    current_temperature = native_current_temperature  # before HA 2026.11
+    target_temperature = native_target_temperature
 
     @property
     def hvac_mode(self) -> HVACMode:
