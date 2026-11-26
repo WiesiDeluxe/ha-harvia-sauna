@@ -13,6 +13,7 @@ import time
 import botocore.exceptions
 import jwt
 from pycognito import Cognito
+from pycognito.exceptions import TokenVerificationException
 
 from homeassistant.core import HomeAssistant
 from aiohttp import ClientTimeout
@@ -36,6 +37,64 @@ from .const import ENDPOINTS, MYHARVIA_BASE_URL, MYHARVIA_REGION
 from .errors import HarviaAuthError, HarviaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class _HarviaCognito(Cognito):
+    """Allow a small clock difference when checking Cognito's issued-at time."""
+
+    _IAT_LEEWAY_SECONDS = 30
+
+    def verify_token(self, token: str, id_name: str, token_use: str) -> dict:
+        """Verify a Cognito token with an allowance for a future iat only."""
+        audience = None if token_use == "access" else self.client_id
+        required_claims = ["iss", "exp"]
+        if token_use != "access":
+            required_claims.append("aud")
+
+        try:
+            kid = jwt.get_unverified_header(token).get("kid")
+            key = jwt.PyJWK(self.get_key(kid)).key
+            decoded = jwt.api_jwt.decode_complete(
+                token,
+                key,
+                algorithms=["RS256"],
+                audience=audience,
+                issuer=self.user_pool_url,
+                # Validate iat below so expiry and nbf retain strict checks.
+                options={"require": required_claims, "verify_iat": False},
+            )
+            claims = decoded["payload"]
+            if "iat" in claims:
+                try:
+                    issued_at = int(claims["iat"])
+                except (TypeError, ValueError, OverflowError) as err:
+                    raise jwt.InvalidIssuedAtError("Invalid iat claim") from err
+                if issued_at > time.time() + self._IAT_LEEWAY_SECONDS:
+                    raise jwt.ImmatureSignatureError("The token is not yet valid (iat)")
+        except jwt.PyJWTError as err:
+            raise TokenVerificationException(
+                f"Your {id_name!r} token could not be verified ({err})."
+            ) from err
+
+        if claims.get("token_use") != token_use:
+            raise TokenVerificationException(
+                f"Your {id_name!r} token use ({token_use!r}) could not be verified."
+            )
+
+        if "at_hash" in claims:
+            algorithm = jwt.get_algorithm_by_name(decoded["header"]["alg"])
+            digest = algorithm.compute_hash_digest(self.access_token.encode("ascii"))
+            access_token_hash = base64.urlsafe_b64encode(
+                digest[: len(digest) // 2]
+            ).rstrip(b"=").decode("ascii")
+            if access_token_hash != claims["at_hash"]:
+                raise TokenVerificationException(
+                    "at_hash claim does not match access_token."
+                )
+
+        setattr(self, id_name, token)
+        setattr(self, f"{token_use}_claims", claims)
+        return claims
 
 
 class HarviaApiClient(HarviaApiClientBase):
@@ -450,7 +509,7 @@ class HarviaApiClient(HarviaApiClientBase):
         client_id = endpoints["users"]["clientId"]
 
         self._cognito = await self._hass.async_add_executor_job(
-            Cognito,
+            _HarviaCognito,
             user_pool_id,
             client_id,
             None,  # user_pool_region is keyword arg
