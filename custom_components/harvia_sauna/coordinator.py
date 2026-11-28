@@ -18,6 +18,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -64,7 +65,7 @@ from .const import (
     SESSION_END_COOLDOWN,
     SESSION_MIN_DURATION_SEC,
 )
-from .errors import HarviaAuthError, HarviaConnectionError
+from .errors import HarviaAuthError, HarviaConnectionError, HarviaNotFoundError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -262,6 +263,10 @@ class HarviaDeviceData:
     _energy_ts: float | None = None  # monotonic time of the last energy step
     _energy_power_w: int = 0  # estimated draw since _energy_ts
     _last_update: float = 0.0  # monotonic timestamp of last data received
+    # Fenix: connectionState.connected as the cloud reports it, None = not
+    # said (Xenio). See HarviaSaunaCoordinator.is_device_offline.
+    cloud_connected: bool | None = None
+    _device_frame_ts: float | None = None  # monotonic time a new frame was last seen
 
     # Session tracking
     _session_active: bool = False
@@ -439,6 +444,9 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         self._auth_failures = 0  # consecutive auth failures (see _async_update_data)
         self._poll_failures = 0  # consecutive failed polls (see _keep_last_data)
         self._state_rechecks = 0  # state re-reads (see _maybe_recheck_state)
+        # Devices on the account without a cabin state (_async_note_unreadable)
+        self.unreadable_devices: dict[str, dict[str, Any]] = {}
+        self._reload_scheduled = False
         # Raw payloads for diagnostics, fed by BOTH the poll and the push path.
         # Recording only in the poll path made exports freeze on active
         # devices: pushes used to call async_set_updated_data(), which resets
@@ -635,8 +643,24 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                 seq_before = previous._state_seq if previous else None
 
                 # Fetch both state and latest telemetry
-                state = await self.api.async_get_device_state(device_id)
-                telemetry = await self.api.async_get_latest_device_data(device_id)
+                try:
+                    state = await self.api.async_get_device_state(device_id)
+                    telemetry = await self.api.async_get_latest_device_data(device_id)
+                except HarviaNotFoundError as err:
+                    if previous is not None:
+                        raise  # read before: an outage like any other
+                    await self._async_note_unreadable(device_entry, err)
+                    continue
+                if self.unreadable_devices.pop(device_id, None) is not None:
+                    # Its entities were never created; only a reload adds them.
+                    _LOGGER.info(
+                        "%s can be read now - reloading to add it", device_id
+                    )
+                    if not self._reload_scheduled:
+                        self._reload_scheduled = True
+                        self.hass.config_entries.async_schedule_reload(
+                            self.config_entry.entry_id
+                        )
 
                 # Preserve session data from previous cycle
                 if (
@@ -661,12 +685,18 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                         "Poll: a state push arrived meanwhile, keeping it (%s)",
                         device_id,
                     )
+                if _is_newer_telemetry(
+                    telemetry.get("timestamp"), device_data.timestamp
+                ):
+                    # The device sent a frame since the last one seen
+                    device_data._device_frame_ts = time.monotonic()
                 if not _is_stale_telemetry(
                     telemetry.get("timestamp"), device_data.timestamp
                 ):
                     _apply_telemetry_data(device_data, telemetry)
                 self._run_session_tracking(device_data)
                 _update_temp_trend(device_data)
+                self._sync_firmware(device_data)
 
                 data.devices[device_id] = device_data
 
@@ -724,6 +754,70 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
         )
         return self.data
 
+    async def _async_note_unreadable(
+        self, device_entry: dict[str, Any], err: Exception
+    ) -> None:
+        """Skip a device that has no cabin state, and keep what it does offer.
+
+        The integration reads controllers, whose state is the cabin shadow
+        "C1". A MyHarvia sauna sensor on the account has none: the cloud
+        answers 404, and that used to fail the whole poll, so the sensor
+        alone kept the setup retrying and would have blocked a Fenix next to
+        it (#18). Its raw answers go into the diagnostics instead.
+        """
+        device_id = device_entry["device_id"]
+        if device_id in self.unreadable_devices:
+            return
+        list_entry = device_entry.get("raw")
+        device_type = list_entry.get("type") if isinstance(list_entry, dict) else None
+        self.api.ignore_device(device_id)
+        try:
+            probe = await self.api.async_probe_device(device_id)
+        except Exception as probe_err:  # noqa: BLE001 - diagnostics only
+            probe = {"error": str(probe_err)}
+        self.unreadable_devices[device_id] = {
+            "type": device_type,
+            "error": str(err),
+            "list_entry": list_entry,
+            "probe": probe,
+        }
+        _LOGGER.warning(
+            "Device %s (type %s) has no cabin state and is skipped. A sauna "
+            "sensor is not supported yet; a controller is added once the "
+            "cloud has its state. What the cloud returns for the device is "
+            "in the diagnostics download (%s)",
+            device_id, device_type, err,
+        )
+
+    def _sync_firmware(self, device: HarviaDeviceData) -> None:
+        """Write a firmware version learned after setup to the device registry.
+
+        Entities hand their device info over once, when they are added. A
+        Fenix reports its firmware only in the device-info message of the
+        state feed, which arrives later, so it stayed unknown (#16).
+        """
+        firmware = device.firmware_version
+        if not firmware:
+            return
+        registry = dr.async_get(self.hass)
+        # Looked up through the config entry: async_get_device(identifiers=)
+        # is deprecated since HA 2026.10 and its replacement is too new for
+        # the oldest supported version.
+        identifier = (DOMAIN, device.device_id)
+        entry = next(
+            (
+                e
+                for e in dr.async_entries_for_config_entry(
+                    registry, self.config_entry.entry_id
+                )
+                if identifier in e.identifiers
+            ),
+            None,
+        )
+        # None: not created yet, the entities will supply it
+        if entry is not None and entry.sw_version != firmware:
+            registry.async_update_device(entry.id, sw_version=firmware)
+
     def _record_raw(
         self, kind: str, device_id: str, payload: Any, source: str
     ) -> None:
@@ -755,6 +849,17 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                         self._record_raw("last_state", device_id, state, "push")
                         self._run_session_tracking(device)
                         updated = True
+                        self._sync_firmware(device)
+
+            elif "onConnectionState" in payload_data:
+                # Not a state: it must neither count as a state push (a poll
+                # running meanwhile would drop the state it just read) nor
+                # as a sign of life.
+                item = payload_data["onConnectionState"]
+                device = self.data.devices.get(item.get("deviceId"))
+                if device is not None and isinstance(item.get("connected"), bool):
+                    device.cloud_connected = item["connected"]
+                    updated = True
 
             elif "onDataUpdates" in payload_data:
                 item = payload_data["onDataUpdates"].get("item", {})
@@ -764,6 +869,7 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
                     if item.get("timestamp") is not None:
                         telemetry["timestamp"] = item["timestamp"]
                     device = self.data.devices[device_id]
+                    device._device_frame_ts = time.monotonic()
                     _apply_telemetry_data(device, telemetry)
                     self._record_raw("last_telemetry", device_id, telemetry, "push")
                     self._run_session_tracking(device)
@@ -974,6 +1080,23 @@ class HarviaSaunaCoordinator(DataUpdateCoordinator[HarviaSaunaData]):
             return False  # No update yet, trust initial data
         return (time.monotonic() - device._last_update) > DEVICE_STALE_TIMEOUT
 
+    def is_device_offline(self, device_id: str) -> bool:
+        """Whether the cloud says the device itself is disconnected (Fenix).
+
+        The 5-minute poll reads the state the cloud has stored and succeeds
+        also while the heater is offline, so a silent Fenix never turned
+        stale (#16). connectionState.connected is the cloud's
+        own view of the device. A new frame from the device within the stale
+        timeout, pushed or polled, outweighs it: it evidently still sends.
+        """
+        if not self.data or device_id not in self.data.devices:
+            return False
+        device = self.data.devices[device_id]
+        if device.cloud_connected is not False:
+            return False
+        seen = device._device_frame_ts
+        return seen is None or time.monotonic() - seen > DEVICE_STALE_TIMEOUT
+
 
 def local_day() -> str:
     """Today in Home Assistant's time zone (not the host's), ISO format."""
@@ -1002,6 +1125,22 @@ def _is_stale_telemetry(new_ts: Any, last_ts: Any) -> bool:
     if new <= 0 or last <= 0 or max(new, last) > 100 * min(new, last):
         return False  # different units: do not guess
     return new <= last
+
+
+def _is_newer_telemetry(new_ts: Any, last_ts: Any) -> bool:
+    """Whether a polled frame is provably newer than the last one applied.
+
+    Unlike _is_stale_telemetry this is False for anything not comparable,
+    the first frame after a start included: only a later frame shows that
+    the device has sent something since.
+    """
+    try:
+        new, last = float(new_ts), float(last_ts)
+    except (TypeError, ValueError):
+        return False
+    if new <= 0 or last <= 0 or max(new, last) > 100 * min(new, last):
+        return False
+    return new > last
 
 
 def _to_bool(value: Any) -> bool:
@@ -1183,6 +1322,8 @@ def _apply_state_data(device: HarviaDeviceData, data: dict[str, Any]) -> None:
         device.timed_start = data["timedStart"] or None
     if "doorOpen" in data:
         device.door_open = _to_bool(data["doorOpen"])
+    if isinstance(data.get("cloudConnected"), bool):
+        device.cloud_connected = data["cloudConnected"]
     if "fwVersion" in data:
         device.firmware_version = str(data["fwVersion"])
     elif "swVersion" in data:

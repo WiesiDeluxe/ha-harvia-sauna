@@ -219,13 +219,11 @@ The energy sensor uses `state_class: total_increasing` and works with the HA Ene
 
 > **⚠️ Power and energy are estimates.** No cloud field reports the heating element itself, so the integration counts the heater's rated power only while it is most likely running.
 > - **Xenio** (since 2.11.0): rated power while the panel reports heating demand (status bit 8) and the target has not yet been reached (bit 5 clear), i.e. during heat-up. Bit 8 alone stays set for the whole session, which is what 2.10 and earlier counted. Measured against a meter on one session: **11.9 kWh estimated vs 12.8–13.1 kWh real** (2.10 counted 27.4 kWh). Not visible to the estimate: the element cycling while it holds the temperature, and re-heating after the target was first reached (bit 5 stays set).
-> - **Fenix**: rated power while `heatOn`; the telemetry field `heaterPower` would be used if a unit ever reported it (it has been 0 on every unit seen so far).
+> - **Fenix**: rated power while `heatOn`; the telemetry field `heaterPower` would be used if a unit ever reported it (it has been 0 on every unit seen so far). On the one Fenix compared with a meter, `heatOn` stayed set for the whole session and the estimate was about twice the real use (28.6 kWh estimated, about 12.5 kWh measured, issue #16). A heat-up estimate like the Xenio one is planned.
 >
 > For exact figures use an external meter (e.g. Shelly 3EM, CT clamp) on the heater circuit.
 >
 > **Do not use *Power* to detect a running sauna.** Since 2.11.0 it drops to 0 once the target is reached, while the session goes on. For "sauna is on" use the *Power* switch or the thermostat's state; for "element is heating" the thermostat's `hvac_action`.
->
-> **Fenix users:** The Fenix API provides a real measured `heaterPower` value, so the "Actual heater power" sensor reflects true consumption.
 
 ## Device schedule (Xenio, v2.9.0+)
 
@@ -261,13 +259,16 @@ The inherited "2nd decimal digit == 9" door rule was an artefact of bit 1 on som
 - **Duration in the device schedule is honoured at 15-minute granularity** (90 min → `remainingTime` = heat-up + 90, measured), and the schedule's target temperature is applied at ignition and reverts to the previous setpoint when the session stops.
 - The panel reports its state roughly every 14 minutes while idle; the integration polls every 5 minutes in addition to the push feed, so idle devices are not flagged stale.
 - **A single failed poll no longer blanks the entities** (since 2.11.0). A DNS timeout or a cloud hiccup used to mark every entity *unavailable* until the next poll five minutes later. The last data is now kept; entities go *unavailable* after three failed polls in a row, or when nothing — poll or push — has been heard from the device for 10 minutes.
+- **An offline Fenix turns unavailable** (since 2.11.0). The cloud keeps answering the poll with the last stored state while the panel is offline, so its entities used to stay available. The cloud also reports whether the panel is connected (`connectionState`), and the entities now follow that. A new frame from the panel within the last 10 minutes outweighs it.
 - **A lost state message is corrected** (since 2.11.0). The 5-minute fallback poll now also runs while pushes arrive (it used to be postponed by every push, so during a session it never ran), and if telemetry reports heating while the state has said *off* for a minute, the state is re-read right away (at most once per 5 minutes). Seen on a Fenix started at the panel: the switch and thermostat stayed *off* for 42 minutes of heat-up.
 
 ## Heating profiles (Fenix, v2.10.0+)
 
 Fenix panels store four profiles of their own (name, target temperature, humidity, duration). The **Heating profile** select shows them under the names configured on the panel and switches between them; the active profile is mirrored back, so choosing one at the panel updates Home Assistant too.
 
-**Target temperature on Fenix** (since 2.11.0): the thermostat shows the target the heater actually uses. The device state's own `targetTemp` does not follow profile changes (measured), so with the heater off the value comes from the active profile, and while it runs from the live telemetry (a profile change arrives there within about half a minute). Humidity is handled the same way.
+**Target temperature on Fenix** (since 2.11.0): the thermostat shows the target the heater reports. The device state's own `targetTemp` does not follow profile changes (measured), so with the heater off the value comes from the active profile, and while it runs from the live telemetry (a profile change arrives there within about half a minute). Humidity is handled the same way.
+
+> **Changes during a session:** on the one Fenix where the room temperature was measured, a profile switch or a new target sent from Home Assistant while the heater was running changed the reported target but not the heating; only a change at the panel did (issue #11). Until that is settled, choose the profile or target before you start the heater.
 
 - The integration **selects** a profile; it does not edit one. Profile contents *can* be written through the raw state API — the MyHarvia app writes the complete profile object to `profiles.<n>` via `devicesStatesUpdate` (`shadowName: "C1"`) and the panel applies it within about a second (verified by @fasdav, issue #9). Note the pitfall: the server wraps the `state` argument into `desired` itself, so passing `{"desired": {...}}` lands at `desired.desired.…` and is silently ignored. Editing profiles from the integration is not implemented — a read-modify-write of the whole object would overwrite panel-side changes made in between.
 - **Selecting a profile applies its target temperature**, so the climate setpoint follows it. This is why a setpoint written from HA can appear to be overwritten shortly afterwards (issue #9).
@@ -301,6 +302,8 @@ The **Session time** number sets how long a session runs — **on Xenio only**. 
 | Real heater power | ❌ estimate (heat-up phase, see Energy Dashboard) | ❌ estimate (`heaterPower` reported as 0 so far) |
 
 Fenix note: remote control on MyHarvia 2 is a paid *Control* tier after a trial. If reading works but starting does not, check the licence in the app before filing a bug.
+
+**MyHarvia Smart Sauna Sensor:** not supported yet. A sensor on a harvia.io account is skipped (since 2.11.0; before, it made the whole setup fail), and what the cloud returns for it is included in the diagnostics download under `unreadable_devices` (issue #18).
 
 ## Development
 

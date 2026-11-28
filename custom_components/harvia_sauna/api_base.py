@@ -59,6 +59,13 @@ class HarviaApiClientBase(ABC):
         """Return push connection info for diagnostics."""
         return []
 
+    def ignore_device(self, device_id: str) -> None:
+        """Leave a device the integration cannot read out of the push setup."""
+
+    async def async_probe_device(self, device_id: str) -> dict[str, Any]:
+        """Return what the cloud offers for an unreadable device (diagnostics)."""
+        return {}
+
     def invalidate_tokens(self) -> None:
         """Drop cached tokens so the next request logs in again."""
 

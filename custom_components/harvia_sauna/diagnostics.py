@@ -41,6 +41,13 @@ def _redact_raw(value: Any) -> Any:
     so JSON strings are decoded, redacted and re-encoded (issue #9).
     """
     if isinstance(value, dict):
+        # Attribute lists name the key in a value: [{"key": ..., "value": ...}]
+        if (
+            "value" in value
+            and isinstance(value.get("key"), str)
+            and RAW_REDACT_PATTERN.search(value["key"])
+        ):
+            value = {**value, "value": REDACTED}
         return {
             k: REDACTED if RAW_REDACT_PATTERN.search(str(k)) else _redact_raw(v)
             for k, v in value.items()
@@ -78,6 +85,7 @@ async def async_get_config_entry_diagnostics(
             devices_info[device_id] = {
                 "display_name": device.display_name,
                 "firmware_version": device.firmware_version,
+                "cloud_connected": device.cloud_connected,
                 "active": device.active,
                 "heat_on": device.heat_on,
                 "steam_on": device.steam_on,
@@ -149,4 +157,7 @@ async def async_get_config_entry_diagnostics(
             "websocket_connections": coordinator.websocket_connections_info,
         },
         "devices": devices_info,
+        # Devices on the account without a cabin state, e.g. a sauna sensor,
+        # with what the cloud returns for them (#18).
+        "unreadable_devices": _redact_raw(coordinator.unreadable_devices),
     }

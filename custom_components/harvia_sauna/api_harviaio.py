@@ -16,7 +16,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 HTTP_TIMEOUT = ClientTimeout(total=30)
 
 from .api_base import HarviaApiClientBase
-from .errors import HarviaAuthError, HarviaConnectionError
+from .errors import HarviaAuthError, HarviaConnectionError, HarviaNotFoundError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +48,7 @@ class HarviaIoApiClient(HarviaApiClientBase):
         # diagnostics download instead of enabling debug logging)
         self._last_raw_state: dict[str, Any] = {}      # device_id -> raw payload
         self._last_raw_telemetry: dict[str, Any] = {}  # device_id -> raw payload
+        self._ignored_device_ids: set[str] = set()
 
     async def async_authenticate(self) -> bool:
         """Authenticate using REST token endpoint."""
@@ -161,6 +162,31 @@ class HarviaIoApiClient(HarviaApiClientBase):
         )
         self._last_raw_telemetry[device_id] = data
         return _normalize_telemetry_payload(data)
+
+    def ignore_device(self, device_id: str) -> None:
+        """Keep a device without a cabin from being picked as push receiver."""
+        self._ignored_device_ids.add(device_id)
+
+    async def async_probe_device(self, device_id: str) -> dict[str, Any]:
+        """Read a device that has no cabin 'C1', for the diagnostics only.
+
+        Harvia's API reference (v0.5.0) says GET /devices/state without a
+        subId returns the classic shadow for sauna sensors. Nobody has
+        measured that or the telemetry of such a device yet (#18), so the
+        answers are kept raw and nothing is derived from them.
+        """
+        result: dict[str, Any] = {}
+        for name, service, path in (
+            ("state", "device", "/devices/state"),
+            ("latest_data", "data", "/data/latest-data"),
+        ):
+            try:
+                result[name] = await self._async_rest_request(
+                    service, "GET", path, params={"deviceId": device_id}
+                )
+            except (HarviaAuthError, HarviaConnectionError) as err:
+                result[name] = {"error": str(err)}
+        return result
 
     @property
     def last_raw_state(self) -> dict[str, Any]:
@@ -342,8 +368,14 @@ class HarviaIoApiClient(HarviaApiClientBase):
 
     async def async_get_receiver_id(self) -> str | None:
         """Return receiver ID used in GraphQL feed subscriptions (None: no devices)."""
-        # Always fetch devices directly to ensure we have the latest data
-        devices = await self.async_get_devices()
+        # Always fetch devices directly to ensure we have the latest data.
+        # A device without a cabin (a sauna sensor, #18) is not read, so it
+        # must not take the receiver slot from a controller listed after it.
+        devices = [
+            d
+            for d in await self.async_get_devices()
+            if d.get("device_id") not in self._ignored_device_ids
+        ]
         if not devices:
             return None  # nothing to subscribe to; retrying setup would not help
         first_device = devices[0]
@@ -492,6 +524,8 @@ class HarviaIoApiClient(HarviaApiClientBase):
                 if response.status in (401, 403):
                     self._token_data = None
                     raise HarviaAuthError(f"HTTP {response.status}")
+                if response.status == 404:
+                    raise HarviaNotFoundError(f"HTTP 404: {body_text[:300]}")
                 if response.status >= 400:
                     raise HarviaConnectionError(
                         f"HTTP {response.status}: {body_text[:300]}"
@@ -609,6 +643,15 @@ def _normalize_state_payload(device_id: str, payload: dict[str, Any]) -> dict[st
         if source in state:
             normalized[target] = state[source]
 
+    # A Fenix names its firmware deviceFwVersion, in the device-info message
+    # of the state feed ("1.2.12" on the unit in #16).
+    if "fwVersion" not in normalized and "deviceFwVersion" in state:
+        normalized["fwVersion"] = state["deviceFwVersion"]
+
+    connected = _connection_state(payload.get("connectionState"))
+    if connected is not None:
+        normalized["cloudConnected"] = connected
+
     # Extract heater.on as active (heater is a nested object in Fenix state;
     # fix from moritzj29/a3f792d)
     if "heater" in state and isinstance(state["heater"], dict):
@@ -623,6 +666,17 @@ def _normalize_state_payload(device_id: str, payload: dict[str, Any]) -> dict[st
 
     _LOGGER.debug("Normalized state payload for %s: raw=%s -> normalized=%s", device_id, state, normalized)
     return normalized
+
+
+def _connection_state(value: Any) -> bool | None:
+    """Return connectionState.connected, or None if the cloud did not say.
+
+    The polled state carries it next to "state", the state feed next to
+    "reported" (both seen in #9 and #16).
+    """
+    if isinstance(value, dict) and isinstance(value.get("connected"), bool):
+        return value["connected"]
+    return None
 
 
 # Candidate field names for the door sensor in Fenix payloads.

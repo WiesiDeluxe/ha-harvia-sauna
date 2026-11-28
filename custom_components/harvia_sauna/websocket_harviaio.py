@@ -14,7 +14,12 @@ from typing import Any, Awaitable, Callable
 
 import websockets
 
-from .api_harviaio import HarviaIoApiClient, _normalize_state_payload, _normalize_telemetry_payload
+from .api_harviaio import (
+    HarviaIoApiClient,
+    _connection_state,
+    _normalize_state_payload,
+    _normalize_telemetry_payload,
+)
 from .const import (
     WS_HEARTBEAT_TIMEOUT,
     WS_MAX_RECONNECT_DELAY,
@@ -59,7 +64,7 @@ class HarviaIoWebSocketManager:
         # the entry running on 5-minute polls only, with no retry until a reload.
         receiver = await self._api.async_get_receiver_id()
         if receiver is None:
-            _LOGGER.info("No Harvia devices on this account - push not started")
+            _LOGGER.info("No Harvia controller on this account - push not started")
             return
         _LOGGER.debug("Starting WebSocket subscriptions for receiver: %s", receiver)
 
@@ -97,10 +102,17 @@ class HarviaIoWebSocketManager:
         if endpoint == "device":
             feed = payload_data.get("devicesStatesUpdateFeed", {})
             item = feed.get("item", {})
+            connected = _connection_state(item.get("connectionState"))
             reported = item.get("reported")
             if reported is None:
+                # A message without a state can still say the device went
+                # offline or came back.
+                if connected is not None and item.get("deviceId"):
+                    await self._on_device_update({"onConnectionState": {
+                        "deviceId": item["deviceId"], "connected": connected,
+                    }})
                 return
-            
+
             # Handle case where reported might be a JSON string instead of dict
             if isinstance(reported, str):
                 try:
@@ -109,20 +121,22 @@ class HarviaIoWebSocketManager:
                 except (json.JSONDecodeError, TypeError):
                     _LOGGER.warning("Failed to parse reported as JSON string: %s", reported)
                     return
-            
+
             if not isinstance(reported, dict):
                 _LOGGER.warning("reported is not a dict: %s (type: %s)", reported, type(reported))
                 return
-            
+
             device_id = item.get("deviceId")
             if not device_id:
                 _LOGGER.warning("Device state update missing deviceId in item: %s", item)
                 return
-            
+
             _LOGGER.debug("Device state update for %s: %s", device_id, reported)
-            
+
             # Normalize reported state to match coordinator expectations
             normalized = _normalize_state_payload(device_id, reported)
+            if connected is not None:
+                normalized["cloudConnected"] = connected
             _LOGGER.debug("Normalized device state for %s: %s", device_id, normalized)
 
             # Pass as JSON string to match coordinator's expected format

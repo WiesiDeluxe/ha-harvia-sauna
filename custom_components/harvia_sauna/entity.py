@@ -65,6 +65,7 @@ class HarviaBaseEntity(CoordinatorEntity[HarviaSaunaCoordinator]):
             and self.coordinator.data.available
             and self._device_id in self.coordinator.data.devices
             and not self.coordinator.is_device_stale(self._device_id)
+            and not self.coordinator.is_device_offline(self._device_id)
         )
 
     def _get_device_data(self) -> HarviaDeviceData | None:
