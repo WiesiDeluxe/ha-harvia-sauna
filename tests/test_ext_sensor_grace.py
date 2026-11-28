@@ -8,7 +8,7 @@ internal sensor reads 55 - three evaluations ended the session.
 """
 import logging
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 
 from custom_components.harvia_sauna.const import (
     COOLDOWN_EXT_SENSOR_GRACE_SEC,
@@ -25,7 +25,14 @@ async def _cooldown(hass: HomeAssistant):
     coordinator = hass.data[DOMAIN][entry.entry_id]
     device = next(iter(coordinator.data.devices.values()))
     ended = []
-    hass.bus.async_listen(EVENT_SESSION_END, ended.append)
+
+    @callback
+    def _ended(event) -> None:
+        ended.append(event)
+
+    # A plain function would run in the executor, and the asserts right
+    # after the tracking call raced it (failed once in CI, 28 Nov 2026).
+    hass.bus.async_listen(EVENT_SESSION_END, _ended)
     device.active = True
     device.target_temp = 80
     device.current_temp = 90
